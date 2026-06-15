@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pagecraft — Visual Page Builder
 
-## Getting Started
+A clean, full-stack drag-and-drop page builder (Divi-style) built with **Next.js
+16, React 19, TypeScript, Tailwind CSS v4, Prisma + SQLite, dnd-kit and Zustand**.
 
-First, run the development server:
+Build pages from a rich library of blocks, fine-tune content and style per
+breakpoint, preview responsively, then **publish to a public URL** or **export
+standalone HTML**.
+
+## Features
+
+- **Drag-and-drop canvas** with live insertion indicators and inline text editing
+- **20+ blocks** across three categories:
+  - **Layout** — Section, Columns (1–4 / sidebar layouts), Spacer, Divider
+  - **Basic** — Heading, Text, Button, Image, Icon, Video, List, Quote
+  - **Sections** — Hero, Feature grid, Pricing, Testimonial, Stats, CTA, Footer
+- **Responsive controls** — desktop / tablet / mobile, with per-breakpoint style overrides
+- **Inspector** — content fields + style controls (typography, spacing, background, border, effects, layout)
+- **Undo / redo** with smart history coalescing, plus keyboard shortcuts
+  (`⌘Z` / `⌘⇧Z`, `⌘D` duplicate, `Delete` remove)
+- **Layers** panel, **autosave**, **multi-page dashboard**, and **starter templates**
+- **Publish** to a clean public page (`/p/<slug>`) and **export** a self-contained HTML file
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx prisma db push      # create the SQLite database (dev.db)
+npm run dev             # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command                   | Description                                                   |
+| ------------------------- | ------------------------------------------------------------- |
+| `npm run dev`             | Start the dev server                                          |
+| `npm run build`           | Production build                                              |
+| `npm run start`           | Run the production build                                      |
+| `npm test`                | Run the Vitest unit suite                                     |
+| `node scripts/verify.mjs` | Playwright end-to-end GUI smoke test (server must be running) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture
 
-## Learn More
+```
+lib/
+  types.ts          Block tree + style model
+  tree.ts           Pure, immutable tree operations (insert/move/remove/duplicate)  <- unit-tested
+  styles.ts         Responsive style resolver + scoped stylesheet generator          <- unit-tested
+  registry.ts       Central block registry (drives palette, renderer, inspector)
+  export-html.ts    Self-contained HTML document builder                             <- unit-tested
+  templates.ts      Starter page templates
+  page-service.ts   Content (de)serialization + unique slugs
+components/
+  BlockRenderer.tsx Clean recursive renderer (public page + preview + export)
+  blocks/           Block render components (shared by editor + public)
+  editor/           Editor UI (top bar, palette, layers, DnD canvas, inspector)
+  dashboard/        Multi-page dashboard
+store/
+  editor-store.ts   Zustand store: tree, selection, viewport, undo/redo, autosave
+app/
+  page.tsx          Dashboard
+  editor/[id]/      Builder
+  p/[slug]/         Public published page
+  api/pages/        CRUD + publish endpoints
+```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The heart of the app is a **recursive block tree** (`{ id, type, props, styles,
+children }`) stored as JSON. A single **component registry** maps each block type
+to its renderer, default props/styles, and inspector schema — so the palette,
+canvas, and settings panel all stay in sync from one source of truth.

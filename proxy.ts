@@ -1,0 +1,45 @@
+import { NextResponse, type NextRequest } from "next/server";
+
+// Next 16 renamed `middleware` → `proxy`. This does an OPTIMISTIC auth gate
+// (cookie presence only — fast, runs on every navigation). The real/secure
+// checks live in route handlers (requireApiUser) and server pages (requireUser).
+//
+//  • Published sites (/p, /c) and the auth endpoints stay public.
+//  • API routes enforce their own auth, so we don't redirect them here.
+//  • Every other (builder) page route requires the session cookie.
+
+const AUTH_PAGES = ["/login", "/signup", "/forgot", "/reset"];
+
+export default function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // Never gate: API (handlers enforce), published pages, Next internals.
+  if (pathname.startsWith("/api") || pathname.startsWith("/p/") || pathname.startsWith("/c/")) {
+    return NextResponse.next();
+  }
+
+  const hasSession = !!req.cookies.get("pc_session")?.value;
+  const isAuthPage = AUTH_PAGES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+
+  if (isAuthPage) {
+    // Already signed in → bounce away from auth pages.
+    if (hasSession) return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.next();
+  }
+
+  // All other (builder) routes require a session.
+  if (!hasSession) {
+    const url = new URL("/login", req.url);
+    if (pathname !== "/") url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    // Run on everything except Next internals and static asset files.
+    "/((?!_next/static|_next/image|favicon.ico|icon|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|svg|ico|webp|css|js)$).*)",
+  ],
+};

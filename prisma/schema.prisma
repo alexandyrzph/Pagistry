@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Page {
+  id              String   @id @default(cuid())
+  title           String   @default("Untitled Page")
+  slug            String   @unique
+  content         String   @default("[]") // JSON-encoded block tree (Block[])
+  theme           String   @default("{}") // JSON design tokens
+  workspaceId     String?
+  published       Boolean  @default(false)
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  ogImage         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  submissions Submission[]
+  versions    PageVersion[]
+
+  @@index([workspaceId])
+}
+
+model PageVersion {
+  id        String   @id @default(cuid())
+  pageId    String
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  label     String   @default("")
+  content   String   @default("[]") // JSON snapshot of the block tree
+  theme     String   @default("{}")
+  createdAt DateTime @default(now())
+
+  @@index([pageId])
+}
+
+model Submission {
+  id        String   @id @default(cuid())
+  pageId    String
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  formId    String   @default("form")
+  data      String   @default("{}") // JSON of field -> value
+  createdAt DateTime @default(now())
+}
+
+model Component {
+  id          String   @id @default(cuid())
+  name        String   @default("Component")
+  content     String   @default("[]") // JSON block subtree (Block[])
+  workspaceId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([workspaceId])
+}
+
+model Asset {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  type        String   @default("")
+  size        Int      @default(0)
+  workspaceId String?
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId])
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  name         String          @default("")
+  passwordHash String
+  onboardedAt  DateTime?
+  createdAt    DateTime        @default(now())
+  sessions     Session[]
+  resets       PasswordReset[]
+  memberships  Membership[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Site {
+  id          String   @id @default(cuid())
+  workspaceId String?  @unique // one Site per workspace; NULL = unscoped/legacy (SQLite treats NULLs as distinct)
+  header      String   @default("[]") // JSON Block[] rendered atop every page
+  footer      String   @default("[]") // JSON Block[] rendered below every page
+  colors      String   @default("[]") // JSON ColorToken[] — shared design-system colors
+  textStyles  String   @default("[]") // JSON TextStyle[] — shared typography presets
+  updatedAt   DateTime @updatedAt
+}
+
+model Collection {
+  id             String   @id @default(cuid())
+  name           String   @default("Collection")
+  slug           String   @unique
+  fields         String   @default("[]") // JSON: CollectionField[]
+  detailEnabled  Boolean  @default(false)
+  detailTemplate String   @default("[]") // JSON Block[] with {{field}} tokens
+  workspaceId    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  items CollectionItem[]
+
+  @@index([workspaceId])
+}
+
+model CollectionItem {
+  id           String     @id @default(cuid())
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  data         String     @default("{}") // JSON: { fieldKey: value }
+  order        Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([collectionId])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+model Workspace {
+  id          String       @id @default(cuid())
+  name        String       @default("Workspace")
+  slug        String       @unique
+  logoUrl     String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  memberships Membership[]
+  invites     Invite[]
+}
+
+model Membership {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  role        Role      @default(EDITOR)
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+model Invite {
+  id          String    @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  email       String
+  role        Role      @default(EDITOR)
+  token       String    @unique
+  invitedById String
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId])
+}
+
+model ActivityEvent {
+  id          String   @id @default(cuid())
+  workspaceId String
+  actorId     String
+  type        String
+  targetId    String?
+  meta        String   @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId, createdAt])
+}
