@@ -155,6 +155,23 @@ export type FieldType =
   | "stringlist" // repeatable list of plain strings
   | "items"; // repeatable list of {primary, secondary, ...}
 
+/** Runtime list of every FieldType (keep in sync with the FieldType union). */
+export const FIELD_TYPES: FieldType[] = [
+  "text",
+  "textarea",
+  "code",
+  "number",
+  "select",
+  "color",
+  "image",
+  "url",
+  "boolean",
+  "icon",
+  "file",
+  "stringlist",
+  "items",
+];
+
 export type SelectOption = { label: string; value: string };
 
 export type SettingField = {

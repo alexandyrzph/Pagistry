@@ -17,20 +17,14 @@ import { useDrag } from "./drag-context";
 import {
   ColorInput,
   Field,
-  FileInput,
-  IconPicker,
-  ImageInput,
-  ItemsEditor,
   NumberInput,
   Segmented,
   SelectInput,
   Slider,
-  StringList,
-  TextArea,
   TextInput,
-  Toggle,
   UnitInput,
 } from "./controls";
+import { ItemsEditor, LEAF_INPUTS } from "@/lib/field-inputs";
 
 // --- style field hook -------------------------------------------------------
 
@@ -455,43 +449,20 @@ function ContentField({
   const setProp = useEditor((s) => s.setProp);
   const set = (v: any) => setProp(blockId, field.key, v);
 
-  switch (field.type) {
-    case "textarea":
-      return <Field label={field.label}><TextArea value={value ?? ""} onChange={set} placeholder={field.placeholder} /></Field>;
-    case "code":
-      return (
-        <Field label={field.label}>
-          <textarea
-            value={value ?? ""}
-            onChange={(e) => set(e.target.value)}
-            placeholder={field.placeholder}
-            rows={6}
-            spellCheck={false}
-            className="w-full resize-y rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 font-mono text-xs leading-relaxed text-zinc-800 shadow-xs outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-          />
-        </Field>
-      );
-    case "number":
-      return <Field label={field.label}><NumberInput value={value ?? ""} onChange={set} placeholder={field.placeholder} /></Field>;
-    case "select":
-      return <Field label={field.label}><SelectInput value={String(value ?? "")} onChange={set} options={field.options ?? []} /></Field>;
-    case "color":
-      return <Field label={field.label}><ColorInput value={value ?? ""} onChange={set} /></Field>;
-    case "boolean":
-      return <Field label={field.label}><Toggle value={!!value} onChange={set} /></Field>;
-    case "icon":
-      return <Field label={field.label}><IconPicker value={value ?? "Star"} onChange={set} /></Field>;
-    case "image":
-      return <Field label={field.label}><ImageInput value={value ?? ""} onChange={set} /></Field>;
-    case "file":
-      return <Field label={field.label}><FileInput value={value ?? ""} onChange={set} /></Field>;
-    case "stringlist":
-      return <Field label={field.label}><StringList value={value ?? []} onChange={set} /></Field>;
-    case "items":
-      return <Field label={field.label}><ItemsEditor value={value ?? []} itemFields={field.itemFields ?? []} onChange={set} /></Field>;
-    default:
-      return <Field label={field.label}><TextInput value={value ?? ""} onChange={set} placeholder={field.placeholder} /></Field>;
+  if (field.type === "items") {
+    return (
+      <Field label={field.label}>
+        <ItemsEditor value={value ?? []} itemFields={field.itemFields ?? []} onChange={set} />
+      </Field>
+    );
   }
+
+  const render = LEAF_INPUTS[field.type] ?? LEAF_INPUTS.text;
+  return (
+    <Field label={field.label}>
+      {render({ value, onChange: set, options: field.options, placeholder: field.placeholder })}
+    </Field>
+  );
 }
 
 // --- viewport switcher ------------------------------------------------------

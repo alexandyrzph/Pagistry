@@ -8,7 +8,7 @@ import { DynamicIcon } from "@/components/blocks/shared";
 import { uploadFile } from "@/lib/upload";
 import { AssetPicker } from "./AssetPicker";
 import { useDesignSystem } from "@/store/design-system";
-import type { SelectOption, SettingField } from "@/lib/types";
+import type { SelectOption } from "@/lib/types";
 
 const COLOR_VAR_RE = /^var\(--pc-color-([A-Za-z0-9]+)\)$/;
 
@@ -635,76 +635,6 @@ export function StringList({
         type="button"
         onClick={() => onChange([...items, "New item"])}
         className="flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-zinc-300 py-1.5 text-xs font-medium text-zinc-500 hover:border-indigo-300 hover:text-indigo-600"
-      >
-        <Plus size={13} /> Add item
-      </button>
-    </div>
-  );
-}
-
-export function ItemsEditor({
-  value,
-  itemFields,
-  onChange,
-}: {
-  value: Record<string, any>[];
-  itemFields: NonNullable<SettingField["itemFields"]>;
-  onChange: (v: Record<string, any>[]) => void;
-}) {
-  const items = value ?? [];
-
-  const blank = () => {
-    const o: Record<string, any> = {};
-    for (const f of itemFields) {
-      o[f.key] = f.type === "boolean" ? false : f.type === "icon" ? "Star" : "";
-    }
-    return o;
-  };
-
-  const update = (i: number, key: string, v: any) => {
-    const next = items.map((it, j) => (j === i ? { ...it, [key]: v } : it));
-    onChange(next);
-  };
-
-  return (
-    <div className="space-y-2">
-      {items.map((item, i) => (
-        <div key={i} className="rounded-lg border border-zinc-200 bg-zinc-50 p-2.5">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-zinc-400">
-              Item {i + 1}
-            </span>
-            <button
-              type="button"
-              className="rounded p-1 text-zinc-400 hover:bg-red-50 hover:text-red-500"
-              onClick={() => onChange(items.filter((_, j) => j !== i))}
-            >
-              <Trash2 size={13} />
-            </button>
-          </div>
-          <div className="space-y-2">
-            {itemFields.map((f) => (
-              <Field key={f.key} label={f.label}>
-                {f.type === "textarea" ? (
-                  <TextArea value={item[f.key] ?? ""} onChange={(v) => update(i, f.key, v)} />
-                ) : f.type === "boolean" ? (
-                  <Toggle value={!!item[f.key]} onChange={(v) => update(i, f.key, v)} />
-                ) : f.type === "icon" ? (
-                  <IconPicker value={item[f.key] ?? "Star"} onChange={(v) => update(i, f.key, v)} />
-                ) : f.type === "select" ? (
-                  <SelectInput value={item[f.key] ?? ""} onChange={(v) => update(i, f.key, v)} options={f.options ?? []} />
-                ) : (
-                  <TextInput value={item[f.key] ?? ""} onChange={(v) => update(i, f.key, v)} />
-                )}
-              </Field>
-            ))}
-          </div>
-        </div>
-      ))}
-      <button
-        type="button"
-        onClick={() => onChange([...items, blank()])}
-        className="flex w-full items-center justify-center gap-1 rounded-md border border-dashed border-zinc-300 py-2 text-xs font-medium text-zinc-500 hover:border-indigo-300 hover:text-indigo-600"
       >
         <Plus size={13} /> Add item
       </button>
