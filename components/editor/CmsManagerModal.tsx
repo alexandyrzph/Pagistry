@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
 import { Database, ExternalLink, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Modal } from "./Modal";
 import { cn } from "@/lib/utils";
 import type { CmsFieldType, CollectionField } from "@/lib/types";
 import {
@@ -132,22 +132,7 @@ export function CmsManagerModal({
   }
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[70] flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm"
-        onClick={onClose}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.97, y: 10 }}
-          transition={{ type: "spring", stiffness: 420, damping: 32 }}
-          className="flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10"
-          onClick={(e) => e.stopPropagation()}
-        >
+    <Modal onClose={onClose} className="flex max-h-[86vh] max-w-2xl flex-col overflow-hidden">
           {/* header */}
           <div className="flex items-center gap-3 border-b border-zinc-200 px-5 py-3.5">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
@@ -232,9 +217,7 @@ export function CmsManagerModal({
               />
             )}
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    </Modal>
   );
 }
 
