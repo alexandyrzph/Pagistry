@@ -7,8 +7,6 @@ import {
   MeasuringStrategy,
   closestCenter,
 } from "@dnd-kit/core";
-import { parseContent } from "@/lib/page-service";
-import { parseTheme } from "@/lib/theme";
 import type { Block, Seo, Theme } from "@/lib/types";
 import { useEditor } from "@/store/editor-store";
 import { BlockRenderer } from "@/components/BlockRenderer";
@@ -21,6 +19,7 @@ import { EditorActionsProvider } from "./editor-actions";
 import { useEditorData } from "./use-editor-data";
 import { useEditorPersistence } from "./use-editor-persistence";
 import { useKeyboardShortcuts } from "./use-keyboard-shortcuts";
+import { usePageNavigation } from "./use-page-navigation";
 import { IframeProvider, type FrameInfo } from "./iframe-context";
 import { CanvasOverlay } from "./CanvasOverlay";
 import { SelectionBreadcrumb } from "./SelectionBreadcrumb";
@@ -68,7 +67,6 @@ export function EditorClient({
   const [ready, setReady] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [pending, setPending] = useState<{ run: () => void } | null>(null);
 
   // Canvas iframe handle shared with the selection overlay + inspector.
   const [frame, setFrame] = useState<FrameInfo | null>(null);
@@ -85,8 +83,6 @@ export function EditorClient({
   );
 
   const { drag, sensors, measure, onDragStart, onDragEnd, onDragCancel } = useDragDropManager(frameRef);
-
-  const [saveCompBlock, setSaveCompBlock] = useState<Block | null>(null);
 
   const { componentsCtx, collectionsCtx, siteCtx, componentsMap, collectionsMap, refreshComponents } =
     useEditorData(mode);
@@ -117,76 +113,9 @@ export function EditorClient({
     siteRegion,
   });
 
-  // --- in-place page switching (no full reload / skeleton) ------------------
-  const loadPageInPlace = useCallback(
-    async (id: string) => {
-      try {
-        const r = await fetch(`/api/pages/${id}`);
-        if (!r.ok) return;
-        const p = await r.json();
-        init({
-          id: p.id,
-          title: p.title,
-          slug: p.slug,
-          published: !!p.published,
-          tree: parseContent(p.content),
-          seo: {
-            metaTitle: p.metaTitle ?? "",
-            metaDescription: p.metaDescription ?? "",
-            ogImage: p.ogImage ?? "",
-          },
-          theme: parseTheme(p.theme),
-        });
-        window.history.replaceState(null, "", `/editor/${id}`);
-        window.scrollTo({ top: 0 });
-      } catch {
-        /* ignore */
-      }
-    },
-    [init]
-  );
-
-  const confirmLeave = useCallback((action: () => void) => {
-    if (useEditor.getState().dirty) setPending({ run: action });
-    else action();
-  }, []);
-
-  const switchPage = useCallback(
-    (id: string) => {
-      if (id === useEditor.getState().pageId) return;
-      confirmLeave(() => void loadPageInPlace(id));
-    },
-    [confirmLeave, loadPageInPlace]
-  );
-
-  const saveAsComponent = useCallback((block: Block) => setSaveCompBlock(block), []);
-
-  const persistComponent = useCallback(
-    async (name: string) => {
-      const block = saveCompBlock;
-      if (!block) return;
-      try {
-        const res = await fetch("/api/components", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ name, content: [block] }),
-        });
-        const created = await res.json();
-        await refreshComponents();
-        useEditor.getState().replaceWithComponent(block.id, created.id);
-      } catch {
-        /* ignore */
-      } finally {
-        setSaveCompBlock(null);
-      }
-    },
-    [saveCompBlock, refreshComponents]
-  );
-
-  const actionsCtx = useMemo(
-    () => ({ switchPage, confirmLeave, loadPageInPlace, saveAsComponent }),
-    [switchPage, confirmLeave, loadPageInPlace, saveAsComponent]
-  );
+  // --- in-place page switching + component save ----------------------------
+  const { actionsCtx, pending, setPending, saveCompBlock, setSaveCompBlock, persistComponent } =
+    usePageNavigation({ refreshComponents });
 
   useKeyboardShortcuts({ save, togglePalette: () => setPaletteOpen((o) => !o), frame });
 
