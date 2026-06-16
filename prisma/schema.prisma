@@ -83,15 +83,28 @@ model Asset {
 }
 
 model User {
-  id           String          @id @default(cuid())
-  email        String          @unique
-  name         String          @default("")
-  passwordHash String
-  onboardedAt  DateTime?
-  createdAt    DateTime        @default(now())
-  sessions     Session[]
-  resets       PasswordReset[]
-  memberships  Membership[]
+  id             String          @id @default(cuid())
+  email          String          @unique
+  name           String          @default("")
+  passwordHash   String?
+  onboardedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  sessions       Session[]
+  resets         PasswordReset[]
+  memberships    Membership[]
+  oauthAccounts  OAuthAccount[]
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  provider          String   // "google" | "github"
+  providerAccountId String
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
