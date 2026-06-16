@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const collapsed = jar.get(SIDEBAR_COOKIE)?.value === "collapsed";
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-[#f7f8fa] md:flex-row">
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-[#f7f8fa] md:flex-row">
       <Sidebar
         collapsed={collapsed}
         workspaces={workspaces}
@@ -33,7 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         role={ctx.role}
         user={{ name: user.name, email: user.email }}
       />
-      <main className="min-w-0 flex-1">{children}</main>
+      <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 }

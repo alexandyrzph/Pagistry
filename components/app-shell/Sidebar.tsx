@@ -69,15 +69,13 @@ export function Sidebar({
                     href={it.href}
                     title={collapsed ? it.label : undefined}
                     className={cn(
-                      "relative flex items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[13.5px] transition-colors",
+                      "flex items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[13.5px] transition-colors",
                       act
-                        ? "border border-[#e8eaed] bg-white font-semibold text-[#111827] shadow-xs"
-                        : "border border-transparent font-medium text-[#4b5563] hover:bg-black/[0.03] hover:text-[#111827]",
-                      collapsed && "justify-center border-transparent shadow-none",
-                      collapsed && act && "border-transparent bg-indigo-50 text-indigo-600",
+                        ? "bg-indigo-50 font-semibold text-indigo-600"
+                        : "font-medium text-[#4b5563] hover:bg-black/[0.03] hover:text-[#111827]",
+                      collapsed && "justify-center",
                     )}
                   >
-                    {act && !collapsed && <span className="absolute -left-px bottom-2 top-2 w-[3px] rounded-full bg-indigo-600" />}
                     <Icon size={17} strokeWidth={act ? 2.1 : 1.8} className={cn(act && "text-indigo-600")} />
                     {!collapsed && it.label}
                   </Link>
