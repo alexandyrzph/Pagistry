@@ -120,9 +120,9 @@ export function EmptyDrop({
         </p>
         <button
           data-open-ai="1"
-          className="mt-5 flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+          className="mt-5 flex items-center gap-2 rounded-xl border border-[#e8eaed] bg-white px-4 py-2.5 text-sm font-semibold text-[#111827] shadow-sm transition-colors hover:bg-zinc-50"
         >
-          <Sparkles size={16} /> Generate with AI
+          <Sparkles size={16} className="text-indigo-600" /> Generate with AI
         </button>
         <div className="my-5 flex items-center gap-3 text-[11px] font-medium uppercase tracking-wide text-zinc-300">
           <span className="h-px w-8 bg-zinc-200" /> or add a block <span className="h-px w-8 bg-zinc-200" />

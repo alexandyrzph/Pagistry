@@ -216,9 +216,9 @@ export function TopBar({
           whileTap={{ scale: 0.96 }}
           onClick={() => useEditorUI.getState().openAi()}
           title="Generate a section with AI"
-          className="ml-1 flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-2.5 py-1.5 text-xs font-semibold text-white shadow-xs transition-opacity hover:opacity-90"
+          className="ml-1 flex items-center gap-1.5 rounded-lg border border-[#e8eaed] bg-white px-2.5 py-1.5 text-xs font-semibold text-[#111827] shadow-xs transition-colors hover:bg-zinc-50"
         >
-          <Sparkles size={13} />
+          <Sparkles size={13} className="text-indigo-600" />
           <span className="hidden sm:inline">AI</span>
         </motion.button>
       )}

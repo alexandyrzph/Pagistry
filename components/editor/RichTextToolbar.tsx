@@ -150,7 +150,7 @@ export function RichTextToolbar() {
               onClick={() => setAiOpen((o) => !o)}
               className={cn(
                 "flex h-7 items-center gap-1 rounded-lg px-1.5 text-[12px] font-semibold transition-colors",
-                aiOpen ? "bg-indigo-500 text-white" : "bg-gradient-to-r from-indigo-500/90 to-violet-500/90 text-white hover:opacity-90"
+                aiOpen ? "bg-indigo-600 text-white" : "text-indigo-600 hover:bg-indigo-50"
               )}
             >
               {aiBusy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />} AI

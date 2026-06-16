@@ -80,9 +80,9 @@ export function SectionInserter() {
                 openAi(target);
               }}
               title="Generate with AI"
-              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 px-3 py-1.5 text-sm font-semibold text-white shadow-xs transition-opacity hover:opacity-90"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg border border-[#e8eaed] bg-white px-3 py-1.5 text-sm font-semibold text-[#111827] shadow-xs transition-colors hover:bg-zinc-50"
             >
-              <Sparkles size={14} /> AI
+              <Sparkles size={14} className="text-indigo-600" /> AI
             </button>
             <button onClick={close} className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600">
               <X size={18} />
