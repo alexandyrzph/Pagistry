@@ -2,8 +2,8 @@
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Modal } from "./Modal";
+import { Button } from "./Button";
 
 type ConfirmOptions = {
   title?: string;
@@ -111,27 +111,20 @@ export function DialogProvider({ children }: { children: ReactNode }) {
 
             <div className="mt-5 flex justify-end gap-2">
               {isConfirm && (
-                <button
-                  onClick={() => respond(false)}
-                  className="rounded-lg px-3.5 py-2 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100"
-                >
+                <Button variant="ghost" size="sm" onPress={() => respond(false)}>
                   {(state as ConfirmOptions).cancelLabel || "Cancel"}
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 autoFocus
-                onClick={() => respond(true)}
-                className={cn(
-                  "rounded-lg px-3.5 py-2 text-sm font-semibold text-white shadow-xs transition-colors",
-                  destructive
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-indigo-600 hover:bg-indigo-700",
-                )}
+                variant={destructive ? "danger" : "primary"}
+                size="sm"
+                onPress={() => respond(true)}
               >
                 {isConfirm
                   ? (state as ConfirmOptions).confirmLabel || "Confirm"
                   : (state as AlertOptions).okLabel || "OK"}
-              </button>
+              </Button>
             </div>
           </div>
         )}
