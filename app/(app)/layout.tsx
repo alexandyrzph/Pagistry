@@ -25,7 +25,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const collapsed = jar.get(SIDEBAR_COOKIE)?.value === "collapsed";
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-zinc-50 md:flex-row">
+    <div className="flex min-h-screen w-full flex-col bg-[#f7f8fa] md:flex-row">
       <Sidebar
         collapsed={collapsed}
         workspaces={workspaces}
