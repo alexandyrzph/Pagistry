@@ -8,6 +8,10 @@ import { NextResponse, type NextRequest } from "next/server";
 //  • API routes enforce their own auth, so we don't redirect them here.
 //  • Every other (builder) page route requires the session cookie.
 
+// Public, pre-auth pages (redirect to "/" when already signed in). NOTE: do not
+// add "/onboarding" here — although it lives under app/(auth)/ for organization,
+// it is a session-required post-login page (requireUser); gating it as a public
+// auth page would redirect authenticated users away mid-onboarding.
 const AUTH_PAGES = ["/login", "/signup", "/forgot", "/reset"];
 
 export default function proxy(req: NextRequest) {
