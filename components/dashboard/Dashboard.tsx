@@ -16,8 +16,8 @@ import {
   X,
 } from "lucide-react";
 import { TEMPLATES, type Template } from "@/lib/blocks/templates";
-import { cn } from "@/lib/utils";
 import { DashboardSkeleton } from "./DashboardSkeleton";
+import { PageThumbnail } from "./PageThumbnail";
 import { SubmissionsModal } from "./SubmissionsModal";
 
 type PageItem = {
@@ -27,6 +27,9 @@ type PageItem = {
   published: boolean;
   updatedAt: string;
   submissions: number;
+  thumbnailUrl: string | null;
+  thumbnailVersion: number | null;
+  thumbnailStale: boolean;
 };
 
 const GRADIENTS = [
@@ -205,12 +208,15 @@ export function Dashboard({ pages }: { pages: PageItem[] }) {
                 className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition-shadow hover:shadow-lg"
               >
                 <Link href={`/editor/${p.id}`} className="block">
-                  <div className={cn("relative h-32 overflow-hidden bg-gradient-to-br", GRADIENTS[i % GRADIENTS.length])}>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-4xl font-black text-white/90 transition-transform duration-300 group-hover:scale-110">
-                        {p.title.charAt(0).toUpperCase() || "P"}
-                      </span>
-                    </div>
+                  <div className="relative">
+                    <PageThumbnail
+                      pageId={p.id}
+                      title={p.title}
+                      gradient={GRADIENTS[i % GRADIENTS.length]}
+                      initialUrl={p.thumbnailUrl}
+                      version={p.thumbnailVersion}
+                      stale={p.thumbnailStale}
+                    />
                     {p.published && (
                       <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-600 shadow-xs">
                         Live
