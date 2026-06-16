@@ -24,11 +24,11 @@ import { useDesignSystem } from "@/store/design-system";
 import { useCanvasZoom } from "@/store/canvas-zoom";
 import { BlockRenderer } from "@/components/BlockRenderer";
 import { DragProvider, type DragInfo } from "./drag-context";
-import { ComponentsProvider, type ComponentItem } from "./components-context";
+import { ComponentsProvider } from "./components-context";
 import { CollectionsProvider } from "./collections-context";
 import { SiteProvider } from "./site-context";
-import type { CollectionData } from "@/lib/types";
 import { EditorActionsProvider } from "./editor-actions";
+import { useEditorData } from "./use-editor-data";
 import { IframeProvider, type FrameInfo } from "./iframe-context";
 import { CanvasOverlay } from "./CanvasOverlay";
 import { SelectionBreadcrumb } from "./SelectionBreadcrumb";
@@ -83,9 +83,6 @@ export function EditorClient({
   const [ready, setReady] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [componentList, setComponentList] = useState<ComponentItem[]>([]);
-  const [collectionList, setCollectionList] = useState<CollectionData[]>([]);
-  const [site, setSite] = useState<{ header: Block[]; footer: Block[] }>({ header: [], footer: [] });
   const [pending, setPending] = useState<{ run: () => void } | null>(null);
 
   // Canvas iframe handle shared with the selection overlay + inspector.
@@ -123,68 +120,8 @@ export function EditorClient({
   const [saveCompBlock, setSaveCompBlock] = useState<Block | null>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
-  const refreshComponents = useCallback(async () => {
-    try {
-      const r = await fetch("/api/components");
-      const d = await r.json();
-      setComponentList(Array.isArray(d) ? d : []);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const refreshCollections = useCallback(async () => {
-    try {
-      const r = await fetch("/api/collections");
-      const d = await r.json();
-      setCollectionList(Array.isArray(d) ? d : []);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const refreshSite = useCallback(async () => {
-    try {
-      const r = await fetch("/api/site");
-      const d = await r.json();
-      setSite({ header: Array.isArray(d.header) ? d.header : [], footer: Array.isArray(d.footer) ? d.footer : [] });
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const loadDesignSystem = useDesignSystem((s) => s.load);
-
-  useEffect(() => {
-    void refreshComponents();
-    void refreshCollections();
-    void loadDesignSystem();
-    // header/footer only frame the page editor (not the component/site editors)
-    if (mode === "page") void refreshSite();
-  }, [refreshComponents, refreshCollections, refreshSite, loadDesignSystem, mode]);
-
-  const componentsMap = useMemo<Record<string, ComponentItem>>(
-    () => Object.fromEntries(componentList.map((c) => [c.id, c])),
-    [componentList]
-  );
-  const componentsCtx = useMemo(
-    () => ({ list: componentList, map: componentsMap, refresh: refreshComponents }),
-    [componentList, componentsMap, refreshComponents]
-  );
-
-  const collectionsMap = useMemo(
-    () => Object.fromEntries(collectionList.map((c) => [c.id, c])),
-    [collectionList]
-  );
-  const collectionsCtx = useMemo(
-    () => ({ list: collectionList, map: collectionsMap, refresh: refreshCollections }),
-    [collectionList, collectionsMap, refreshCollections]
-  );
-
-  const siteCtx = useMemo(
-    () => ({ header: site.header, footer: site.footer, refresh: refreshSite }),
-    [site, refreshSite]
-  );
+  const { componentsCtx, collectionsCtx, siteCtx, componentsMap, collectionsMap, refreshComponents } =
+    useEditorData(mode);
 
   useEffect(() => {
     init({
