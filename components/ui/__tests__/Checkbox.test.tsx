@@ -10,4 +10,9 @@ describe("Checkbox", () => {
     await userEvent.click(screen.getByRole("checkbox", { name: "Accept" }));
     expect(onChange).toHaveBeenCalledWith(true);
   });
+
+  it("renders the indeterminate state", () => {
+    render(<Checkbox isIndeterminate>Partial</Checkbox>);
+    expect(screen.getByRole("checkbox", { name: "Partial" })).toBePartiallyChecked();
+  });
 });
