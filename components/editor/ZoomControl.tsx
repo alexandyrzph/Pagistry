@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Popover } from "./Popover";
 import { Check, Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBreakpoints } from "@/store/breakpoints";
@@ -46,41 +46,28 @@ export function ZoomControl() {
         <Plus size={15} />
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 460, damping: 32 }}
-              className="absolute left-1/2 top-11 z-50 w-40 -translate-x-1/2 rounded-xl border border-zinc-200 bg-white p-1 shadow-2xl ring-1 ring-black/5"
-            >
-              <button
-                onClick={fit}
-                className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
-              >
-                Fit to width
-              </button>
-              <div className="my-1 h-px bg-zinc-100" />
-              {PRESETS.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => {
-                    setZoom(p);
-                    setOpen(false);
-                  }}
-                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
-                >
-                  {Math.round(p * 100)}%
-                  {Math.abs(zoom - p) < 0.001 && <Check size={14} className="text-indigo-600" />}
-                </button>
-              ))}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <Popover open={open} onClose={() => setOpen(false)} className="left-1/2 top-11 w-40 -translate-x-1/2 rounded-xl p-1">
+        <button
+          onClick={fit}
+          className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+        >
+          Fit to width
+        </button>
+        <div className="my-1 h-px bg-zinc-100" />
+        {PRESETS.map((p) => (
+          <button
+            key={p}
+            onClick={() => {
+              setZoom(p);
+              setOpen(false);
+            }}
+            className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+          >
+            {Math.round(p * 100)}%
+            {Math.abs(zoom - p) < 0.001 && <Check size={14} className="text-indigo-600" />}
+          </button>
+        ))}
+      </Popover>
     </div>
   );
 }

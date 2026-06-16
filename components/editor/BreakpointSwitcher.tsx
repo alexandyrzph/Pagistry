@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Monitor, Plus, Smartphone, Tablet, Trash2, X } from "lucide-react";
+import { Popover } from "./Popover";
 import { cn } from "@/lib/utils";
 import type { Viewport } from "@/lib/types";
 import { useBreakpoints, type Breakpoint } from "@/store/breakpoints";
@@ -63,93 +64,80 @@ export function BreakpointSwitcher() {
         {active.width}px
       </span>
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 460, damping: 32 }}
-              className="absolute left-1/2 top-11 z-50 w-72 -translate-x-1/2 rounded-2xl border border-zinc-200 bg-white p-3 shadow-2xl ring-1 ring-black/5"
+      <Popover open={open} onClose={() => setOpen(false)} className="left-1/2 top-11 w-72 -translate-x-1/2 rounded-2xl p-3">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="text-xs font-bold tracking-tight text-zinc-800">Custom breakpoints</span>
+          <button onClick={() => setOpen(false)} className="rounded-md p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600">
+            <X size={14} />
+          </button>
+        </div>
+
+        {/* presets */}
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {PRESETS.map((p) => (
+            <button
+              key={p.width}
+              onClick={() => addCustom(p.width, p.label)}
+              title={`${p.label} — ${p.width}px`}
+              className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[11px] font-medium text-zinc-600 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
             >
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-bold tracking-tight text-zinc-800">Custom breakpoints</span>
-                <button onClick={() => setOpen(false)} className="rounded-md p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600">
-                  <X size={14} />
-                </button>
-              </div>
+              {p.width}
+            </button>
+          ))}
+        </div>
 
-              {/* presets */}
-              <div className="mb-3 flex flex-wrap gap-1.5">
-                {PRESETS.map((p) => (
-                  <button
-                    key={p.width}
-                    onClick={() => addCustom(p.width, p.label)}
-                    title={`${p.label} — ${p.width}px`}
-                    className="rounded-lg border border-zinc-200 bg-zinc-50 px-2 py-1 text-[11px] font-medium text-zinc-600 transition-colors hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600"
-                  >
-                    {p.width}
-                  </button>
-                ))}
-              </div>
+        {/* custom width + label */}
+        <div className="flex items-end gap-1.5">
+          <label className="flex-1">
+            <span className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-zinc-400">Width (px)</span>
+            <input
+              type="number"
+              value={width}
+              onChange={(e) => setWidth(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addCustom(Number(width), label)}
+              placeholder="1280"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-xs outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+            />
+          </label>
+          <label className="flex-1">
+            <span className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-zinc-400">Label</span>
+            <input
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addCustom(Number(width), label)}
+              placeholder="optional"
+              className="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-xs outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
+            />
+          </label>
+          <button
+            onClick={() => addCustom(Number(width), label)}
+            disabled={!width || Number(width) < 240}
+            className="flex h-[34px] items-center gap-1 rounded-lg bg-indigo-600 px-3 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700 disabled:opacity-50"
+          >
+            <Plus size={14} /> Add
+          </button>
+        </div>
 
-              {/* custom width + label */}
-              <div className="flex items-end gap-1.5">
-                <label className="flex-1">
-                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-zinc-400">Width (px)</span>
-                  <input
-                    type="number"
-                    value={width}
-                    onChange={(e) => setWidth(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addCustom(Number(width), label)}
-                    placeholder="1280"
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-xs outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-                  />
-                </label>
-                <label className="flex-1">
-                  <span className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-zinc-400">Label</span>
-                  <input
-                    value={label}
-                    onChange={(e) => setLabel(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addCustom(Number(width), label)}
-                    placeholder="optional"
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-900 shadow-xs outline-none transition focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100"
-                  />
-                </label>
+        {/* existing custom list */}
+        {custom.length > 0 && (
+          <div className="mt-3 space-y-1 border-t border-zinc-100 pt-2">
+            {custom.map((bp) => (
+              <div key={bp.id} className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-zinc-50">
+                <span className="text-zinc-400">{BASE_ICON[bp.base]}</span>
+                <span className="flex-1 truncate text-xs font-medium text-zinc-700">{bp.label}</span>
+                <span className="text-[11px] tabular-nums text-zinc-400">{bp.width}px</span>
                 <button
-                  onClick={() => addCustom(Number(width), label)}
-                  disabled={!width || Number(width) < 240}
-                  className="flex h-[34px] items-center gap-1 rounded-lg bg-indigo-600 px-3 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700 disabled:opacity-50"
+                  onClick={() => removeBreakpoint(bp.id)}
+                  title="Remove"
+                  className="rounded-md p-1 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"
                 >
-                  <Plus size={14} /> Add
+                  <Trash2 size={12} />
                 </button>
               </div>
-
-              {/* existing custom list */}
-              {custom.length > 0 && (
-                <div className="mt-3 space-y-1 border-t border-zinc-100 pt-2">
-                  {custom.map((bp) => (
-                    <div key={bp.id} className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-zinc-50">
-                      <span className="text-zinc-400">{BASE_ICON[bp.base]}</span>
-                      <span className="flex-1 truncate text-xs font-medium text-zinc-700">{bp.label}</span>
-                      <span className="text-[11px] tabular-nums text-zinc-400">{bp.width}px</span>
-                      <button
-                        onClick={() => removeBreakpoint(bp.id)}
-                        title="Remove"
-                        className="rounded-md p-1 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          </>
+            ))}
+          </div>
         )}
-      </AnimatePresence>
+      </Popover>
     </div>
   );
 }

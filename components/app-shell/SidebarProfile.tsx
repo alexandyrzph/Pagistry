@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useDismissOnOutsideClick } from "@/lib/use-dismiss";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, UserCog, Loader2 } from "lucide-react";
@@ -12,12 +13,7 @@ export function SidebarProfile({ collapsed, user }: { collapsed: boolean; user: 
   const [out, setOut] = useState(false);
   const initials = (user.name || user.email).trim().slice(0, 2).toUpperCase();
 
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
-    window.addEventListener("click", close);
-    return () => window.removeEventListener("click", close);
-  }, [open]);
+  useDismissOnOutsideClick(open, () => setOpen(false));
 
   async function logout() {
     setOut(true);

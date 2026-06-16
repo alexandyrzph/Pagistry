@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
+import { Popover } from "./Popover";
 import {
   ChevronDown,
   ChevronRight,
@@ -292,41 +293,28 @@ function PublishedMenu({ slug, onUnpublish }: { slug: string; onUnpublish?: () =
         <ChevronDown size={14} className={cn("transition-transform", open && "rotate-180")} />
       </motion.button>
 
-      <AnimatePresence>
-        {open && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 460, damping: 32 }}
-              className="absolute right-0 top-11 z-50 w-48 overflow-hidden rounded-xl border border-zinc-200 bg-white p-1 shadow-2xl ring-1 ring-black/5"
-            >
-              <a
-                href={`/p/${slug}`}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
-              >
-                <ExternalLink size={15} className="text-zinc-400" />
-                View live
-              </a>
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  onUnpublish?.();
-                }}
-                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-              >
-                <EyeOff size={15} />
-                Unpublish
-              </button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      <Popover open={open} onClose={() => setOpen(false)} className="right-0 top-11 w-48 overflow-hidden rounded-xl p-1">
+        <a
+          href={`/p/${slug}`}
+          target="_blank"
+          rel="noreferrer"
+          onClick={() => setOpen(false)}
+          className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
+        >
+          <ExternalLink size={15} className="text-zinc-400" />
+          View live
+        </a>
+        <button
+          onClick={() => {
+            setOpen(false);
+            onUnpublish?.();
+          }}
+          className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+        >
+          <EyeOff size={15} />
+          Unpublish
+        </button>
+      </Popover>
     </div>
   );
 }

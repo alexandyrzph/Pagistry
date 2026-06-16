@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useDismissOnOutsideClick } from "@/lib/use-dismiss";
 import { useRouter } from "next/navigation";
 import { ChevronsUpDown, Plus, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,12 +18,7 @@ export function WorkspaceSwitcher({ collapsed, workspaces, activeId }: { collaps
   const active = workspaces.find((w) => w.id === activeId) ?? workspaces[0];
   const initials = (active?.name || "W").trim().slice(0, 2).toUpperCase();
 
-  useEffect(() => {
-    if (!open) return;
-    const close = () => setOpen(false);
-    window.addEventListener("click", close);
-    return () => window.removeEventListener("click", close);
-  }, [open]);
+  useDismissOnOutsideClick(open, () => setOpen(false));
 
   async function switchTo(id: string) {
     if (id === active?.id) return setOpen(false);
