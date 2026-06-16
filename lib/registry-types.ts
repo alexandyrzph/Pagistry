@@ -42,8 +42,13 @@ export type BlockDefinition = {
   /** which style control groups to expose */
   styleGroups: StyleGroup[];
   Render: ComponentType<BlockRenderProps>;
-  /** default children created on instantiation (e.g. columns -> N columns) */
-  createChildren?: () => Block[];
+  /** block types instantiated as children on creation (e.g. columns -> ["column","column"]) */
+  defaultChildren?: string[];
+  /** how the editor canvas renders this container's children:
+   *  "slotted" (default) = drop-zone slots; "fixed" = children mapped directly (e.g. columns) */
+  containerStrategy?: "slotted" | "fixed";
+  /** min height (px) of the empty drop zone for a slotted container */
+  emptyMinHeight?: number;
   /**
    * Optional custom inspector for the Content tab. When present it replaces the
    * generic `fields` editor — used by blocks whose options depend on external

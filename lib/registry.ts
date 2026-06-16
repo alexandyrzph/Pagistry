@@ -79,6 +79,7 @@ export const REGISTRY: Record<string, BlockDefinition> = {
     category: "Layout",
     description: "Full-width band that holds other blocks",
     isContainer: true,
+    emptyMinHeight: 80,
     defaultProps: {},
     defaultStyles: {
       desktop: {
@@ -119,7 +120,8 @@ export const REGISTRY: Record<string, BlockDefinition> = {
     ],
     styleGroups: ["spacing", "layout"],
     Render: ColumnsBlock,
-    createChildren: () => [createBlock("column"), createBlock("column")],
+    containerStrategy: "fixed",
+    defaultChildren: ["column", "column"],
   },
   column: {
     type: "column",
@@ -128,6 +130,7 @@ export const REGISTRY: Record<string, BlockDefinition> = {
     category: "Layout",
     description: "A single column cell",
     isContainer: true,
+    emptyMinHeight: 64,
     defaultProps: {},
     defaultStyles: { desktop: {} },
     fields: [],
@@ -721,6 +724,6 @@ export function createBlock(type: string): Block {
     type,
     props: JSON.parse(JSON.stringify(def.defaultProps ?? {})),
     styles: JSON.parse(JSON.stringify(def.defaultStyles ?? {})),
-    children: def.createChildren ? def.createChildren() : [],
+    children: (def.defaultChildren ?? []).map((t) => createBlock(t)),
   };
 }

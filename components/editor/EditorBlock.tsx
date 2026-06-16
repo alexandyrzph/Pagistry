@@ -94,19 +94,20 @@ export function EditorBlock({
   } else {
     const Cmp = def!.Render;
     let children: ReactNode = undefined;
-    if (def!.type === "columns") {
-      children = block.children.map((c, i) => (
-        <EditorBlock key={c.id} block={c} parentId={block.id} parentType="columns" index={i} />
-      ));
-    } else if (def!.isContainer) {
-      children = (
-        <SlottedChildren
-          parentId={block.id}
-          parentType={block.type}
-          items={block.children}
-          emptyMinHeight={block.type === "column" ? 64 : 80}
-        />
-      );
+    if (def!.isContainer) {
+      children =
+        def!.containerStrategy === "fixed"
+          ? block.children.map((c, i) => (
+              <EditorBlock key={c.id} block={c} parentId={block.id} parentType={block.type} index={i} />
+            ))
+          : (
+              <SlottedChildren
+                parentId={block.id}
+                parentType={block.type}
+                items={block.children}
+                emptyMinHeight={def!.emptyMinHeight}
+              />
+            );
     }
     body = (
       // style is intentionally empty — the injected responsive stylesheet
