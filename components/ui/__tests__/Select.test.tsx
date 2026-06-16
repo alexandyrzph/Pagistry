@@ -13,4 +13,12 @@ describe("Select", () => {
     await userEvent.click(await screen.findByRole("option", { name: "Editor" }));
     expect(onSelectionChange).toHaveBeenCalledWith("editor");
   });
+
+  it("shows placeholder initially, then the selected label", async () => {
+    render(<Select label="Role" items={items} placeholder="Pick one" />);
+    expect(screen.getByRole("button")).toHaveTextContent("Pick one");
+    await userEvent.click(screen.getByRole("button"));
+    await userEvent.click(await screen.findByRole("option", { name: "Admin" }));
+    expect(screen.getByRole("button")).toHaveTextContent("Admin");
+  });
 });

@@ -1,11 +1,12 @@
 "use client";
 import {
   Select as RACSelect, type SelectProps as RACSelectProps,
-  Label, Button, SelectValue, Popover, ListBox, ListBoxItem, type Key,
+  Label, Button, SelectValue, ListBox, ListBoxItem, type Key,
 } from "react-aria-components";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import { Popover } from "./Popover";
 
 export interface SelectOption { id: Key; label: string }
 
@@ -35,9 +36,9 @@ export function Select({ label, items, placeholder = "Select…", className, ...
             isPlaceholder ? placeholder : selectedText
           }
         </SelectValue>
-        <ChevronDown className="size-4 text-fg-subtle" aria-hidden />
+        <ChevronDown className="size-4 text-fg-subtle" aria-hidden={true} />
       </Button>
-      <Popover className="min-w-[var(--trigger-width)] rounded-control border border-border bg-white p-1 shadow-lg outline-none">
+      <Popover className="min-w-[var(--trigger-width)] p-1">
         <ListBox items={items} className="outline-none">
           {(item) => (
             <ListBoxItem

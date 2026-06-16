@@ -1,10 +1,14 @@
 "use client";
-import { Menu as RACMenu, MenuItem, Popover, type MenuProps as RACMenuProps } from "react-aria-components";
+import {
+  Menu as RACMenu, MenuItem as RACMenuItem,
+  type MenuProps as RACMenuProps, type MenuItemProps,
+} from "react-aria-components";
 import { cn } from "@/lib/utils";
+import { Popover } from "./Popover";
 
 export function Menu<T extends object>({ className, ...props }: RACMenuProps<T>) {
   return (
-    <Popover className="min-w-44 rounded-control border border-border bg-white p-1 shadow-lg outline-none">
+    <Popover className="min-w-44 p-1">
       <RACMenu
         {...props}
         className={(rs) => cn("outline-none", typeof className === "function" ? className(rs) : className)}
@@ -13,9 +17,9 @@ export function Menu<T extends object>({ className, ...props }: RACMenuProps<T>)
   );
 }
 
-export function MenuItemRow({ className, ...props }: React.ComponentProps<typeof MenuItem>) {
+export function MenuItem({ className, ...props }: MenuItemProps<object>) {
   return (
-    <MenuItem
+    <RACMenuItem
       {...props}
       className={(rs) =>
         cn(

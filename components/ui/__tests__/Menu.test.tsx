@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MenuTrigger } from "react-aria-components";
 import { describe, it, expect, vi } from "vitest";
-import { Menu, MenuItemRow } from "../Menu";
+import { Menu, MenuItem } from "../Menu";
 import { Button } from "../Button";
 
 describe("Menu", () => {
@@ -12,8 +12,8 @@ describe("Menu", () => {
       <MenuTrigger>
         <Button>Open</Button>
         <Menu onAction={onAction}>
-          <MenuItemRow id="dup">Duplicate</MenuItemRow>
-          <MenuItemRow id="del">Delete</MenuItemRow>
+          <MenuItem id="dup">Duplicate</MenuItem>
+          <MenuItem id="del">Delete</MenuItem>
         </Menu>
       </MenuTrigger>
     );
