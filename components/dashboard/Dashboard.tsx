@@ -208,11 +208,10 @@ export function Dashboard({ pages }: { pages: PageItem[] }) {
                 className="group overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-xs transition-shadow hover:shadow-lg"
               >
                 <Link href={`/editor/${p.id}`} className="block">
-                  <div className="relative">
+                  <div className="relative aspect-[16/10]">
                     <PageThumbnail
                       pageId={p.id}
                       title={p.title}
-                      gradient={GRADIENTS[i % GRADIENTS.length]}
                       initialUrl={p.thumbnailUrl}
                       version={p.thumbnailVersion}
                       stale={p.thumbnailStale}
