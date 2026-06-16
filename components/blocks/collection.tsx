@@ -7,6 +7,8 @@ import type { CardBindings } from "@/lib/types";
 import { resolveCards, type ResolvedCard } from "@/lib/cms";
 import { useCollections } from "@/components/editor/collections-context";
 
+export { collectionBlocks } from "./collection.defs";
+
 // Collection List — repeats a card template across a CMS collection's items.
 // Field-to-slot bindings come from the inspector; collection data is resolved
 // from context (provided by the editor and by BlockRenderer on the public page).
@@ -163,3 +165,4 @@ function Placeholder({ title, body }: { title: string; body: string }) {
     </div>
   );
 }
+

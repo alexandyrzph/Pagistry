@@ -4,6 +4,12 @@ import { useEffect, useRef } from "react";
 import * as Icons from "lucide-react";
 import type { CSSProperties } from "react";
 
+export const ALIGN_OPTIONS = [
+  { label: "Left", value: "left" },
+  { label: "Center", value: "center" },
+  { label: "Right", value: "right" },
+];
+
 // ---------------------------------------------------------------------------
 // Shared primitives used by block render components.
 // ---------------------------------------------------------------------------

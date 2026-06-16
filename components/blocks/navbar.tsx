@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import type { BlockRenderProps } from "@/lib/registry-types";
 import { Editable } from "./shared";
 
+export { navbarBlocks } from "./navbar.defs";
+
 export function NavbarBlock({ block, editable, style, className, id, setProp }: BlockRenderProps) {
   const {
     brand = "YourBrand",
@@ -35,3 +37,4 @@ export function NavbarBlock({ block, editable, style, className, id, setProp }: 
     </nav>
   );
 }
+

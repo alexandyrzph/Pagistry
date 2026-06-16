@@ -1,0 +1,220 @@
+import { PanelTop, LayoutGrid, CreditCard, MessageSquareQuote, BarChart3, Rocket, PanelBottom } from "lucide-react";
+import type { BlockDefinition } from "@/lib/registry-types";
+import {
+  HeroBlock,
+  FeatureGridBlock,
+  PricingBlock,
+  TestimonialBlock,
+  StatsBlock,
+  CtaBlock,
+  FooterBlock,
+} from "./sections";
+
+const ALIGN_OPTIONS = [
+  { label: "Left", value: "left" },
+  { label: "Center", value: "center" },
+  { label: "Right", value: "right" },
+];
+
+export const sectionBlocks: BlockDefinition[] = [
+  {
+    type: "hero",
+    label: "Hero",
+    icon: PanelTop,
+    category: "Sections",
+    defaultProps: {
+      eyebrow: "Welcome",
+      title: "Build something beautiful",
+      subtitle: "A clean, modern hero section to introduce your product or idea.",
+      buttonText: "Get started",
+      buttonHref: "#",
+      align: "center",
+    },
+    defaultStyles: {
+      desktop: { backgroundImage: "linear-gradient(135deg, var(--pc-brand, #6366f1), #8b5cf6)", color: "#ffffff" },
+    },
+    fields: [
+      { key: "eyebrow", label: "Eyebrow", type: "text" },
+      { key: "title", label: "Title", type: "text" },
+      { key: "subtitle", label: "Subtitle", type: "textarea" },
+      { key: "buttonText", label: "Button label", type: "text" },
+      { key: "buttonHref", label: "Button link", type: "url" },
+      { key: "align", label: "Align", type: "select", options: ALIGN_OPTIONS },
+    ],
+    styleGroups: ["background", "spacing", "typography"],
+    Render: HeroBlock,
+  },
+  {
+    type: "features",
+    label: "Feature grid",
+    icon: LayoutGrid,
+    category: "Sections",
+    defaultProps: {
+      title: "Everything you need",
+      subtitle: "Powerful features that help you move faster.",
+      columns: 3,
+      items: [
+        { icon: "Zap", title: "Lightning fast", text: "Built for speed so your pages load instantly." },
+        { icon: "Shield", title: "Secure by default", text: "Best-in-class security baked into every layer." },
+        { icon: "Sparkles", title: "Beautiful design", text: "Polished components that look great anywhere." },
+      ],
+    },
+    defaultStyles: { desktop: { backgroundColor: "#ffffff" } },
+    fields: [
+      { key: "title", label: "Title", type: "text" },
+      { key: "subtitle", label: "Subtitle", type: "textarea" },
+      {
+        key: "columns",
+        label: "Columns",
+        type: "select",
+        options: [
+          { label: "2", value: "2" },
+          { label: "3", value: "3" },
+          { label: "4", value: "4" },
+        ],
+      },
+      {
+        key: "items",
+        label: "Features",
+        type: "items",
+        itemFields: [
+          { key: "icon", label: "Icon", type: "icon" },
+          { key: "title", label: "Title", type: "text" },
+          { key: "text", label: "Text", type: "textarea" },
+        ],
+      },
+    ],
+    styleGroups: ["background", "spacing"],
+    Render: FeatureGridBlock,
+  },
+  {
+    type: "pricing",
+    label: "Pricing",
+    icon: CreditCard,
+    category: "Sections",
+    defaultProps: {
+      title: "Simple pricing",
+      subtitle: "Choose the plan that fits.",
+      items: [
+        { name: "Starter", price: "$0", period: "/mo", features: "1 project\nCommunity support\nBasic blocks", buttonText: "Get started", featured: false },
+        { name: "Pro", price: "$19", period: "/mo", features: "Unlimited projects\nPriority support\nAll blocks\nExport HTML", buttonText: "Start free trial", featured: true },
+        { name: "Team", price: "$49", period: "/mo", features: "Everything in Pro\nTeam workspaces\nSSO\nAudit logs", buttonText: "Contact sales", featured: false },
+      ],
+    },
+    defaultStyles: { desktop: { backgroundColor: "#f8fafc" } },
+    fields: [
+      { key: "title", label: "Title", type: "text" },
+      { key: "subtitle", label: "Subtitle", type: "text" },
+      {
+        key: "items",
+        label: "Plans",
+        type: "items",
+        itemFields: [
+          { key: "name", label: "Name", type: "text" },
+          { key: "price", label: "Price", type: "text" },
+          { key: "period", label: "Period", type: "text" },
+          { key: "features", label: "Features (one per line)", type: "textarea" },
+          { key: "buttonText", label: "Button", type: "text" },
+          { key: "featured", label: "Featured", type: "boolean" },
+        ],
+      },
+    ],
+    styleGroups: ["background", "spacing"],
+    Render: PricingBlock,
+  },
+  {
+    type: "testimonial",
+    label: "Testimonial",
+    icon: MessageSquareQuote,
+    category: "Sections",
+    defaultProps: {
+      quote: "This product completely changed how our team works. Couldn't recommend it more.",
+      author: "Jamie Rivera",
+      role: "Head of Product, Acme",
+      avatar: "https://i.pravatar.cc/120?img=12",
+      rating: 5,
+    },
+    defaultStyles: { desktop: { backgroundColor: "#ffffff" } },
+    fields: [
+      { key: "quote", label: "Quote", type: "textarea" },
+      { key: "author", label: "Author", type: "text" },
+      { key: "role", label: "Role", type: "text" },
+      { key: "avatar", label: "Avatar URL", type: "image" },
+      { key: "rating", label: "Rating (1-5)", type: "number" },
+    ],
+    styleGroups: ["background", "spacing"],
+    Render: TestimonialBlock,
+  },
+  {
+    type: "stats",
+    label: "Stats",
+    icon: BarChart3,
+    category: "Sections",
+    defaultProps: {
+      items: [
+        { value: "10k+", label: "Active users" },
+        { value: "99.9%", label: "Uptime" },
+        { value: "4.9/5", label: "Avg rating" },
+        { value: "120+", label: "Countries" },
+      ],
+    },
+    defaultStyles: { desktop: { backgroundColor: "#ffffff" } },
+    fields: [
+      {
+        key: "items",
+        label: "Stats",
+        type: "items",
+        itemFields: [
+          { key: "value", label: "Value", type: "text" },
+          { key: "label", label: "Label", type: "text" },
+        ],
+      },
+    ],
+    styleGroups: ["background", "spacing"],
+    Render: StatsBlock,
+  },
+  {
+    type: "cta",
+    label: "Call to action",
+    icon: Rocket,
+    category: "Sections",
+    defaultProps: {
+      title: "Ready to get started?",
+      subtitle: "Join thousands of teams building with us today.",
+      buttonText: "Start free",
+      buttonHref: "#",
+    },
+    defaultStyles: {
+      desktop: { backgroundImage: "linear-gradient(135deg, var(--pc-brand, #6366f1), #8b5cf6)", color: "#ffffff" },
+    },
+    fields: [
+      { key: "title", label: "Title", type: "text" },
+      { key: "subtitle", label: "Subtitle", type: "text" },
+      { key: "buttonText", label: "Button label", type: "text" },
+      { key: "buttonHref", label: "Button link", type: "url" },
+    ],
+    styleGroups: ["background", "spacing", "typography"],
+    Render: CtaBlock,
+  },
+  {
+    type: "footer",
+    label: "Footer",
+    icon: PanelBottom,
+    category: "Sections",
+    defaultProps: {
+      brand: "YourBrand",
+      tagline: "Building the web, one block at a time.",
+      links: ["Home", "Features", "Pricing", "About", "Contact"],
+      copyright: "© 2026 YourBrand. All rights reserved.",
+    },
+    defaultStyles: { desktop: { backgroundColor: "#0f172a", color: "#ffffff" } },
+    fields: [
+      { key: "brand", label: "Brand", type: "text" },
+      { key: "tagline", label: "Tagline", type: "text" },
+      { key: "links", label: "Nav links", type: "stringlist" },
+      { key: "copyright", label: "Copyright", type: "text" },
+    ],
+    styleGroups: ["background", "spacing", "typography"],
+    Render: FooterBlock,
+  },
+];

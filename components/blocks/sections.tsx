@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 import type { BlockRenderProps } from "@/lib/registry-types";
 import { DynamicIcon, Editable } from "./shared";
 
+export { sectionBlocks } from "./sections.defs";
+
 // --- Hero -------------------------------------------------------------------
 
 export function HeroBlock({ block, editable, style, className, id, setProp }: BlockRenderProps) {
@@ -246,3 +248,4 @@ export function FooterBlock({ block, editable, style, className, id, setProp }: 
     </footer>
   );
 }
+

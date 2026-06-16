@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import type { BlockRenderProps } from "@/lib/registry-types";
 import { Editable } from "./shared";
 
+export { fileBlocks } from "./file.defs";
+
 export function FileBlock({ block, editable, style, className, id, setProp }: BlockRenderProps) {
   const { url = "", title = "Download file", description = "Click to download", align = "left" } = block.props;
   const name = url ? url.split("/").pop() : "";
@@ -43,3 +45,4 @@ export function FileBlock({ block, editable, style, className, id, setProp }: Bl
     </div>
   );
 }
+

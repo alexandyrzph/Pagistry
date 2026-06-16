@@ -4,6 +4,8 @@ import { Code2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { BlockRenderProps } from "@/lib/registry-types";
 
+export { embedBlocks } from "./embed.defs";
+
 // --- Embed / Custom HTML ----------------------------------------------------
 // Injects author-authored raw HTML (iframes, widgets, custom markup). This is
 // the site owner's own code — like Webflow's HTML Embed — so it is rendered
@@ -70,3 +72,4 @@ export function CodeBlock({ block, style, className, id }: BlockRenderProps) {
     </div>
   );
 }
+
