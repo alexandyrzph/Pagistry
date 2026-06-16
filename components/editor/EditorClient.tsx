@@ -14,13 +14,10 @@ import {
 } from "@dnd-kit/core";
 import { createBlock, createComponentInstance } from "@/lib/registry";
 import { findBlockById, getDescendantIds } from "@/lib/tree";
-import { buildExportDocument } from "@/lib/export-html";
-import { designSystemCss } from "@/lib/design-system";
 import { parseContent } from "@/lib/page-service";
 import { parseTheme } from "@/lib/theme";
 import type { Block, Seo, Theme } from "@/lib/types";
 import { useEditor } from "@/store/editor-store";
-import { useDesignSystem } from "@/store/design-system";
 import { useCanvasZoom } from "@/store/canvas-zoom";
 import { BlockRenderer } from "@/components/BlockRenderer";
 import { DragProvider, type DragInfo } from "./drag-context";
@@ -29,6 +26,7 @@ import { CollectionsProvider } from "./collections-context";
 import { SiteProvider } from "./site-context";
 import { EditorActionsProvider } from "./editor-actions";
 import { useEditorData } from "./use-editor-data";
+import { useEditorPersistence } from "./use-editor-persistence";
 import { IframeProvider, type FrameInfo } from "./iframe-context";
 import { CanvasOverlay } from "./CanvasOverlay";
 import { SelectionBreadcrumb } from "./SelectionBreadcrumb";
@@ -74,7 +72,6 @@ export function EditorClient({
   const isCollectionMode = mode === "collection";
   const init = useEditor((s) => s.init);
   const tree = useEditor((s) => s.tree);
-  const dirty = useEditor((s) => s.dirty);
   const addBlock = useEditor((s) => s.addBlock);
   const addComponentInstance = useEditor((s) => s.addComponentInstance);
   const moveExisting = useEditor((s) => s.moveExisting);
@@ -118,7 +115,6 @@ export function EditorClient({
     return { width: r.width, height: r.height, top: r.top, left: r.left, right: r.right, bottom: r.bottom };
   }, []);
   const [saveCompBlock, setSaveCompBlock] = useState<Block | null>(null);
-  const exportRef = useRef<HTMLDivElement>(null);
 
   const { componentsCtx, collectionsCtx, siteCtx, componentsMap, collectionsMap, refreshComponents } =
     useEditorData(mode);
@@ -146,94 +142,12 @@ export function EditorClient({
   );
 
   // --- persistence ----------------------------------------------------------
-  const save = useCallback(async () => {
-    const s = useEditor.getState();
-    if (!s.pageId) return;
-    s.setSaving(true);
-    const started = Date.now();
-    try {
-      const url = isSiteMode
-        ? `/api/site`
-        : isCollectionMode
-          ? `/api/collections/${s.pageId}`
-          : isComponentMode
-            ? `/api/components/${s.pageId}`
-            : `/api/pages/${s.pageId}`;
-      const payload = isSiteMode
-        ? { [siteRegion ?? "header"]: s.tree }
-        : isCollectionMode
-          ? { detailTemplate: s.tree }
-          : isComponentMode
-            ? { name: s.title, content: s.tree }
-            : { title: s.title, content: s.tree, seo: s.seo, theme: s.theme };
-      await fetch(url, {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      // keep the saving indicator visible long enough to read
-      const elapsed = Date.now() - started;
-      if (elapsed < 650) await new Promise((r) => setTimeout(r, 650 - elapsed));
-      useEditor.getState().markSaved(Date.now());
-    } catch {
-      useEditor.getState().setSaving(false);
-    }
-  }, [isComponentMode, isSiteMode, isCollectionMode, siteRegion]);
-
-  const publish = useCallback(async () => {
-    await save();
-    const s = useEditor.getState();
-    if (!s.pageId) return;
-    try {
-      const res = await fetch(`/api/pages/${s.pageId}/publish`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ published: true }),
-      });
-      const data = await res.json();
-      useEditor.getState().setPublished(!!data.published);
-      // capture a restore point for each publish
-      void fetch(`/api/pages/${s.pageId}/versions`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ label: "Published" }),
-      });
-    } catch {
-      /* ignore */
-    }
-  }, [save]);
-
-  const unpublish = useCallback(async () => {
-    const s = useEditor.getState();
-    if (!s.pageId) return;
-    try {
-      const res = await fetch(`/api/pages/${s.pageId}/publish`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ published: false }),
-      });
-      const data = await res.json();
-      useEditor.getState().setPublished(!!data.published);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const exportHtml = useCallback(() => {
-    const s = useEditor.getState();
-    const body = exportRef.current?.innerHTML ?? "";
-    const ds = useDesignSystem.getState();
-    const html = buildExportDocument(s.title, body, s.tree, designSystemCss(ds.colors, ds.textStyles));
-    const blob = new Blob([html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${s.slug || "page"}.html`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }, []);
+  const { save, publish, unpublish, exportHtml, exportRef } = useEditorPersistence({
+    isSiteMode,
+    isCollectionMode,
+    isComponentMode,
+    siteRegion,
+  });
 
   // --- in-place page switching (no full reload / skeleton) ------------------
   const loadPageInPlace = useCallback(
@@ -305,25 +219,6 @@ export function EditorClient({
     () => ({ switchPage, confirmLeave, loadPageInPlace, saveAsComponent }),
     [switchPage, confirmLeave, loadPageInPlace, saveAsComponent]
   );
-
-  // warn on hard unload (refresh / close) with unsaved edits
-  useEffect(() => {
-    const handler = (e: BeforeUnloadEvent) => {
-      if (useEditor.getState().dirty) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, []);
-
-  // debounced autosave
-  useEffect(() => {
-    if (!dirty) return;
-    const t = setTimeout(() => void save(), 1200);
-    return () => clearTimeout(t);
-  }, [dirty, tree, save]);
 
   // keyboard shortcuts
   useEffect(() => {
