@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { requireApiUser } from "@/lib/auth";
-import { createWorkspace } from "@/lib/workspace";
-import { json, created, badRequest } from "@/lib/api-response";
+import { requireApiUser } from "@/lib/auth/auth";
+import { createWorkspace } from "@/lib/auth/workspace";
+import { json, created, badRequest } from "@/lib/api/api-response";
 
 export const dynamic = "force-dynamic";
 

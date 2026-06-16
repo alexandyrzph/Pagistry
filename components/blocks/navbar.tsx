@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { BlockRenderProps } from "@/lib/registry-types";
+import type { BlockRenderProps } from "@/lib/blocks/registry-types";
 import { Editable } from "./shared";
 
 export function NavbarBlock({ block, editable, style, className, id, setProp }: BlockRenderProps) {

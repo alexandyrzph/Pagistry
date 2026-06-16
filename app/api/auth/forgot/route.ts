@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { newToken } from "@/lib/auth";
+import { newToken } from "@/lib/auth/auth";
 
 export const dynamic = "force-dynamic";
 

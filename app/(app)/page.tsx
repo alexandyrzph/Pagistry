@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth";
-import { requireWorkspace } from "@/lib/workspace";
+import { requireUser } from "@/lib/auth/auth";
+import { requireWorkspace } from "@/lib/auth/workspace";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 
 export const dynamic = "force-dynamic";

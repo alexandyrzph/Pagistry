@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { parseContent } from "@/lib/page-service";
-import { requireUser } from "@/lib/auth";
-import { requireWorkspace } from "@/lib/workspace";
+import { requireUser } from "@/lib/auth/auth";
+import { requireWorkspace } from "@/lib/auth/workspace";
 import { EditorClient } from "@/components/editor/EditorClient";
 
 export const dynamic = "force-dynamic";

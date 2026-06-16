@@ -5,7 +5,7 @@ import { Plus, Trash2, ChevronDown, Upload, Images, Loader2, FileUp, Paperclip, 
 import { ICON_NAMES } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 import { DynamicIcon } from "@/components/blocks/shared";
-import { useUpload } from "@/lib/use-upload";
+import { useUpload } from "@/lib/hooks/use-upload";
 import { AssetPicker } from "./AssetPicker";
 import { useDesignSystem } from "@/store/design-system";
 import type { SelectOption } from "@/lib/types";

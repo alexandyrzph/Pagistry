@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { getDefinition } from "@/lib/registry";
+import { getDefinition } from "@/lib/blocks/registry";
 import { cn } from "@/lib/utils";
 import type { Block } from "@/lib/types";
 import { BlockRenderer, type ComponentMap } from "@/components/BlockRenderer";

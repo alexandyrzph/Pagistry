@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { Block, ResponsiveStyles, Seo, StyleProps, Theme, Viewport } from "@/lib/types";
-import { createBlock, createComponentInstance } from "@/lib/registry";
+import { createBlock, createComponentInstance } from "@/lib/blocks/registry";
 import {
   cloneWithNewIds,
   findBlockById,
@@ -14,7 +14,7 @@ import {
   setBlockStyles,
   updateBlockProp,
   updateBlockStyle,
-} from "@/lib/tree";
+} from "@/lib/blocks/tree";
 
 const HISTORY_LIMIT = 100;
 

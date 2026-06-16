@@ -1,5 +1,5 @@
 import { responsiveCss } from "./styles";
-import type { Block } from "./types";
+import type { Block } from "@/lib/types";
 
 // Base reset + page typography shared by the public page and HTML export.
 export const BASE_CSS = `

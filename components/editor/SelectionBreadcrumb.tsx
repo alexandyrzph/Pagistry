@@ -2,8 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight, Clipboard, Copy, Layers, Trash2, X } from "lucide-react";
-import { getDefinition } from "@/lib/registry";
-import { pathToBlock } from "@/lib/tree";
+import { getDefinition } from "@/lib/blocks/registry";
+import { pathToBlock } from "@/lib/blocks/tree";
 import { cn } from "@/lib/utils";
 import { useEditor } from "@/store/editor-store";
 import { useEditorUI } from "@/store/editor-ui";

@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { buildExportDocument } from "@/lib/export-html";
-import { designSystemCss } from "@/lib/design-system";
+import { buildExportDocument } from "@/lib/blocks/export-html";
+import { designSystemCss } from "@/lib/design/design-system";
 import { useEditor } from "@/store/editor-store";
 import { useDesignSystem } from "@/store/design-system";
 

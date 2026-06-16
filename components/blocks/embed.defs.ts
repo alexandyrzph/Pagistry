@@ -1,5 +1,5 @@
 import { CodeXml, Braces } from "lucide-react";
-import type { BlockDefinition } from "@/lib/registry-types";
+import type { BlockDefinition } from "@/lib/blocks/registry-types";
 import { EmbedBlock, CodeBlock } from "./embed";
 
 export const embedBlocks: BlockDefinition[] = [

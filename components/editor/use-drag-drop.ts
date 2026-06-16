@@ -8,8 +8,8 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { createBlock, createComponentInstance } from "@/lib/registry";
-import { findBlockById, getDescendantIds } from "@/lib/tree";
+import { createBlock, createComponentInstance } from "@/lib/blocks/registry";
+import { findBlockById, getDescendantIds } from "@/lib/blocks/tree";
 import { useEditor } from "@/store/editor-store";
 import { useCanvasZoom } from "@/store/canvas-zoom";
 import type { DragInfo } from "./drag-context";

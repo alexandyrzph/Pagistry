@@ -20,7 +20,7 @@ import {
   Undo2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { CATEGORIES, getDefinition } from "@/lib/registry";
+import { CATEGORIES, getDefinition } from "@/lib/blocks/registry";
 import { cn } from "@/lib/utils";
 import { useEditor } from "@/store/editor-store";
 

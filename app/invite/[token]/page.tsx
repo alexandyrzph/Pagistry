@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth/auth";
 import { InviteAccept } from "@/components/app-shell/InviteAccept";
 
 export const dynamic = "force-dynamic";

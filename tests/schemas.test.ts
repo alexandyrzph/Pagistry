@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createPageSchema, updateComponentSchema, emailField } from "@/lib/schemas";
+import { createPageSchema, updateComponentSchema, emailField } from "@/lib/api/schemas";
 
 describe("createPageSchema", () => {
   it("accepts an empty object (all fields optional)", () => {

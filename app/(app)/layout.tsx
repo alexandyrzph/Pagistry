@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth";
-import { getActiveWorkspace } from "@/lib/workspace";
+import { requireUser } from "@/lib/auth/auth";
+import { getActiveWorkspace } from "@/lib/auth/workspace";
 import { Sidebar } from "@/components/app-shell/Sidebar";
 import { SIDEBAR_COOKIE } from "@/components/app-shell/SidebarToggleCookie";
 

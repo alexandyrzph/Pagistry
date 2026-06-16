@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { responsiveCss } from "@/lib/styles";
-import { buildExportDocument } from "@/lib/export-html";
+import { responsiveCss } from "@/lib/blocks/styles";
+import { buildExportDocument } from "@/lib/blocks/export-html";
 import type { Block } from "@/lib/types";
 
 const tree: Block[] = [

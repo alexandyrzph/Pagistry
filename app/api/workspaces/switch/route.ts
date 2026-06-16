@@ -1,6 +1,6 @@
-import { requireApiUser } from "@/lib/auth";
-import { setActiveWorkspace } from "@/lib/workspace";
-import { json, forbidden } from "@/lib/api-response";
+import { requireApiUser } from "@/lib/auth/auth";
+import { setActiveWorkspace } from "@/lib/auth/workspace";
+import { json, forbidden } from "@/lib/api/api-response";
 
 export const dynamic = "force-dynamic";
 

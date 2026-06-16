@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { serializeCollection } from "@/lib/collection-service";
-import { withWorkspace, withRole } from "@/lib/api-handler";
-import { json, notFound } from "@/lib/api-response";
+import { serializeCollection } from "@/lib/cms/collection-service";
+import { withWorkspace, withRole } from "@/lib/api/api-handler";
+import { json, notFound } from "@/lib/api/api-response";
 
 export const dynamic = "force-dynamic";
 

@@ -2,7 +2,7 @@
 
 import { Database } from "lucide-react";
 import type { Block, CardBindings } from "@/lib/types";
-import { CARD_SLOTS, defaultBindings } from "@/lib/cms";
+import { CARD_SLOTS, defaultBindings } from "@/lib/cms/cms";
 import { useEditor } from "@/store/editor-store";
 import { useCollections } from "./collections-context";
 import { Field, NumberInput, SelectInput } from "./controls";

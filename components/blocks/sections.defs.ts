@@ -1,5 +1,5 @@
 import { PanelTop, LayoutGrid, CreditCard, MessageSquareQuote, BarChart3, Rocket, PanelBottom } from "lucide-react";
-import type { BlockDefinition } from "@/lib/registry-types";
+import type { BlockDefinition } from "@/lib/blocks/registry-types";
 import {
   HeroBlock,
   FeatureGridBlock,

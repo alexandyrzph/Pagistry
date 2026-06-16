@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { json, created, error, badRequest, unauthorized, forbidden, notFound } from "@/lib/api-response";
+import { json, created, error, badRequest, unauthorized, forbidden, notFound } from "@/lib/api/api-response";
 
 describe("api-response", () => {
   it("json() defaults to 200 and echoes data", async () => {

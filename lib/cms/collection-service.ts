@@ -4,7 +4,7 @@
 // free of client imports so it can run in route handlers and server pages.
 // ---------------------------------------------------------------------------
 
-import type { CollectionData, CollectionField, CollectionItem, CollectionMap } from "./types";
+import type { CollectionData, CollectionField, CollectionItem, CollectionMap } from "@/lib/types";
 
 type ItemRow = { id: string; data: string; order: number };
 type CollectionRow = {

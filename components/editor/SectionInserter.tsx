@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Search, Sparkles, X } from "lucide-react";
-import { CATEGORIES, createBlock, getDefinition } from "@/lib/registry";
-import { findBlockById } from "@/lib/tree";
+import { CATEGORIES, createBlock, getDefinition } from "@/lib/blocks/registry";
+import { findBlockById } from "@/lib/blocks/tree";
 import { cn } from "@/lib/utils";
 import { useEditor } from "@/store/editor-store";
 import { useEditorUI } from "@/store/editor-ui";

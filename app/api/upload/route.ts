@@ -1,5 +1,5 @@
-import { withRole } from "@/lib/api-handler";
-import { created, badRequest, error } from "@/lib/api-response";
+import { withRole } from "@/lib/api/api-handler";
+import { created, badRequest, error } from "@/lib/api/api-response";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";

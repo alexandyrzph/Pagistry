@@ -12,7 +12,7 @@ import {
   setBlockStyles,
   updateBlockProp,
   updateBlockStyle,
-} from "@/lib/tree";
+} from "@/lib/blocks/tree";
 import type { Block } from "@/lib/types";
 
 const node = (id: string, type = "text", children: Block[] = []): Block => ({

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Theme } from "./types";
+import type { Theme } from "@/lib/types";
 
 /**
  * Convert design tokens into inline CSS — custom properties that blocks read

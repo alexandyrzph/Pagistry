@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireWorkspace } from "@/lib/workspace";
+import { requireWorkspace } from "@/lib/auth/workspace";
 import { FormsClient } from "@/components/app-shell/FormsClient";
 
 export const dynamic = "force-dynamic";

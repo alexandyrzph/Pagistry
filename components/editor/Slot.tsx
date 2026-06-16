@@ -3,8 +3,8 @@
 import { useDroppable } from "@dnd-kit/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
-import { canDrop } from "@/lib/tree";
-import { getDefinition } from "@/lib/registry";
+import { canDrop } from "@/lib/blocks/tree";
+import { getDefinition } from "@/lib/blocks/registry";
 import { cn } from "@/lib/utils";
 import { useDrag } from "./drag-context";
 

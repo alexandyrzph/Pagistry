@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { parseContent } from "@/lib/page-service";
-import { parseTheme } from "@/lib/theme";
+import { parseTheme } from "@/lib/design/theme";
 import { useEditor } from "@/store/editor-store";
 import type { Block } from "@/lib/types";
 

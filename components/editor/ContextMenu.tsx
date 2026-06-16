@@ -13,7 +13,7 @@ import {
   ClipboardPaste,
   Trash2,
 } from "lucide-react";
-import { findBlockById, locate } from "@/lib/tree";
+import { findBlockById, locate } from "@/lib/blocks/tree";
 import { cn } from "@/lib/utils";
 import { useEditor } from "@/store/editor-store";
 import { useEditorUI } from "@/store/editor-ui";

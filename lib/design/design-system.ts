@@ -1,5 +1,5 @@
-import type { ColorToken, DesignSystem, TextStyle } from "./types";
-import { styleDeclarations } from "./styles";
+import type { ColorToken, DesignSystem, TextStyle } from "@/lib/types";
+import { styleDeclarations } from "@/lib/blocks/styles";
 
 /** Parse the Site row's stored JSON into a usable design system. */
 export function parseDesignSystem(site: {

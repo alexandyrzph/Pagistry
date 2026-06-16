@@ -10,7 +10,7 @@ import {
   blankItemData,
   CMS_FIELD_TYPES,
   uniqueFieldKey,
-} from "@/lib/cms";
+} from "@/lib/cms/cms";
 import { useCollections } from "./collections-context";
 import {
   SelectInput,

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type { Block } from "@/lib/types";
 import { useEditor } from "@/store/editor-store";
 import { useBreakpoints } from "@/store/breakpoints";
-import { getDefinition } from "@/lib/registry";
+import { getDefinition } from "@/lib/blocks/registry";
 import { useEditorActions } from "../editor-actions";
 import { CUSTOM_INSPECTORS } from "../custom-inspectors";
 import { StyleGroupView } from "./style-fields";

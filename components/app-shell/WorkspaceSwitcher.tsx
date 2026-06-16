@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useDismissOnOutsideClick } from "@/lib/use-dismiss";
+import { useDismissOnOutsideClick } from "@/lib/hooks/use-dismiss";
 import { useRouter } from "next/navigation";
 import { ChevronsUpDown, Plus, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";

@@ -2,9 +2,9 @@
 
 import { Database } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { BlockRenderProps } from "@/lib/registry-types";
+import type { BlockRenderProps } from "@/lib/blocks/registry-types";
 import type { CardBindings } from "@/lib/types";
-import { resolveCards, type ResolvedCard } from "@/lib/cms";
+import { resolveCards, type ResolvedCard } from "@/lib/cms/cms";
 import { useCollections } from "@/components/editor/collections-context";
 
 // Collection List — repeats a card template across a CMS collection's items.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PanelTop, PanelBottom, ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspace } from "@/lib/workspace";
+import { requireWorkspace } from "@/lib/auth/workspace";
 import { parseContent } from "@/lib/page-service";
 
 export const dynamic = "force-dynamic";

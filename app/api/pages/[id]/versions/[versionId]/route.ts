@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { parseContent } from "@/lib/page-service";
-import { parseTheme } from "@/lib/theme";
-import { withWorkspace, withRole } from "@/lib/api-handler";
-import { json, notFound } from "@/lib/api-response";
+import { parseTheme } from "@/lib/design/theme";
+import { withWorkspace, withRole } from "@/lib/api/api-handler";
+import { json, notFound } from "@/lib/api/api-response";
 
 export const dynamic = "force-dynamic";
 

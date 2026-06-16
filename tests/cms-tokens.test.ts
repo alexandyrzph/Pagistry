@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { applyTokens } from "@/lib/cms-tokens";
+import { applyTokens } from "@/lib/cms/cms-tokens";
 import type { Block } from "@/lib/types";
 
 const mk = (props: Record<string, any>, children: Block[] = []): Block => ({

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Search } from "lucide-react";
-import { CATEGORIES, getDefinition } from "@/lib/registry";
+import { CATEGORIES, getDefinition } from "@/lib/blocks/registry";
 import { cn } from "@/lib/utils";
 import { useEditor } from "@/store/editor-store";
 

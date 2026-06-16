@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { uploadFile } from "./upload";
+import { uploadFile } from "@/lib/upload";
 
 /**
  * Upload a single file via `uploadFile`, tracking progress and surfacing errors.

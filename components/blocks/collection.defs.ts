@@ -1,5 +1,5 @@
 import { Database } from "lucide-react";
-import type { BlockDefinition } from "@/lib/registry-types";
+import type { BlockDefinition } from "@/lib/blocks/registry-types";
 import { CollectionListBlock } from "./collection";
 
 export const collectionBlocks: BlockDefinition[] = [

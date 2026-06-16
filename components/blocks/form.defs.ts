@@ -1,5 +1,5 @@
 import { Mail } from "lucide-react";
-import type { BlockDefinition } from "@/lib/registry-types";
+import type { BlockDefinition } from "@/lib/blocks/registry-types";
 import { FormBlock } from "./form";
 
 export const formBlocks: BlockDefinition[] = [

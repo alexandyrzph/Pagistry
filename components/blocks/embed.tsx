@@ -2,7 +2,7 @@
 
 import { Code2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { BlockRenderProps } from "@/lib/registry-types";
+import type { BlockRenderProps } from "@/lib/blocks/registry-types";
 
 // --- Embed / Custom HTML ----------------------------------------------------
 // Injects author-authored raw HTML (iframes, widgets, custom markup). This is

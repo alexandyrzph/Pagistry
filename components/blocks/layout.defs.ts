@@ -1,5 +1,5 @@
 import { Layout as SectionIcon, Columns3, Square, MoveVertical, Minus } from "lucide-react";
-import type { BlockDefinition } from "@/lib/registry-types";
+import type { BlockDefinition } from "@/lib/blocks/registry-types";
 import {
   SectionBlock,
   ColumnsBlock,

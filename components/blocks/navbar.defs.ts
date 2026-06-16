@@ -1,5 +1,5 @@
 import { Navigation } from "lucide-react";
-import type { BlockDefinition } from "@/lib/registry-types";
+import type { BlockDefinition } from "@/lib/blocks/registry-types";
 import { NavbarBlock } from "./navbar";
 
 export const navbarBlocks: BlockDefinition[] = [

@@ -7,7 +7,7 @@ import type {
   SettingField,
   StyleGroup,
   Viewport,
-} from "./types";
+} from "@/lib/types";
 
 /** Props every block render component receives. */
 export type BlockRenderProps = {

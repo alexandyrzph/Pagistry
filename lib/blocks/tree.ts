@@ -1,5 +1,5 @@
-import type { Block, ResponsiveStyles, StyleProps, Viewport } from "./types";
-import { uid } from "./utils";
+import type { Block, ResponsiveStyles, StyleProps, Viewport } from "@/lib/types";
+import { uid } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
 // Pure, immutable operations over the block tree (Block[]).

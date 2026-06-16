@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronRight, Trash2 } from "lucide-react";
-import { getDefinition } from "@/lib/registry";
+import { getDefinition } from "@/lib/blocks/registry";
 import { cn } from "@/lib/utils";
 import type { Block } from "@/lib/types";
 import { useEditor } from "@/store/editor-store";

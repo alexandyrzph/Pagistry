@@ -1,8 +1,8 @@
-import { slugify } from "./utils";
+import { slugify } from "@/lib/utils";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/prisma";
 import { getCurrentUser, type SessionUser } from "./auth";
 
 // ---------------------------------------------------------------------------

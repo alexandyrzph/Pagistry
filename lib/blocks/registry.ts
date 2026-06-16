@@ -1,6 +1,6 @@
-import type { Block, BlockCategory } from "./types";
+import type { Block, BlockCategory } from "@/lib/types";
 import type { BlockDefinition } from "./registry-types";
-import { uid } from "./utils";
+import { uid } from "@/lib/utils";
 
 import { layoutBlocks } from "@/components/blocks/layout.defs";
 import { basicBlocks } from "@/components/blocks/basic.defs";

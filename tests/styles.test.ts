@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { responsiveCss, resolveStyles, BREAKPOINTS } from "@/lib/styles";
+import { responsiveCss, resolveStyles, BREAKPOINTS } from "@/lib/blocks/styles";
 import type { Block } from "@/lib/types";
 
 const block = (id: string, extra: Partial<Block> = {}): Block => ({

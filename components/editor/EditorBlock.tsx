@@ -3,8 +3,8 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Component as ComponentIcon } from "lucide-react";
-import { getDefinition } from "@/lib/registry";
-import { blockHtmlClass, blockHtmlId } from "@/lib/styles";
+import { getDefinition } from "@/lib/blocks/registry";
+import { blockHtmlClass, blockHtmlId } from "@/lib/blocks/styles";
 import { cn } from "@/lib/utils";
 import type { Block } from "@/lib/types";
 import { useEditor } from "@/store/editor-store";

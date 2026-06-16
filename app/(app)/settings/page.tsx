@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireWorkspace, hasRole } from "@/lib/workspace";
+import { requireWorkspace, hasRole } from "@/lib/auth/workspace";
 import { SettingsClient } from "@/components/app-shell/settings/SettingsClient";
 
 export const dynamic = "force-dynamic";

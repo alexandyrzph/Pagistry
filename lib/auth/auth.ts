@@ -3,7 +3,7 @@ import { promisify } from "util";
 import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/prisma";
 
 // ---------------------------------------------------------------------------
 // Self-contained auth: scrypt password hashing (node:crypto, no deps) +

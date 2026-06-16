@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { requireApiUser } from "@/lib/auth";
-import { json, badRequest } from "@/lib/api-response";
+import { requireApiUser } from "@/lib/auth/auth";
+import { json, badRequest } from "@/lib/api/api-response";
 
 export const dynamic = "force-dynamic";
 

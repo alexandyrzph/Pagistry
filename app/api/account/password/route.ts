@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { requireApiUser, verifyPassword, hashPassword } from "@/lib/auth";
-import { json, badRequest } from "@/lib/api-response";
+import { requireApiUser, verifyPassword, hashPassword } from "@/lib/auth/auth";
+import { json, badRequest } from "@/lib/api/api-response";
 
 export const dynamic = "force-dynamic";
 

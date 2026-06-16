@@ -1,4 +1,4 @@
-import type { Block } from "./types";
+import type { Block } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
 // Token substitution for CMS detail pages. A detail template is an ordinary

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { findBlockById } from "@/lib/tree";
+import { findBlockById } from "@/lib/blocks/tree";
 import type { Block } from "@/lib/types";
 import { useEditor } from "@/store/editor-store";
 import { useEditorUI } from "@/store/editor-ui";

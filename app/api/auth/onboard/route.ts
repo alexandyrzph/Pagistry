@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireApiUser } from "@/lib/auth";
+import { requireApiUser } from "@/lib/auth/auth";
 
 export const dynamic = "force-dynamic";
 

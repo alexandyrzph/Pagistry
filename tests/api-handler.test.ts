@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { runGuarded } from "@/lib/api-handler";
-import type { WorkspaceCtx } from "@/lib/workspace";
+import { runGuarded } from "@/lib/api/api-handler";
+import type { WorkspaceCtx } from "@/lib/auth/workspace";
 
 const fakeCtx: WorkspaceCtx = {
   user: { id: "u1", email: "a@b.com", name: "A", onboarded: true },

@@ -1,4 +1,4 @@
-import { REGISTRY, createBlock } from "./registry";
+import { REGISTRY, createBlock } from "./blocks/registry";
 import type { Block, ResponsiveStyles, SettingField, StyleProps } from "./types";
 
 // ---------------------------------------------------------------------------

@@ -8,7 +8,7 @@ import {
   defaultBindings,
   resolveCard,
   resolveCards,
-} from "@/lib/cms";
+} from "@/lib/cms/cms";
 import type { CollectionField, CollectionItem } from "@/lib/types";
 
 const FIELDS: CollectionField[] = [

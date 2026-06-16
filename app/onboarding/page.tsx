@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth/auth";
 import { Onboarding } from "@/components/onboarding/Onboarding";
 
 export const dynamic = "force-dynamic";

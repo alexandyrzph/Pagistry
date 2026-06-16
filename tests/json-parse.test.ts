@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseJsonArray, parseJsonObject } from "@/lib/json-parse";
+import { parseJsonArray, parseJsonObject } from "@/lib/api/json-parse";
 
 describe("parseJsonArray", () => {
   it("returns the array for a valid JSON array", () => {

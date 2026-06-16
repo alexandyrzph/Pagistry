@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { uniqueSlug } from "@/lib/page-service";
-import { withWorkspace, withRole } from "@/lib/api-handler";
-import { json, created } from "@/lib/api-response";
-import { parseBody, createPageSchema } from "@/lib/schemas";
+import { withWorkspace, withRole } from "@/lib/api/api-handler";
+import { json, created } from "@/lib/api/api-response";
+import { parseBody, createPageSchema } from "@/lib/api/schemas";
 import { logActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Block, ResponsiveStyles, StyleProps, Viewport } from "./types";
+import type { Block, ResponsiveStyles, StyleProps, Viewport } from "@/lib/types";
 
 // ---------------------------------------------------------------------------
 // Turn the per-viewport style model into something renderable.

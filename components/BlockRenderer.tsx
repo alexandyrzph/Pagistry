@@ -1,8 +1,8 @@
 "use client";
 
 import { motion, type Variants } from "framer-motion";
-import { getDefinition } from "@/lib/registry";
-import { resolveStyles, blockHtmlId, blockHtmlClass } from "@/lib/styles";
+import { getDefinition } from "@/lib/blocks/registry";
+import { resolveStyles, blockHtmlId, blockHtmlClass } from "@/lib/blocks/styles";
 import { cn } from "@/lib/utils";
 import type { Block, CollectionMap, Viewport } from "@/lib/types";
 import { CollectionsProvider } from "@/components/editor/collections-context";

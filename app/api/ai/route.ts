@@ -1,6 +1,6 @@
-import { requireApiUser } from "@/lib/auth";
-import { withRole } from "@/lib/api-handler";
-import { json, badRequest, error } from "@/lib/api-response";
+import { requireApiUser } from "@/lib/auth/auth";
+import { withRole } from "@/lib/api/api-handler";
+import { json, badRequest, error } from "@/lib/api/api-response";
 import {
   sectionSystemPrompt,
   pageSystemPrompt,

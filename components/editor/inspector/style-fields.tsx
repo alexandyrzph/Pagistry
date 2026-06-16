@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Link2, X } from "lucide-react";
-import { findBlockById } from "@/lib/tree";
+import { findBlockById } from "@/lib/blocks/tree";
 import { cn } from "@/lib/utils";
 import type { StyleGroup, StyleProps } from "@/lib/types";
 import { useEditor } from "@/store/editor-store";

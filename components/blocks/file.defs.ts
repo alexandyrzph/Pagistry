@@ -1,5 +1,5 @@
 import { FileText } from "lucide-react";
-import type { BlockDefinition } from "@/lib/registry-types";
+import type { BlockDefinition } from "@/lib/blocks/registry-types";
 import { FileBlock } from "./file";
 import { ALIGN_OPTIONS } from "./shared.defs";
 

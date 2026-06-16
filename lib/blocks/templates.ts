@@ -1,5 +1,5 @@
 import { createBlock } from "./registry";
-import type { Block, ResponsiveStyles } from "./types";
+import type { Block, ResponsiveStyles } from "@/lib/types";
 
 // Helper: build a block with overridden props / styles / children.
 function b(

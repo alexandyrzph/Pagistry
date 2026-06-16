@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { responsiveCss } from "@/lib/styles";
-import { designSystemCss } from "@/lib/design-system";
-import { themeVars } from "@/lib/theme";
+import { responsiveCss } from "@/lib/blocks/styles";
+import { designSystemCss } from "@/lib/design/design-system";
+import { themeVars } from "@/lib/design/theme";
 import type { Block, Theme } from "@/lib/types";
 import { useEditor } from "@/store/editor-store";
 import { useEditorUI } from "@/store/editor-ui";

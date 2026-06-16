@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { designSystemCss, parseDesignSystem } from "@/lib/design-system";
+import { designSystemCss, parseDesignSystem } from "@/lib/design/design-system";
 
 describe("designSystemCss", () => {
   it("emits color tokens as CSS variables on body", () => {

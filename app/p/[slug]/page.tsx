@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { parseContent } from "@/lib/page-service";
-import { responsiveCss } from "@/lib/styles";
-import { designSystemCss, parseDesignSystem } from "@/lib/design-system";
-import { themeVars, parseTheme } from "@/lib/theme";
-import { buildCollectionMap } from "@/lib/collection-service";
+import { responsiveCss } from "@/lib/blocks/styles";
+import { designSystemCss, parseDesignSystem } from "@/lib/design/design-system";
+import { themeVars, parseTheme } from "@/lib/design/theme";
+import { buildCollectionMap } from "@/lib/cms/collection-service";
 import { BlockRenderer } from "@/components/BlockRenderer";
 
 export const dynamic = "force-dynamic";

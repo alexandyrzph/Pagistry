@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { BlockRenderProps } from "@/lib/registry-types";
+import type { BlockRenderProps } from "@/lib/blocks/registry-types";
 import { DynamicIcon, Editable } from "./shared";
 
 // --- Hero -------------------------------------------------------------------

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { withWorkspace, withRole } from "@/lib/api-handler";
-import { json, notFound } from "@/lib/api-response";
-import { parseJsonArray } from "@/lib/json-parse";
+import { withWorkspace, withRole } from "@/lib/api/api-handler";
+import { json, notFound } from "@/lib/api/api-response";
+import { parseJsonArray } from "@/lib/api/json-parse";
 
 export const dynamic = "force-dynamic";
 

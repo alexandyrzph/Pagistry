@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspace } from "@/lib/workspace";
-import { serializeCollection } from "@/lib/collection-service";
+import { requireWorkspace } from "@/lib/auth/workspace";
+import { serializeCollection } from "@/lib/cms/collection-service";
 import { CollectionManager } from "@/components/app-shell/cms/CollectionManager";
 
 export const dynamic = "force-dynamic";

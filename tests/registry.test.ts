@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { REGISTRY, CATEGORIES, createBlock } from "@/lib/registry";
+import { REGISTRY, CATEGORIES, createBlock } from "@/lib/blocks/registry";
 
 describe("block registry integrity", () => {
   it("every entry's type matches its key and has a Render component", () => {

@@ -1,5 +1,5 @@
 import { Heading, Type, MousePointerClick, Image as ImageIcon, Star, Video as VideoIcon, List as ListIcon, Quote as QuoteIcon } from "lucide-react";
-import type { BlockDefinition } from "@/lib/registry-types";
+import type { BlockDefinition } from "@/lib/blocks/registry-types";
 import {
   HeadingBlock,
   TextBlock,

@@ -15,7 +15,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { TEMPLATES, type Template } from "@/lib/templates";
+import { TEMPLATES, type Template } from "@/lib/blocks/templates";
 import { cn } from "@/lib/utils";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { SubmissionsModal } from "./SubmissionsModal";

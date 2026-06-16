@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { withRole } from "@/lib/api-handler";
-import { json, notFound } from "@/lib/api-response";
+import { withRole } from "@/lib/api/api-handler";
+import { json, notFound } from "@/lib/api/api-response";
 import { logActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";

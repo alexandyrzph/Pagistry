@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Database, LayoutGrid } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { requireWorkspace } from "@/lib/workspace";
+import { requireWorkspace } from "@/lib/auth/workspace";
 import { NewCollectionButton } from "@/components/app-shell/cms/NewCollectionButton";
 
 export const dynamic = "force-dynamic";

@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { newToken } from "@/lib/auth";
-import { withRole } from "@/lib/api-handler";
-import { type Role } from "@/lib/workspace";
-import { json, created, badRequest, notFound } from "@/lib/api-response";
+import { newToken } from "@/lib/auth/auth";
+import { withRole } from "@/lib/api/api-handler";
+import { type Role } from "@/lib/auth/workspace";
+import { json, created, badRequest, notFound } from "@/lib/api/api-response";
 import { logActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";

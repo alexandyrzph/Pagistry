@@ -14,7 +14,7 @@ import {
   Toggle,
   inputCls,
 } from "@/components/editor/controls";
-import { CMS_FIELD_TYPES, uniqueFieldKey, blankItemData } from "@/lib/cms";
+import { CMS_FIELD_TYPES, uniqueFieldKey, blankItemData } from "@/lib/cms/cms";
 import type {
   CollectionData,
   CollectionField,

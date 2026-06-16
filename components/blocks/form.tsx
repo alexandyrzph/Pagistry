@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import type { BlockRenderProps } from "@/lib/registry-types";
+import type { BlockRenderProps } from "@/lib/blocks/registry-types";
 import { Editable } from "./shared";
 
 type FormField = { label: string; type: string; required?: boolean };

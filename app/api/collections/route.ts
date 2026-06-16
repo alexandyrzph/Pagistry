@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { slugify } from "@/lib/cms";
-import { serializeCollection } from "@/lib/collection-service";
-import { withWorkspace, withRole } from "@/lib/api-handler";
-import { json, created } from "@/lib/api-response";
+import { slugify } from "@/lib/cms/cms";
+import { serializeCollection } from "@/lib/cms/collection-service";
+import { withWorkspace, withRole } from "@/lib/api/api-handler";
+import { json, created } from "@/lib/api/api-response";
 
 export const dynamic = "force-dynamic";
 

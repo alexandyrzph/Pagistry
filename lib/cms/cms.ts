@@ -9,7 +9,7 @@ import type {
   CmsFieldType,
   CollectionField,
   CollectionItem,
-} from "./types";
+} from "@/lib/types";
 
 /** Human labels + defaults for each CMS field type (drives field pickers). */
 export const CMS_FIELD_TYPES: { value: CmsFieldType; label: string }[] = [

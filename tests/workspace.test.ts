@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { ROLE_RANK, hasRole, slugCandidate } from "@/lib/workspace";
+import { ROLE_RANK, hasRole, slugCandidate } from "@/lib/auth/workspace";
 
 describe("role ranking", () => {
   it("orders roles VIEWER < EDITOR < ADMIN < OWNER", () => {
