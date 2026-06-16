@@ -13,7 +13,9 @@ const base = {
 // Two projects so component (jsdom) tests don't change the environment of the
 // existing pure-logic tests:
 //  • node — pure functions, stores, schemas, etc. (`*.test.ts`)
-//  • dom  — React component render tests (`*.dom.test.tsx`, jsdom + jest-dom)
+//  • dom  — React component render tests (jsdom + jest-dom): the shared
+//           `tests/**/*.dom.test.tsx` suites plus colocated UI primitive tests
+//           under `components/**/__tests__/*.test.tsx`.
 export default defineConfig({
   test: {
     projects: [
@@ -30,7 +32,10 @@ export default defineConfig({
         test: {
           name: "dom",
           environment: "jsdom",
-          include: ["tests/**/*.dom.test.tsx"],
+          include: [
+            "tests/**/*.dom.test.tsx",
+            "components/**/__tests__/*.test.tsx",
+          ],
           setupFiles: ["tests/setup-dom.ts"],
         },
       },
