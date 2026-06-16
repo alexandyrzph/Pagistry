@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Loader2, Plus, Search, Sparkles, X } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
+import { useConfirm } from "@/components/ui/dialog-provider";
 import { TEMPLATES, type Template } from "@/lib/blocks/templates";
 import { filterPages, type DashboardFilter } from "@/lib/dashboard/filter";
 import { DashboardSkeleton } from "./DashboardSkeleton";
@@ -15,6 +17,7 @@ type PageItem = DashboardPage;
 
 export function Dashboard({ pages }: { pages: PageItem[] }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const searchParams = useSearchParams();
   const [modal, setModal] = useState(false);
   const [creating, setCreating] = useState<string | null>(null);
@@ -90,7 +93,13 @@ export function Dashboard({ pages }: { pages: PageItem[] }) {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this page? This cannot be undone.")) return;
+    const ok = await confirm({
+      title: "Delete page?",
+      message: "This page will be permanently deleted. This cannot be undone.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     setDeleting(id);
     try {
       await fetch(`/api/pages/${id}`, { method: "DELETE" });
@@ -175,12 +184,12 @@ export function Dashboard({ pages }: { pages: PageItem[] }) {
                 {/* new page tile — first item; opens the template chooser */}
                 <button
                   onClick={() => setModal(true)}
-                  className="group flex min-h-[250px] flex-col items-center justify-center gap-3 rounded-[14px] border-[1.5px] border-dashed border-[#d6dae0] text-[#9aa1ac] transition-all hover:border-indigo-600 hover:bg-indigo-50/40 hover:text-indigo-600"
+                  className="group flex min-h-[280px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50"
                 >
-                  <span className="grid h-[42px] w-[42px] place-items-center rounded-[11px] border-[1.5px] border-current">
-                    <Plus size={20} />
-                  </span>
-                  <span className="text-[13.5px] font-semibold">New blank page</span>
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition-transform group-hover:scale-110">
+                    <Plus className="h-6 w-6 text-slate-400 transition-colors group-hover:text-indigo-600" />
+                  </div>
+                  <span className="text-sm font-medium text-slate-600 transition-colors group-hover:text-slate-900">New page</span>
                 </button>
                 {filtered.map((p, i) => (
                   <PageCard
@@ -198,17 +207,9 @@ export function Dashboard({ pages }: { pages: PageItem[] }) {
         )}
       </main>
 
-      <AnimatePresence>
-        {modal && (
-          <TemplateModal creating={creating} onClose={() => !creating && setModal(false)} onPick={create} />
-        )}
-      </AnimatePresence>
+      <TemplateModal open={modal} creating={creating} onClose={() => !creating && setModal(false)} onPick={create} />
 
-      <AnimatePresence>
-        {aiModal && (
-          <AiPageModal onClose={() => setAiModal(false)} onGenerate={generatePage} onDone={(id) => router.push(`/editor/${id}`)} />
-        )}
-      </AnimatePresence>
+      <AiPageModal open={aiModal} onClose={() => setAiModal(false)} onGenerate={generatePage} onDone={(id) => router.push(`/editor/${id}`)} />
 
       <SubmissionsModal page={inbox} onClose={() => setInbox(null)} />
     </div>
@@ -223,10 +224,12 @@ const AI_EXAMPLES = [
 ];
 
 function AiPageModal({
+  open,
   onClose,
   onGenerate,
   onDone,
 }: {
+  open: boolean;
   onClose: () => void;
   onGenerate: (prompt: string) => Promise<string | null>;
   onDone: (id: string) => void;
@@ -252,21 +255,7 @@ function AiPageModal({
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-start justify-center bg-zinc-900/40 p-4 pt-[12vh] backdrop-blur-sm"
-      onClick={() => !busy && onClose()}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ type: "spring", stiffness: 400, damping: 32 }}
-        className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal open={open} onClose={() => !busy && onClose()} align="top" dismissible={!busy} className="max-w-lg overflow-hidden">
         <div className="flex items-center gap-2.5 border-b border-[#e8eaed] bg-white px-5 py-3.5">
           <Sparkles size={18} className="text-indigo-600" />
           <div className="flex-1">
@@ -313,8 +302,7 @@ function AiPageModal({
             </button>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+    </Modal>
   );
 }
 
@@ -345,30 +333,18 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 }
 
 function TemplateModal({
+  open,
   creating,
   onClose,
   onPick,
 }: {
+  open: boolean;
   creating: string | null;
   onClose: () => void;
   onPick: (t: Template) => void;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.96, y: 8 }}
-        transition={{ type: "spring", stiffness: 400, damping: 32 }}
-        className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-black/5"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal open={open} onClose={onClose} dismissible={!creating} className="max-w-2xl p-6">
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold tracking-tight text-zinc-900">Choose a starting point</h2>
@@ -398,8 +374,7 @@ function TemplateModal({
             </motion.button>
           ))}
         </div>
-      </motion.div>
-    </motion.div>
+    </Modal>
   );
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Database, ExternalLink, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Modal } from "./Modal";
+import { useConfirm } from "@/components/ui/dialog-provider";
 import { cn } from "@/lib/utils";
 import type { CmsFieldType, CollectionField } from "@/lib/types";
 import {
@@ -31,6 +32,7 @@ export function CmsManagerModal({
   const { map, refresh } = useCollections();
   const collection = map[collectionId];
   const router = useRouter();
+  const confirm = useConfirm();
 
   const [tab, setTab] = useState<"fields" | "items" | "detail">("fields");
   const [name, setName] = useState("");
@@ -121,7 +123,13 @@ export function CmsManagerModal({
   }
 
   async function deleteCollection() {
-    if (!confirm(`Delete collection “${collection.name}” and all its items?`)) return;
+    const ok = await confirm({
+      title: "Delete collection?",
+      message: `"${collection.name}" and all of its items will be permanently deleted.`,
+      confirmLabel: "Delete collection",
+      destructive: true,
+    });
+    if (!ok) return;
     setBusy(true);
     await fetch(`/api/collections/${collectionId}`, { method: "DELETE" });
     await refresh();

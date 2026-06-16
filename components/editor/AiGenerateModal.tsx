@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Sparkles, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Modal } from "@/components/ui/Modal";
 import { findBlockById } from "@/lib/blocks/tree";
 import type { Block } from "@/lib/types";
 import { useEditor } from "@/store/editor-store";
@@ -50,9 +50,8 @@ export function AiGenerateModal() {
     return () => window.removeEventListener("keydown", onKey);
   }, [ai, close]);
 
-  if (!ai) return null;
-
   const generate = async () => {
+    if (!ai) return;
     const p = prompt.trim();
     if (!p || busy) return;
     setBusy(true);
@@ -88,22 +87,7 @@ export function AiGenerateModal() {
   const noProvider = providers !== null && providers.length === 0;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[72] flex items-start justify-center bg-zinc-900/40 p-6 pt-[12vh] backdrop-blur-sm"
-        onClick={close}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.97, y: 10 }}
-          transition={{ type: "spring", stiffness: 420, damping: 32 }}
-          className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10"
-          onClick={(e) => e.stopPropagation()}
-        >
+    <Modal open={!!ai} onClose={close} align="top" className="max-w-lg overflow-hidden">
           <div className="flex items-center gap-2.5 border-b border-[#e8eaed] bg-white px-5 py-3.5">
             <Sparkles size={18} className="text-indigo-600" />
             <div className="flex-1">
@@ -223,8 +207,6 @@ export function AiGenerateModal() {
               </>
             )}
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+    </Modal>
   );
 }

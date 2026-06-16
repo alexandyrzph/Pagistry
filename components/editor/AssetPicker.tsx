@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { Loader2, Upload, X } from "lucide-react";
 import { uploadFile, formatBytes, type UploadedAsset } from "@/lib/upload";
+import { Modal } from "@/components/ui/Modal";
+import { useAlert } from "@/components/ui/dialog-provider";
 
 export function AssetPicker({
   open,
@@ -16,6 +17,7 @@ export function AssetPicker({
   onSelect: (url: string) => void;
   onClose: () => void;
 }) {
+  const alert = useAlert();
   const [assets, setAssets] = useState<UploadedAsset[]>([]);
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -43,29 +45,14 @@ export function AssetPicker({
         onClose();
       }
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Upload failed");
+      await alert({ title: "Upload failed", message: e instanceof Error ? e.message : "Please try again." });
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 10 }}
-            className="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10"
-            onClick={(e) => e.stopPropagation()}
-          >
+    <Modal open={open} onClose={onClose} className="flex max-h-[80vh] max-w-2xl flex-col overflow-hidden">
             <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3.5">
               <h2 className="text-sm font-bold tracking-tight text-zinc-900">Media library</h2>
               <div className="flex items-center gap-2">
@@ -129,9 +116,6 @@ export function AssetPicker({
                 </div>
               )}
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Modal>
   );
 }

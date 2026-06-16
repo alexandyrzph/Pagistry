@@ -41,7 +41,7 @@ export default async function CmsPage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-zinc-200 bg-white divide-y divide-zinc-100">
+          <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white divide-y divide-zinc-100">
             {collections.map((col) => (
               <Link
                 key={col.id}

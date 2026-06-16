@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { Download, Inbox, Loader2, X } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
+import { Table, THead, TH, TBody, TR, TD } from "@/components/ui/Table";
 
 type Submission = {
   id: string;
@@ -20,6 +21,11 @@ export function SubmissionsModal({
 }) {
   const [subs, setSubs] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Retain the last page so the header stays populated through the exit animation.
+  const lastPageRef = useRef(page);
+  if (page) lastPageRef.current = page;
+  const view = page ?? lastPageRef.current;
 
   useEffect(() => {
     if (!page) return;
@@ -53,28 +59,12 @@ export function SubmissionsModal({
   }
 
   return (
-    <AnimatePresence>
-      {page && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm"
-          onClick={onClose}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.97, y: 8 }}
-            transition={{ type: "spring", stiffness: 420, damping: 32 }}
-            className="flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10"
-            onClick={(e) => e.stopPropagation()}
-          >
+    <Modal open={!!page} onClose={onClose} className="flex max-h-[80vh] max-w-3xl flex-col overflow-hidden">
             <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3.5">
               <div>
                 <h2 className="text-base font-bold tracking-tight text-zinc-900">Submissions</h2>
                 <p className="text-xs text-zinc-400">
-                  {page.title} · {subs.length} {subs.length === 1 ? "entry" : "entries"}
+                  {view?.title} · {subs.length} {subs.length === 1 ? "entry" : "entries"}
                 </p>
               </div>
               <div className="flex items-center gap-1.5">
@@ -105,33 +95,30 @@ export function SubmissionsModal({
                   No submissions yet. Publish a page with a Form block and entries will appear here.
                 </div>
               ) : (
-                <table className="w-full text-left text-sm">
-                  <thead className="sticky top-0 bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-400">
+                <Table>
+                  <THead className="sticky top-0 bg-zinc-50">
                     <tr>
-                      <th className="px-4 py-2.5 font-semibold">Submitted</th>
+                      <TH>Submitted</TH>
                       {columns.map((c) => (
-                        <th key={c} className="px-4 py-2.5 font-semibold">{c}</th>
+                        <TH key={c}>{c}</TH>
                       ))}
                     </tr>
-                  </thead>
-                  <tbody>
+                  </THead>
+                  <TBody>
                     {subs.map((s) => (
-                      <tr key={s.id} className="border-t border-zinc-100 align-top">
-                        <td className="whitespace-nowrap px-4 py-2.5 text-zinc-400">
+                      <TR key={s.id} className="align-top">
+                        <TD className="whitespace-nowrap text-zinc-400">
                           {new Date(s.createdAt).toLocaleString()}
-                        </td>
+                        </TD>
                         {columns.map((c) => (
-                          <td key={c} className="px-4 py-2.5 text-zinc-700">{s.data[c] ?? ""}</td>
+                          <TD key={c} className="text-zinc-700">{s.data[c] ?? ""}</TD>
                         ))}
-                      </tr>
+                      </TR>
                     ))}
-                  </tbody>
-                </table>
+                  </TBody>
+                </Table>
               )}
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    </Modal>
   );
 }

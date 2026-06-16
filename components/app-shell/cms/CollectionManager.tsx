@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Trash2, Loader2, ExternalLink } from "lucide-react";
@@ -14,6 +14,9 @@ import {
   Toggle,
   inputCls,
 } from "@/components/editor/controls";
+import { Table, TableContainer, THead, TH, TBody, TR, TD } from "@/components/ui/Table";
+import { Modal } from "@/components/ui/Modal";
+import { useConfirm, useAlert } from "@/components/ui/dialog-provider";
 import { CMS_FIELD_TYPES, uniqueFieldKey, blankItemData } from "@/lib/cms/cms";
 import type {
   CollectionData,
@@ -62,6 +65,8 @@ function FieldValueInput({
 
 export function CollectionManager({ initial }: { initial: CollectionData }) {
   const router = useRouter();
+  const confirm = useConfirm();
+  const alert = useAlert();
   const [col, setCol] = useState<CollectionData>(initial);
   const [tab, setTab] = useState<"items" | "fields" | "settings">("items");
   const [editing, setEditing] = useState<CollectionItem | null>(null);
@@ -111,7 +116,13 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
   }
 
   async function deleteItem(id: string) {
-    if (!confirm("Delete this item?")) return;
+    const ok = await confirm({
+      title: "Delete item?",
+      message: "This item will be permanently removed from the collection.",
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     await fetch(`/api/collections/${col.id}/items/${id}`, { method: "DELETE" });
     await reloadItems();
   }
@@ -125,14 +136,20 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
   }
 
   async function deleteCollection() {
-    if (!confirm(`Delete "${col.name}" and all its items?`)) return;
+    const ok = await confirm({
+      title: "Delete collection?",
+      message: `"${col.name}" and all of its items will be permanently deleted.`,
+      confirmLabel: "Delete collection",
+      destructive: true,
+    });
+    if (!ok) return;
     const res = await fetch(`/api/collections/${col.id}`, { method: "DELETE" }).catch(() => null);
     if (res && res.ok) {
       router.push("/cms");
       router.refresh();
     } else {
       const d = res ? await res.json().catch(() => ({})) : {};
-      alert(d.error || "Could not delete the collection.");
+      await alert({ title: "Couldn't delete collection", message: d.error || "Please try again." });
     }
   }
 
@@ -181,49 +198,56 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
                 No items yet.
               </p>
             ) : (
-              <div className="overflow-hidden rounded-xl border border-zinc-200">
-                <table className="w-full text-sm">
-                  <thead className="bg-zinc-50 text-left text-xs text-zinc-500">
+              <TableContainer>
+                <Table>
+                  <THead>
                     <tr>
                       {col.fields.slice(0, 4).map((f) => (
-                        <th key={f.key} className="px-4 py-2.5 font-medium">
-                          {f.label}
-                        </th>
+                        <TH key={f.key}>{f.label}</TH>
                       ))}
-                      <th className="w-20" />
+                      <TH className="text-right">
+                        <span className="sr-only">Actions</span>
+                      </TH>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-100">
+                  </THead>
+                  <TBody>
                     {col.items.map((it) => (
-                      <tr key={it.id} className="hover:bg-zinc-50">
-                        {col.fields.slice(0, 4).map((f) => (
-                          <td
+                      <TR key={it.id} className="group">
+                        {col.fields.slice(0, 4).map((f, i) => (
+                          <TD
                             key={f.key}
-                            className="max-w-[200px] truncate px-4 py-2.5 text-zinc-700"
+                            className={
+                              i === 0
+                                ? "max-w-[260px] truncate font-medium text-zinc-900"
+                                : "max-w-[220px] truncate"
+                            }
+                            title={String(it.data?.[f.key] ?? "")}
                           >
-                            {String(it.data?.[f.key] ?? "")}
-                          </td>
+                            {String(it.data?.[f.key] ?? "") || <span className="text-zinc-300">—</span>}
+                          </TD>
                         ))}
-                        <td className="px-4 py-2.5 text-right">
-                          <button
-                            onClick={() => setEditing(it)}
-                            className="mr-1 rounded-lg px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => deleteItem(it.id)}
-                            aria-label="Delete item"
-                            className="rounded-lg p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </td>
-                      </tr>
+                        <TD className="w-px whitespace-nowrap text-right">
+                          <div className="flex items-center justify-end gap-1 opacity-60 transition-opacity group-hover:opacity-100">
+                            <button
+                              onClick={() => setEditing(it)}
+                              className="rounded-md px-2 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => deleteItem(it.id)}
+                              aria-label="Delete item"
+                              className="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </TD>
+                      </TR>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </TBody>
+                </Table>
+              </TableContainer>
             )}
           </div>
         )}
@@ -312,47 +336,68 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
         )}
       </div>
 
-      {editing && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-zinc-900/40 p-4 pt-[8vh] backdrop-blur-sm"
-          onClick={() => setEditing(null)}
-        >
-          <div
-            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="mb-4 text-sm font-bold text-zinc-900">Edit item</h3>
-            <div className="max-h-[60vh] space-y-3 overflow-y-auto">
-              {col.fields.map((f) => (
-                <Field key={f.key} label={f.label}>
-                  <FieldValueInput
-                    field={f}
-                    value={editing.data?.[f.key]}
-                    onChange={(v) =>
-                      setEditing({ ...editing, data: { ...editing.data, [f.key]: v } })
-                    }
-                  />
-                </Field>
-              ))}
-            </div>
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setEditing(null)}
-                className="rounded-lg px-3.5 py-2 text-sm text-zinc-500 hover:bg-zinc-100"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => saveItem(editing)}
-                className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditItemModal
+        item={editing}
+        fields={col.fields}
+        onChange={setEditing}
+        onCancel={() => setEditing(null)}
+        onSave={saveItem}
+      />
     </div>
+  );
+}
+
+function EditItemModal({
+  item,
+  fields,
+  onChange,
+  onCancel,
+  onSave,
+}: {
+  item: CollectionItem | null;
+  fields: CollectionField[];
+  onChange: (item: CollectionItem) => void;
+  onCancel: () => void;
+  onSave: (item: CollectionItem) => void;
+}) {
+  // Retain the last item so content stays visible through the exit animation.
+  const lastRef = useRef<CollectionItem | null>(null);
+  if (item) lastRef.current = item;
+  const view = item ?? lastRef.current;
+
+  return (
+    <Modal open={!!item} onClose={onCancel} align="top" className="max-w-lg p-6">
+      {view && (
+        <>
+          <h3 className="mb-4 text-sm font-bold text-zinc-900">Edit item</h3>
+          <div className="max-h-[60vh] space-y-3 overflow-y-auto">
+            {fields.map((f) => (
+              <Field key={f.key} label={f.label}>
+                <FieldValueInput
+                  field={f}
+                  value={view.data?.[f.key]}
+                  onChange={(v) => onChange({ ...view, data: { ...view.data, [f.key]: v } })}
+                />
+              </Field>
+            ))}
+          </div>
+          <div className="mt-5 flex justify-end gap-2">
+            <button
+              onClick={onCancel}
+              className="rounded-lg px-3.5 py-2 text-sm text-zinc-500 hover:bg-zinc-100"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onSave(view)}
+              className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
+            >
+              Save
+            </button>
+          </div>
+        </>
+      )}
+    </Modal>
   );
 }
 

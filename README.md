@@ -68,3 +68,29 @@ The heart of the app is a **recursive block tree** (`{ id, type, props, styles,
 children }`) stored as JSON. A single **component registry** maps each block type
 to its renderer, default props/styles, and inspector schema — so the palette,
 canvas, and settings panel all stay in sync from one source of truth.
+
+## Engineering docs
+
+Deeper design and operations material lives in [`docs/`](docs/):
+
+| Doc | What it covers |
+| --- | -------------- |
+| [Features](docs/features.md) | Complete catalogue of everything the app can do |
+| [Architecture Decision Records](docs/adr/README.md) | Why each technology/pattern was chosen and the trade-offs (11 ADRs) |
+| [Architecture diagrams](docs/architecture.md) | Mermaid system context, request lifecycle, DnD sequence, ER, deployment |
+| [Observability](docs/observability.md) | Structured logs, Prometheus metrics, tracing, health checks |
+| [Performance post-mortem](docs/post-mortem.md) | Load-test findings: the bottlenecks hit and how they were fixed |
+
+### Observability at a glance
+
+The app emits all three pillars from [`lib/observability/`](lib/observability):
+
+- **Logs** — structured JSON to stdout, auto-correlated with `trace_id`.
+- **Metrics** — Prometheus exposition at `GET /api/internal/metrics`.
+- **Traces** — per-request spans (AsyncLocalStorage); `x-trace-id` on every response.
+- **Health** — `GET /api/internal/health` (liveness + DB readiness).
+
+```bash
+curl localhost:3000/api/internal/health
+curl localhost:3000/api/internal/metrics   # set METRICS_TOKEN in production
+```

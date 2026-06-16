@@ -41,10 +41,10 @@ export function Sidebar({
 
   const rail = (
     <div className={cn("flex h-full flex-col border-r border-[#e8eaed] bg-white text-[#4b5563] transition-[width] duration-200", w)}>
-      <div className="flex items-center gap-2 px-3 py-3.5">
+      <div className="flex items-center gap-2 px-4 py-3.5">
         <WorkspaceSwitcher collapsed={collapsed} workspaces={workspaces} activeId={active?.id} />
       </div>
-      <div className="px-3 pb-2">
+      <div className="px-4 pb-2">
         <button
           onClick={() => setPaletteOpen(true)}
           title={collapsed ? "Search (⌘K)" : undefined}
@@ -55,7 +55,7 @@ export function Sidebar({
           {!collapsed && <kbd className="rounded-[5px] border border-[#d6dae0] bg-[#fbfbfc] px-1.5 py-0.5 font-mono text-[10.5px] text-[#9aa1ac]">⌘K</kbd>}
         </button>
       </div>
-      <nav className="flex-1 overflow-y-auto px-3 py-2">
+      <nav className="flex-1 overflow-y-auto px-4 py-2">
         {NAV_GROUPS.map((g) => (
           <div key={g.title} className="mb-4">
             {!collapsed && <p className="px-2.5 pb-1.5 pt-2 text-[10.5px] font-bold uppercase tracking-[0.13em] text-[#aeb4bd]">{g.title}</p>}
@@ -85,7 +85,7 @@ export function Sidebar({
           </div>
         ))}
       </nav>
-      <div className="space-y-1 border-t border-[#e8eaed] p-3">
+      <div className="space-y-1 border-t border-[#e8eaed] px-4 py-3">
         <Link
           href="/settings"
           title={collapsed ? "Settings" : undefined}
@@ -111,7 +111,7 @@ export function Sidebar({
             onClick={toggle}
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="absolute -right-3 top-5 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-[#e8eaed] bg-white text-[#9aa1ac] shadow-sm transition-colors hover:border-[#d6dae0] hover:text-[#111827]"
+            className="absolute -right-3 top-[23px] z-20 flex h-6 w-6 items-center justify-center rounded-full border border-[#e8eaed] bg-white text-[#9aa1ac] shadow-sm transition-colors hover:border-[#d6dae0] hover:text-[#111827]"
           >
             {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>

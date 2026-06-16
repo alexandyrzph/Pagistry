@@ -4,23 +4,29 @@ import { withWorkspace, withRole } from "@/lib/api/api-handler";
 import { json, created } from "@/lib/api/api-response";
 import { parseBody, createPageSchema } from "@/lib/api/schemas";
 import { logActivity } from "@/lib/activity";
+import { instrumentApi, timeDb } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/pages — list pages in the active workspace (newest first)
-export async function GET() {
-  return withWorkspace(async (ws) => {
-    const pages = await prisma.page.findMany({
-      where: { workspaceId: ws.workspace.id },
-      orderBy: { updatedAt: "desc" },
-    });
-    return json(pages);
-  });
+export async function GET(req: Request) {
+  return instrumentApi("/api/pages", req, () =>
+    withWorkspace(async (ws) => {
+      const pages = await timeDb("page.findMany", () =>
+        prisma.page.findMany({
+          where: { workspaceId: ws.workspace.id },
+          orderBy: { updatedAt: "desc" },
+        }),
+      );
+      return json(pages);
+    }),
+  );
 }
 
 // POST /api/pages — create a page in the active workspace (editor+)
 export async function POST(req: Request) {
-  return withRole("EDITOR", async (ws) => {
+  return instrumentApi("/api/pages", req, () =>
+    withRole("EDITOR", async (ws) => {
     const parsed = await parseBody(req, createPageSchema);
     if ("response" in parsed) return parsed.response;
     const title = (parsed.data.title || "Untitled Page").slice(0, 120);
@@ -31,5 +37,6 @@ export async function POST(req: Request) {
     });
     await logActivity(ws.workspace.id, ws.user.id, "page.created", page.id, { title });
     return created(page);
-  });
+    }),
+  );
 }

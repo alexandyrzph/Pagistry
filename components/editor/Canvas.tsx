@@ -38,25 +38,41 @@ export function Canvas() {
   // Drag-to-resize the preview width via the side "pipes". Centered device, so a
   // drag of dx on one side changes the width by 2·dx (divided by zoom, since the
   // device is visually scaled) to keep that edge under the cursor.
-  const startResize = (side: "left" | "right") => (e: React.PointerEvent) => {
+  const startResize = (side: "left" | "right") => (e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
+    const handle = e.currentTarget;
+    handle.setPointerCapture(e.pointerId);
+
     const startX = e.clientX;
     const startW = active.width;
     setResizeSide(side);
     const fr = frame?.el;
-    fr?.style.setProperty("pointer-events", "none"); // don't let the iframe eat the drag
+    fr?.style.setProperty("pointer-events", "none");
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+
     const move = (ev: PointerEvent) => {
       const dx = ev.clientX - startX;
       setDragWidth(startW + ((side === "right" ? dx : -dx) * 2) / zoom);
     };
-    const up = () => {
+    const end = () => {
       setResizeSide(null);
       fr?.style.removeProperty("pointer-events");
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
+      document.body.style.removeProperty("cursor");
+      document.body.style.removeProperty("user-select");
+      handle.removeEventListener("pointermove", move);
+      handle.removeEventListener("pointerup", end);
+      handle.removeEventListener("pointercancel", end);
+      if (handle.hasPointerCapture(e.pointerId)) {
+        handle.releasePointerCapture(e.pointerId);
+      }
     };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+    // With pointer capture, events stay on the handle even when the cursor
+    // crosses the iframe — window listeners alone lose the drag over iframes.
+    handle.addEventListener("pointermove", move);
+    handle.addEventListener("pointerup", end);
+    handle.addEventListener("pointercancel", end);
   };
 
   // Measure the scrollable canvas area so the zoomed device gets a correctly

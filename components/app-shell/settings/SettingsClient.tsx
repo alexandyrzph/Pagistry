@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Copy, Check, Trash2 } from "lucide-react";
+import { useConfirm, useAlert } from "@/components/ui/dialog-provider";
 
 type WS = { id: string; name: string; slug: string };
 type Member = { membershipId: string; userId: string; name: string; email: string; role: string };
@@ -53,18 +54,21 @@ function General({ workspace, onSaved }: { workspace: WS; onSaved: () => void })
 }
 
 function Members() {
+  const confirm = useConfirm();
+  const alert = useAlert();
   const [members, setMembers] = useState<Member[]>([]);
   const load = () => fetch("/api/workspaces/members").then((r) => r.json()).then((d) => Array.isArray(d) && setMembers(d));
   useEffect(() => { load(); }, []);
   async function changeRole(m: Member, role: string) {
     const res = await fetch("/api/workspaces/members", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ membershipId: m.membershipId, role }) }).catch(() => null);
-    if (res && !res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || "Could not change role"); }
+    if (res && !res.ok) { const d = await res.json().catch(() => ({})); await alert({ title: "Couldn't change role", message: d.error || "Please try again." }); }
     load();
   }
   async function remove(m: Member) {
-    if (!confirm(`Remove ${m.email}?`)) return;
+    const ok = await confirm({ title: "Remove member?", message: `${m.email} will lose access to this workspace.`, confirmLabel: "Remove", destructive: true });
+    if (!ok) return;
     const res = await fetch(`/api/workspaces/members?membershipId=${m.membershipId}`, { method: "DELETE" }).catch(() => null);
-    if (res && !res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || "Could not remove member"); }
+    if (res && !res.ok) { const d = await res.json().catch(() => ({})); await alert({ title: "Couldn't remove member", message: d.error || "Please try again." }); }
     load();
   }
   return (
@@ -82,6 +86,7 @@ function Members() {
 }
 
 function Invites() {
+  const alert = useAlert();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [email, setEmail] = useState(""); const [role, setRole] = useState("EDITOR");
   const [busy, setBusy] = useState(false); const [link, setLink] = useState(""); const [copied, setCopied] = useState(false); const [err, setErr] = useState("");
@@ -94,7 +99,7 @@ function Invites() {
     setBusy(false);
     if (res.ok) { setLink(d.inviteUrl); setEmail(""); load(); } else setErr(d.error || "Failed");
   }
-  async function revoke(id: string) { const res = await fetch(`/api/workspaces/invites?id=${id}`, { method: "DELETE" }).catch(() => null); if (res && !res.ok) alert("Could not revoke invite"); load(); }
+  async function revoke(id: string) { const res = await fetch(`/api/workspaces/invites?id=${id}`, { method: "DELETE" }).catch(() => null); if (res && !res.ok) await alert({ title: "Couldn't revoke invite", message: "Please try again." }); load(); }
   return (
     <div className="space-y-5">
       <form onSubmit={create} className="flex flex-wrap items-end gap-2">
@@ -125,9 +130,16 @@ function Invites() {
 
 function Danger({ workspace, role }: { workspace: WS; role: string }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
   async function del() {
-    if (!confirm(`Delete "${workspace.name}"? This permanently removes its pages, CMS, and assets.`)) return;
+    const ok = await confirm({
+      title: "Delete workspace?",
+      message: `"${workspace.name}" will be permanently deleted, along with its pages, CMS, and assets. This cannot be undone.`,
+      confirmLabel: "Delete workspace",
+      destructive: true,
+    });
+    if (!ok) return;
     setBusy(true); setErr("");
     const res = await fetch(`/api/workspaces/${workspace.id}`, { method: "DELETE" });
     const d = await res.json().catch(() => ({}));

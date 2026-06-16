@@ -38,16 +38,16 @@ export function OAuthButtonRow({ providers, next }: { providers: Provider[]; nex
           <a
             key={p}
             href={`/api/auth/oauth/${p}${q}`}
-            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-300 bg-white py-2.5 text-sm font-semibold text-zinc-800 shadow-xs transition-colors hover:bg-zinc-50"
+            className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-300 bg-white py-2.5 text-sm font-semibold text-zinc-800 shadow-xs transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
           >
             <Glyph /> {LABEL[p]}
           </a>
         );
       })}
       <div className="flex items-center gap-3 py-1">
-        <span className="h-px flex-1 bg-zinc-200" />
-        <span className="text-xs text-zinc-400">or continue with email</span>
-        <span className="h-px flex-1 bg-zinc-200" />
+        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-700" />
+        <span className="text-xs text-zinc-400 dark:text-zinc-500">or continue with email</span>
+        <span className="h-px flex-1 bg-zinc-200 dark:bg-zinc-700" />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { requireApiUser } from "@/lib/auth/auth";
 import { withRole } from "@/lib/api/api-handler";
 import { json, badRequest, error } from "@/lib/api/api-response";
+import { instrumentApi, logger } from "@/lib/observability";
 import {
   sectionSystemPrompt,
   pageSystemPrompt,
@@ -100,7 +101,8 @@ async function callModel(
 
 // POST /api/ai — generate blocks from a prompt
 export async function POST(req: Request) {
-  return withRole("EDITOR", async (_ws) => {
+  return instrumentApi("/api/ai", req, () =>
+    withRole("EDITOR", async (_ws) => {
     const providers = available();
     if (!providers.length) {
       return badRequest("No AI provider configured. Add ANTHROPIC_API_KEY or OPENAI_API_KEY to .env.");
@@ -136,7 +138,14 @@ export async function POST(req: Request) {
       const style = DESIGN_STYLE_KEYS.includes(body.style) ? body.style : "auto";
       const system = isPage ? pageSystemPrompt(style) : sectionSystemPrompt(style);
       // styled output is larger; give it room. Higher temperature → more distinctive.
+      const t0 = performance.now();
       const raw = await callModel(provider, GEN_MODEL, system, prompt, isPage ? 8000 : 4000, 0.85);
+      logger.info("ai.generate", {
+        provider,
+        mode,
+        style,
+        upstream_ms: Math.round(performance.now() - t0),
+      });
       const blocks = sanitizeGeneratedBlocks(extractJsonArray(raw));
       if (!blocks.length) {
         return error(422, "The model returned no usable blocks. Try rephrasing.");
@@ -145,5 +154,6 @@ export async function POST(req: Request) {
     } catch (e) {
       return error(502, e instanceof Error ? e.message : "Generation failed");
     }
-  });
+    }),
+  );
 }

@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Component as ComponentIcon, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/ui/dialog-provider";
 import { useEditor } from "@/store/editor-store";
 import { useComponents, type ComponentItem } from "./components-context";
 
 function CompItem({ c }: { c: ComponentItem }) {
   const router = useRouter();
   const components = useComponents();
+  const confirm = useConfirm();
   const addComponentInstance = useEditor((s) => s.addComponentInstance);
   const treeLen = useEditor((s) => s.tree.length);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -20,7 +22,13 @@ function CompItem({ c }: { c: ComponentItem }) {
 
   async function del(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!confirm(`Delete "${c.name}"? Existing instances will show "not found".`)) return;
+    const ok = await confirm({
+      title: "Delete component?",
+      message: `"${c.name}" will be deleted. Existing instances will show "not found".`,
+      confirmLabel: "Delete",
+      destructive: true,
+    });
+    if (!ok) return;
     await fetch(`/api/components/${c.id}`, { method: "DELETE" });
     await components.refresh();
   }

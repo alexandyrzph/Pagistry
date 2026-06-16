@@ -31,7 +31,7 @@ export default async function SitePage() {
   ] as const;
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-[1320px] px-6 py-10 lg:px-12">
       <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Site</h1>
       <p className="mt-1 text-sm text-zinc-500">
         Global regions that render on every published page in your workspace.
