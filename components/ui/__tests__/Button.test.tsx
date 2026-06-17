@@ -22,4 +22,16 @@ describe("Button", () => {
     expect(btn).toHaveClass("bg-brand-600");
     expect(btn).toHaveClass("h-9");
   });
+
+  it("applies the neutral variant", () => {
+    render(<Button variant="neutral">Save</Button>);
+    expect(screen.getByRole("button", { name: "Save" })).toHaveClass("bg-fg");
+  });
+
+  it("renders the link variant inline without button padding", () => {
+    render(<Button variant="link">More</Button>);
+    const btn = screen.getByRole("button", { name: "More" });
+    expect(btn).toHaveClass("p-0");
+    expect(btn).not.toHaveClass("h-9");
+  });
 });
