@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Trash2, Loader2, ExternalLink } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import {
   Field,
   TextInput,
@@ -166,15 +167,15 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
         /{col.slug} · {col.items.length} item{col.items.length !== 1 ? "s" : ""}
       </p>
 
-      <div className="mt-6 flex gap-1 border-b border-zinc-200">
+      <div className="mt-6 flex gap-1 border-b border-border">
         {(["items", "fields", "settings"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-3 py-2 text-sm font-medium capitalize ${
               tab === t
-                ? "border-b-2 border-indigo-600 text-indigo-700"
-                : "text-zinc-500 hover:text-zinc-800"
+                ? "border-b-2 border-brand-600 text-brand-700"
+                : "text-fg-muted hover:text-fg"
             }`}
           >
             {t}
@@ -185,14 +186,7 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
       <div className="py-6">
         {tab === "items" && (
           <div>
-            <button
-              onClick={addItem}
-              disabled={busy}
-              className="mb-4 flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
-            >
-              {busy ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Add
-              item
-            </button>
+            <Button variant="neutral" className="mb-4" onPress={addItem} isLoading={busy} leadingIcon={<Plus size={15} />}>Add item</Button>
             {col.items.length === 0 ? (
               <p className="rounded-xl border border-dashed border-zinc-200 py-10 text-center text-sm text-zinc-400">
                 No items yet.
@@ -228,19 +222,8 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
                         ))}
                         <TD className="w-px whitespace-nowrap text-right">
                           <div className="flex items-center justify-end gap-1 opacity-60 transition-opacity group-hover:opacity-100">
-                            <button
-                              onClick={() => setEditing(it)}
-                              className="rounded-md px-2 py-1 text-xs font-semibold text-indigo-600 hover:bg-indigo-50"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => deleteItem(it.id)}
-                              aria-label="Delete item"
-                              className="rounded-md p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500"
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                            <Button variant="ghost" size="sm" onPress={() => setEditing(it)} className="text-brand-600 hover:bg-brand-50">Edit</Button>
+                            <Button variant="ghost" size="icon" aria-label="Delete item" onPress={() => deleteItem(it.id)} className="text-fg-subtle hover:bg-danger-50 hover:text-danger-500"><Trash2 size={14} /></Button>
                           </div>
                         </TD>
                       </TR>
@@ -281,15 +264,7 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
                   />
                 </div>
                 <code className="text-xs text-zinc-400">{f.key}</code>
-                <button
-                  onClick={() =>
-                    patchCollection({ fields: col.fields.filter((x) => x.key !== f.key) })
-                  }
-                  aria-label={`Remove ${f.label}`}
-                  className="ml-auto rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"
-                >
-                  <Trash2 size={15} />
-                </button>
+                <Button variant="ghost" size="icon" aria-label={`Remove ${f.label}`} onPress={() => patchCollection({ fields: col.fields.filter((x) => x.key !== f.key) })} className="ml-auto text-fg-subtle hover:bg-danger-50 hover:text-danger-500"><Trash2 size={15} /></Button>
               </div>
             ))}
             <AddField onAdd={addField} />
@@ -304,12 +279,7 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
                 onChange={(v: string) => setCol({ ...col, name: v })}
               />
             </Field>
-            <button
-              onClick={() => patchCollection({ name: col.name })}
-              className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
-            >
-              Save name
-            </button>
+            <Button variant="neutral" onPress={() => patchCollection({ name: col.name })}>Save name</Button>
             <label className="flex items-center justify-between rounded-xl border border-zinc-200 p-3">
               <span className="text-sm text-zinc-700">Detail pages</span>
               <Toggle
@@ -325,12 +295,7 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
             </Link>
             <div className="rounded-xl border border-red-200 bg-red-50 p-4">
               <p className="text-sm font-semibold text-red-800">Delete collection</p>
-              <button
-                onClick={deleteCollection}
-                className="mt-2 flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700"
-              >
-                <Trash2 size={15} /> Delete
-              </button>
+              <Button variant="danger" className="mt-2" onPress={deleteCollection} leadingIcon={<Trash2 size={15} />}>Delete</Button>
             </div>
           </div>
         )}
@@ -382,18 +347,8 @@ function EditItemModal({
             ))}
           </div>
           <div className="mt-5 flex justify-end gap-2">
-            <button
-              onClick={onCancel}
-              className="rounded-lg px-3.5 py-2 text-sm text-zinc-500 hover:bg-zinc-100"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => onSave(view)}
-              className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
-            >
-              Save
-            </button>
+            <Button variant="ghost" onPress={onCancel}>Cancel</Button>
+            <Button variant="neutral" onPress={() => onSave(view)}>Save</Button>
           </div>
         </>
       )}
@@ -417,17 +372,7 @@ function AddField({ onAdd }: { onAdd: (label: string) => void }) {
           }
         }}
       />
-      <button
-        onClick={() => {
-          if (label.trim()) {
-            onAdd(label.trim());
-            setLabel("");
-          }
-        }}
-        className="flex items-center gap-1.5 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-      >
-        <Plus size={15} /> Add field
-      </button>
+      <Button variant="secondary" leadingIcon={<Plus size={15} />} onPress={() => { if (label.trim()) { onAdd(label.trim()); setLabel(""); } }}>Add field</Button>
     </div>
   );
 }
