@@ -104,6 +104,13 @@ export function CanvasFrame({
     // Select on pointerdown (click events don't reliably fire through the
     // cross-document portal); hover via mouseover.
     const onDown = (e: Event) => {
+      // Bridge RAC outside-press across the iframe boundary: inspector overlays
+      // (Select/Menu/Popover) listen for pointerdown on the editor's top document
+      // and never see clicks inside this iframe, so they wouldn't dismiss. Forward a
+      // synthetic pointerdown to the top document — RAC's interactOutside catches it
+      // and closes any open overlay. CanvasFrame's is the only iframe-doc pointerdown
+      // listener and there's no top-document pointerdown listener, so nothing else fires.
+      document.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
       const t = e.target as HTMLElement;
       // "generate with AI" trigger in the empty-state placeholder
       if (t?.closest?.("[data-open-ai]")) {
