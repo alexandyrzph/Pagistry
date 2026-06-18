@@ -11,6 +11,8 @@ export { Popover } from "./Popover";
 export { Checkbox } from "./Checkbox";
 export { Switch } from "./Switch";
 export { RadioGroup, Radio } from "./RadioGroup";
+export { Slider } from "./Slider";
+export { ToggleButtonGroup, ToggleButton } from "./ToggleButtonGroup";
 export { Tooltip, TooltipTrigger } from "./Tooltip";
 export { MenuTrigger, DialogTrigger } from "react-aria-components";
 export { Modal } from "./Modal";
