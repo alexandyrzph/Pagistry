@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 export function NewCollectionButton() {
   const router = useRouter();
@@ -23,12 +24,6 @@ export function NewCollectionButton() {
     }
   }
   return (
-    <button
-      onClick={create}
-      disabled={busy}
-      className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
-    >
-      {busy ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} New collection
-    </button>
+    <Button variant="neutral" onPress={create} isLoading={busy} leadingIcon={<Plus size={15} />}>New collection</Button>
   );
 }
