@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useDesignSystem } from "@/store/design-system";
 import { Field, TextInput, ColorInput, UnitInput, SelectInput, inputCls } from "@/components/editor/controls";
+import { Button } from "@/components/ui/Button";
 import type { StyleProps } from "@/lib/types";
 
 const WEIGHTS = ["300", "400", "500", "600", "700", "800"].map((w) => ({ value: w, label: w }));
@@ -26,7 +27,7 @@ export function DesignManager() {
       <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-900">Color styles</h2>
-          <button onClick={() => ds.addColor()} className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-800"><Plus size={14} /> Add color</button>
+          <Button variant="neutral" size="sm" onPress={() => ds.addColor()} leadingIcon={<Plus size={14} />}>Add color</Button>
         </div>
         {ds.colors.length === 0 ? (
           <p className="py-6 text-center text-sm text-zinc-400">No color styles yet. Add one to reuse it everywhere.</p>
@@ -37,7 +38,7 @@ export function DesignManager() {
                 <div className="h-8 w-8 shrink-0 rounded-lg border border-zinc-200" style={{ background: c.value }} />
                 <input className={inputCls + " max-w-[180px]"} value={c.name} onChange={(e) => ds.updateColor(c.id, { name: e.target.value })} placeholder="Name" />
                 <div className="w-40"><ColorInput value={c.value} onChange={(v) => ds.updateColor(c.id, { value: v })} hideTokens /></div>
-                <button onClick={() => ds.removeColor(c.id)} aria-label={`Remove ${c.name}`} className="ml-auto rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={15} /></button>
+                <Button variant="ghost" size="icon" aria-label={`Remove ${c.name}`} onPress={() => ds.removeColor(c.id)} className="ml-auto text-fg-subtle hover:bg-danger-50 hover:text-danger-500"><Trash2 size={15} /></Button>
               </div>
             ))}
           </div>
@@ -48,7 +49,7 @@ export function DesignManager() {
       <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-900">Text styles</h2>
-          <button onClick={() => ds.addTextStyle("New style")} className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-800"><Plus size={14} /> Add style</button>
+          <Button variant="neutral" size="sm" onPress={() => ds.addTextStyle("New style")} leadingIcon={<Plus size={14} />}>Add style</Button>
         </div>
         {ds.textStyles.length === 0 ? (
           <p className="py-6 text-center text-sm text-zinc-400">No text styles yet. Define headings, body, captions once and reuse them.</p>
@@ -61,7 +62,7 @@ export function DesignManager() {
                 <div key={t.id} className="rounded-xl border border-zinc-100 p-4">
                   <div className="mb-3 flex items-center gap-3">
                     <input className={inputCls + " max-w-[220px] font-medium"} value={t.name} onChange={(e) => ds.updateTextStyle(t.id, { name: e.target.value })} />
-                    <button onClick={() => ds.removeTextStyle(t.id)} aria-label={`Remove ${t.name}`} className="ml-auto rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={15} /></button>
+                    <Button variant="ghost" size="icon" aria-label={`Remove ${t.name}`} onPress={() => ds.removeTextStyle(t.id)} className="ml-auto text-fg-subtle hover:bg-danger-50 hover:text-danger-500"><Trash2 size={15} /></Button>
                   </div>
                   <div className="mb-3 rounded-lg bg-zinc-50 px-3 py-2.5" style={{ color: p.color, fontSize: p.fontSize, fontWeight: p.fontWeight as any, lineHeight: p.lineHeight, letterSpacing: p.letterSpacing, textAlign: p.textAlign as any, textTransform: p.textTransform as any }}>
                     The quick brown fox
