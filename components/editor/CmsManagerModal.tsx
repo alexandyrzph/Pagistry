@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Database, ExternalLink, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { Modal } from "./Modal";
+import { Button } from "@/components/ui/Button";
 import { useConfirm } from "@/components/ui/dialog-provider";
 import { cn } from "@/lib/utils";
 import type { CmsFieldType, CollectionField } from "@/lib/types";
@@ -153,19 +154,8 @@ export function CmsManagerModal({
               <span className="px-1 text-[11px] text-zinc-400">/{collection.slug}</span>
             </div>
             {busy && <Loader2 size={15} className="animate-spin text-zinc-300" />}
-            <button
-              onClick={deleteCollection}
-              title="Delete collection"
-              className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"
-            >
-              <Trash2 size={15} />
-            </button>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600"
-            >
-              <X size={16} />
-            </button>
+            <Button variant="ghost" size="icon" aria-label="Delete collection" onPress={deleteCollection} className="text-fg-subtle hover:bg-danger-50 hover:text-danger-500"><Trash2 size={15} /></Button>
+            <Button variant="ghost" size="icon" aria-label="Close" onPress={onClose}><X size={16} /></Button>
           </div>
 
           {/* tabs */}
@@ -176,7 +166,7 @@ export function CmsManagerModal({
                 onClick={() => setTab(t)}
                 className={cn(
                   "rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
-                  tab === t ? "bg-indigo-50 text-indigo-600" : "text-zinc-500 hover:text-zinc-700"
+                  tab === t ? "bg-brand-50 text-brand-600" : "text-fg-muted hover:text-fg"
                 )}
               >
                 {t === "detail" ? "Detail page" : t}
@@ -278,13 +268,7 @@ function FieldsTab({
                 options={CMS_FIELD_TYPES}
               />
             </div>
-            <button
-              onClick={() => onSave(fields.filter((x) => x.key !== f.key))}
-              title="Remove field"
-              className="shrink-0 rounded-md p-1.5 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"
-            >
-              <Trash2 size={14} />
-            </button>
+            <Button variant="ghost" size="icon" aria-label="Remove field" onPress={() => onSave(fields.filter((x) => x.key !== f.key))} className="shrink-0 text-fg-subtle hover:bg-danger-50 hover:text-danger-500"><Trash2 size={14} /></Button>
           </div>
         ))}
         {fields.length === 0 && (
@@ -310,12 +294,7 @@ function FieldsTab({
           <span className="mb-1 block text-[11px] font-medium text-zinc-500">Type</span>
           <SelectInput value={newType} onChange={(v) => setNewType(v as CmsFieldType)} options={CMS_FIELD_TYPES} />
         </div>
-        <button
-          onClick={onAdd}
-          className="flex h-[38px] items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700"
-        >
-          <Plus size={15} /> Add
-        </button>
+        <Button variant="neutral" onPress={onAdd} leadingIcon={<Plus size={15} />}>Add</Button>
       </div>
     </div>
   );
@@ -379,35 +358,13 @@ function ItemsTab({
               </span>
               {isEditing ? (
                 <>
-                  <button
-                    onClick={onSaveItem}
-                    disabled={busy}
-                    className="rounded-md bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 disabled:opacity-60"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => setEditing(null)}
-                    className="rounded-md px-2.5 py-1 text-xs font-medium text-zinc-500 transition-colors hover:bg-zinc-100"
-                  >
-                    Cancel
-                  </button>
+                  <Button variant="neutral" size="sm" onPress={onSaveItem} isDisabled={busy}>Save</Button>
+                  <Button variant="ghost" size="sm" onPress={() => setEditing(null)}>Cancel</Button>
                 </>
               ) : (
-                <button
-                  onClick={() => setEditing({ id: it.id, data: { ...it.data } })}
-                  className="rounded-md px-2.5 py-1 text-xs font-medium text-zinc-600 transition-colors hover:bg-zinc-100"
-                >
-                  Edit
-                </button>
+                <Button variant="ghost" size="sm" onPress={() => setEditing({ id: it.id, data: { ...it.data } })}>Edit</Button>
               )}
-              <button
-                onClick={() => onDeleteItem(it.id)}
-                title="Delete item"
-                className="rounded-md p-1 text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-500"
-              >
-                <Trash2 size={14} />
-              </button>
+              <Button variant="ghost" size="icon" aria-label="Delete item" onPress={() => onDeleteItem(it.id)} className="text-fg-subtle hover:bg-danger-50 hover:text-danger-500"><Trash2 size={14} /></Button>
             </div>
 
             {isEditing && editing && (
@@ -477,12 +434,7 @@ function DetailTab({
 
       {enabled && (
         <>
-          <button
-            onClick={onEdit}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700"
-          >
-            <Pencil size={14} /> Edit detail template
-          </button>
+          <Button variant="neutral" className="w-full" onPress={onEdit} leadingIcon={<Pencil size={14} />}>Edit detail template</Button>
 
           <div>
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
