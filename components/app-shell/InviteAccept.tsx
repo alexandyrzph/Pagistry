@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 export function InviteAccept({ token }: { token: string }) {
   const router = useRouter();
@@ -25,14 +26,14 @@ export function InviteAccept({ token }: { token: string }) {
         <>
           <h1 className="text-xl font-bold text-zinc-900">Join {state.workspaceName}</h1>
           <p className="mt-1.5 text-sm text-zinc-500">You&apos;ve been invited as <span className="font-medium">{state.role}</span>.</p>
-          {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
-          <button onClick={accept} disabled={busy} className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-zinc-900 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{busy && <Loader2 size={15} className="animate-spin" />} Accept invitation</button>
+          {err && <p className="mt-3 text-sm text-danger-600">{err}</p>}
+          <Button variant="neutral" className="mt-5 w-full" onPress={accept} isLoading={busy}>Accept invitation</Button>
         </>
       ) : (
         <>
           <h1 className="text-xl font-bold text-zinc-900">Invite unavailable</h1>
           <p className="mt-1.5 text-sm text-zinc-500">This invitation is invalid, expired, or already used.</p>
-          <button onClick={() => router.push("/")} className="mt-5 text-sm font-semibold text-indigo-600">Go to dashboard</button>
+          <Button variant="link" className="mt-5" onPress={() => router.push("/")}>Go to dashboard</Button>
         </>
       )}
     </div>
