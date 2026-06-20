@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Loader2, Plus, Search, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useConfirm } from "@/components/ui/dialog-provider";
+import { cn } from "@/lib/utils";
 import { TEMPLATES, type Template } from "@/lib/blocks/templates";
 import { filterPages, type DashboardFilter } from "@/lib/dashboard/filter";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { SubmissionsModal } from "./SubmissionsModal";
+import { TemplatePreview } from "./TemplatePreview";
 import { SegmentedFilter } from "./SegmentedFilter";
 import { PageCard, type DashboardPage } from "./PageCard";
 
@@ -332,35 +334,49 @@ function TemplateModal({
   onClose: () => void;
   onPick: (t: Template) => void;
 }) {
+  // Build each template's block tree once (build() mints fresh ids each call).
+  const built = useMemo(() => TEMPLATES.map((t) => ({ template: t, blocks: t.build() })), []);
+
   return (
-    <Modal open={open} onClose={onClose} dismissible={!creating} className="max-w-2xl p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold tracking-tight text-zinc-900">Choose a starting point</h2>
-            <p className="text-sm text-zinc-500">Pick a template or start from scratch.</p>
-          </div>
-          <Button variant="ghost" size="icon" aria-label="Close" onPress={onClose}><X size={18} /></Button>
+    <Modal open={open} onClose={onClose} dismissible={!creating} className="max-w-3xl p-6">
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold tracking-tight text-zinc-900">Choose a starting point</h2>
+          <p className="text-sm text-zinc-500">Pick a template or start from scratch.</p>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          {TEMPLATES.map((t) => (
-            <motion.button
-              key={t.id}
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              disabled={!!creating}
-              onClick={() => onPick(t)}
-              className="group relative flex flex-col items-start gap-1 rounded-xl border border-zinc-200 p-4 text-left shadow-xs transition-colors hover:border-indigo-300 hover:bg-indigo-50/40 disabled:opacity-60"
-            >
+        <Button variant="ghost" size="icon" aria-label="Close" onPress={onClose}><X size={18} /></Button>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {built.map(({ template: t, blocks }) => (
+          <motion.div
+            key={t.id}
+            whileHover={creating ? undefined : { y: -2 }}
+            whileTap={creating ? undefined : { scale: 0.98 }}
+            className={cn(
+              "group relative flex flex-col overflow-hidden rounded-xl border border-zinc-200 text-left shadow-xs transition-colors hover:border-indigo-300",
+              creating && "pointer-events-none opacity-60",
+            )}
+          >
+            <TemplatePreview blocks={blocks} />
+            <div className="flex flex-col gap-1 p-4 transition-colors group-hover:bg-indigo-50/40">
               <span className="font-semibold tracking-tight text-zinc-900 group-hover:text-indigo-700">{t.name}</span>
               <span className="text-xs leading-snug text-zinc-500">{t.description}</span>
-              {creating === t.id && (
-                <span className="absolute right-3 top-3">
-                  <Loader2 size={16} className="animate-spin text-indigo-500" />
-                </span>
-              )}
-            </motion.button>
-          ))}
-        </div>
+            </div>
+            <button
+              type="button"
+              aria-label={`Use ${t.name} template`}
+              disabled={!!creating}
+              onClick={() => onPick(t)}
+              className="absolute inset-0 rounded-xl outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-indigo-400 disabled:cursor-not-allowed"
+            />
+            {creating === t.id && (
+              <span className="absolute right-3 top-3">
+                <Loader2 size={16} className="animate-spin text-indigo-500" />
+              </span>
+            )}
+          </motion.div>
+        ))}
+      </div>
     </Modal>
   );
 }
