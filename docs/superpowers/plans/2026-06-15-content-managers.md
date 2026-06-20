@@ -12,7 +12,7 @@
 
 ## Important environment notes
 
-- **Not a git repo** — each task ends with a "Checkpoint" (save point). **Never touch ``.**
+- **Not a git repo** — each task ends with a "Checkpoint" (save point).
 - **Verification is runtime** (UI): gate each task on `npx tsc --noEmit` + driving the running app (dev server on **:3000**, already up). No vitest UI tests. `notFound()` returns 200 in `next dev` (404 in prod) — assert on content, not status.
 - **Reusable building blocks (confirmed to exist):**
   - `store/design-system.ts` → `useDesignSystem` (state `colors: ColorToken[]`, `textStyles: TextStyle[]`, `loaded`; actions `load()`, `addColor(value?)`, `updateColor(id, patch)`, `removeColor(id)`, `addTextStyle(name, props?)`, `updateTextStyle(id, patch)`, `updateTextStyleProp(id, key, value)`, `removeTextStyle(id)`; debounced PUT `/api/site`).
@@ -28,12 +28,14 @@
 ## File structure
 
 New:
+
 - `components/app-shell/design/DesignManager.tsx` — standalone design-system manager (client).
 - `components/app-shell/cms/CollectionManager.tsx` — standalone collection manager (client).
 - `components/app-shell/cms/NewCollectionButton.tsx` — create-collection action (client).
 - `app/(app)/cms/[id]/page.tsx` — collection manager route (server wrapper).
 
 Modified (replace the Plan 1B hub bodies):
+
 - `app/(app)/design/page.tsx` — render `<DesignManager />`.
 - `app/(app)/cms/page.tsx` — rows link to `/cms/[id]`; add `<NewCollectionButton />`.
 - `app/(app)/site/page.tsx` — enrich the hub with header/footer block counts + last-updated.
@@ -43,6 +45,7 @@ Modified (replace the Plan 1B hub bodies):
 ## Task 1: Design system manager
 
 **Files:**
+
 - Create: `components/app-shell/design/DesignManager.tsx`
 - Modify: `app/(app)/design/page.tsx`
 
@@ -54,41 +57,84 @@ Modified (replace the Plan 1B hub bodies):
 import { useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { useDesignSystem } from "@/store/design-system";
-import { Field, TextInput, ColorInput, UnitInput, SelectInput, inputCls } from "@/components/editor/controls";
+import {
+  Field,
+  TextInput,
+  ColorInput,
+  UnitInput,
+  SelectInput,
+  inputCls,
+} from "@/components/editor/controls";
 import type { StyleProps } from "@/lib/types";
 
 const WEIGHTS = ["300", "400", "500", "600", "700", "800"].map((w) => ({ value: w, label: w }));
 const ALIGN = ["left", "center", "right"].map((a) => ({ value: a, label: a }));
 const TRANSFORM = [
-  { value: "none", label: "none" }, { value: "uppercase", label: "UPPER" },
-  { value: "capitalize", label: "Title" }, { value: "lowercase", label: "lower" },
+  { value: "none", label: "none" },
+  { value: "uppercase", label: "UPPER" },
+  { value: "capitalize", label: "Title" },
+  { value: "lowercase", label: "lower" },
 ];
 
 export function DesignManager() {
   const ds = useDesignSystem();
-  useEffect(() => { if (!ds.loaded) ds.load(); }, [ds]);
+  useEffect(() => {
+    if (!ds.loaded) ds.load();
+  }, [ds]);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
       <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Design system</h1>
-      <p className="mt-1 text-sm text-zinc-500">Shared colors and text styles. Changes apply across every page in this workspace.</p>
+      <p className="mt-1 text-sm text-zinc-500">
+        Shared colors and text styles. Changes apply across every page in this workspace.
+      </p>
 
       {/* Colors */}
       <section className="mt-8 rounded-2xl border border-zinc-200 bg-white p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-900">Color styles</h2>
-          <button onClick={() => ds.addColor()} className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-800"><Plus size={14} /> Add color</button>
+          <button
+            onClick={() => ds.addColor()}
+            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-800"
+          >
+            <Plus size={14} /> Add color
+          </button>
         </div>
         {ds.colors.length === 0 ? (
-          <p className="py-6 text-center text-sm text-zinc-400">No color styles yet. Add one to reuse it everywhere.</p>
+          <p className="py-6 text-center text-sm text-zinc-400">
+            No color styles yet. Add one to reuse it everywhere.
+          </p>
         ) : (
           <div className="space-y-2">
             {ds.colors.map((c) => (
-              <div key={c.id} className="flex items-center gap-3 rounded-xl border border-zinc-100 p-2.5">
-                <div className="h-8 w-8 shrink-0 rounded-lg border border-zinc-200" style={{ background: c.value }} />
-                <input className={inputCls + " max-w-[180px]"} value={c.name} onChange={(e) => ds.updateColor(c.id, { name: e.target.value })} placeholder="Name" />
-                <div className="w-40"><ColorInput value={c.value} onChange={(v) => ds.updateColor(c.id, { value: v })} hideTokens /></div>
-                <button onClick={() => ds.removeColor(c.id)} aria-label={`Remove ${c.name}`} className="ml-auto rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={15} /></button>
+              <div
+                key={c.id}
+                className="flex items-center gap-3 rounded-xl border border-zinc-100 p-2.5"
+              >
+                <div
+                  className="h-8 w-8 shrink-0 rounded-lg border border-zinc-200"
+                  style={{ background: c.value }}
+                />
+                <input
+                  className={inputCls + " max-w-[180px]"}
+                  value={c.name}
+                  onChange={(e) => ds.updateColor(c.id, { name: e.target.value })}
+                  placeholder="Name"
+                />
+                <div className="w-40">
+                  <ColorInput
+                    value={c.value}
+                    onChange={(v) => ds.updateColor(c.id, { value: v })}
+                    hideTokens
+                  />
+                </div>
+                <button
+                  onClick={() => ds.removeColor(c.id)}
+                  aria-label={`Remove ${c.name}`}
+                  className="ml-auto rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             ))}
           </div>
@@ -99,32 +145,102 @@ export function DesignManager() {
       <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-900">Text styles</h2>
-          <button onClick={() => ds.addTextStyle("New style")} className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-800"><Plus size={14} /> Add style</button>
+          <button
+            onClick={() => ds.addTextStyle("New style")}
+            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-zinc-800"
+          >
+            <Plus size={14} /> Add style
+          </button>
         </div>
         {ds.textStyles.length === 0 ? (
-          <p className="py-6 text-center text-sm text-zinc-400">No text styles yet. Define headings, body, captions once and reuse them.</p>
+          <p className="py-6 text-center text-sm text-zinc-400">
+            No text styles yet. Define headings, body, captions once and reuse them.
+          </p>
         ) : (
           <div className="space-y-4">
             {ds.textStyles.map((t) => {
               const p = t.props as StyleProps;
-              const set = (k: keyof StyleProps, v: string) => ds.updateTextStyleProp(t.id, k as string, v);
+              const set = (k: keyof StyleProps, v: string) =>
+                ds.updateTextStyleProp(t.id, k as string, v);
               return (
                 <div key={t.id} className="rounded-xl border border-zinc-100 p-4">
                   <div className="mb-3 flex items-center gap-3">
-                    <input className={inputCls + " max-w-[220px] font-medium"} value={t.name} onChange={(e) => ds.updateTextStyle(t.id, { name: e.target.value })} />
-                    <button onClick={() => ds.removeTextStyle(t.id)} aria-label={`Remove ${t.name}`} className="ml-auto rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={15} /></button>
+                    <input
+                      className={inputCls + " max-w-[220px] font-medium"}
+                      value={t.name}
+                      onChange={(e) => ds.updateTextStyle(t.id, { name: e.target.value })}
+                    />
+                    <button
+                      onClick={() => ds.removeTextStyle(t.id)}
+                      aria-label={`Remove ${t.name}`}
+                      className="ml-auto rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"
+                    >
+                      <Trash2 size={15} />
+                    </button>
                   </div>
-                  <div className="mb-3 rounded-lg bg-zinc-50 px-3 py-2.5" style={{ color: p.color, fontSize: p.fontSize, fontWeight: p.fontWeight as any, lineHeight: p.lineHeight, letterSpacing: p.letterSpacing, textAlign: p.textAlign as any, textTransform: p.textTransform as any }}>
+                  <div
+                    className="mb-3 rounded-lg bg-zinc-50 px-3 py-2.5"
+                    style={{
+                      color: p.color,
+                      fontSize: p.fontSize,
+                      fontWeight: p.fontWeight as any,
+                      lineHeight: p.lineHeight,
+                      letterSpacing: p.letterSpacing,
+                      textAlign: p.textAlign as any,
+                      textTransform: p.textTransform as any,
+                    }}
+                  >
                     The quick brown fox
                   </div>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                    <Field label="Size"><UnitInput value={p.fontSize || ""} onChange={(v: string) => set("fontSize", v)} units={["px", "rem", "em"]} placeholder="16px" /></Field>
-                    <Field label="Weight"><SelectInput value={String(p.fontWeight || "400")} onChange={(v: string) => set("fontWeight", v)} options={WEIGHTS} /></Field>
-                    <Field label="Line height"><UnitInput value={p.lineHeight || ""} onChange={(v: string) => set("lineHeight", v)} units={["", "px", "em"]} placeholder="1.4" /></Field>
-                    <Field label="Letter spacing"><UnitInput value={p.letterSpacing || ""} onChange={(v: string) => set("letterSpacing", v)} units={["px", "em"]} placeholder="0" /></Field>
-                    <Field label="Align"><SelectInput value={p.textAlign || "left"} onChange={(v: string) => set("textAlign", v)} options={ALIGN} /></Field>
-                    <Field label="Transform"><SelectInput value={p.textTransform || "none"} onChange={(v: string) => set("textTransform", v)} options={TRANSFORM} /></Field>
-                    <Field label="Color"><ColorInput value={p.color || ""} onChange={(v: string) => set("color", v)} /></Field>
+                    <Field label="Size">
+                      <UnitInput
+                        value={p.fontSize || ""}
+                        onChange={(v: string) => set("fontSize", v)}
+                        units={["px", "rem", "em"]}
+                        placeholder="16px"
+                      />
+                    </Field>
+                    <Field label="Weight">
+                      <SelectInput
+                        value={String(p.fontWeight || "400")}
+                        onChange={(v: string) => set("fontWeight", v)}
+                        options={WEIGHTS}
+                      />
+                    </Field>
+                    <Field label="Line height">
+                      <UnitInput
+                        value={p.lineHeight || ""}
+                        onChange={(v: string) => set("lineHeight", v)}
+                        units={["", "px", "em"]}
+                        placeholder="1.4"
+                      />
+                    </Field>
+                    <Field label="Letter spacing">
+                      <UnitInput
+                        value={p.letterSpacing || ""}
+                        onChange={(v: string) => set("letterSpacing", v)}
+                        units={["px", "em"]}
+                        placeholder="0"
+                      />
+                    </Field>
+                    <Field label="Align">
+                      <SelectInput
+                        value={p.textAlign || "left"}
+                        onChange={(v: string) => set("textAlign", v)}
+                        options={ALIGN}
+                      />
+                    </Field>
+                    <Field label="Transform">
+                      <SelectInput
+                        value={p.textTransform || "none"}
+                        onChange={(v: string) => set("textTransform", v)}
+                        options={TRANSFORM}
+                      />
+                    </Field>
+                    <Field label="Color">
+                      <ColorInput value={p.color || ""} onChange={(v: string) => set("color", v)} />
+                    </Field>
                   </div>
                 </div>
               );
@@ -162,6 +278,7 @@ export default async function DesignPage() {
 ## Task 2: CMS collection manager
 
 **Files:**
+
 - Create: `app/(app)/cms/[id]/page.tsx`
 - Create: `components/app-shell/cms/CollectionManager.tsx`
 
@@ -197,18 +314,53 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Trash2, Loader2, ExternalLink } from "lucide-react";
-import { Field, TextInput, TextArea, NumberInput, SelectInput, ImageInput, Toggle, inputCls } from "@/components/editor/controls";
+import {
+  Field,
+  TextInput,
+  TextArea,
+  NumberInput,
+  SelectInput,
+  ImageInput,
+  Toggle,
+  inputCls,
+} from "@/components/editor/controls";
 import { CMS_FIELD_TYPES, uniqueFieldKey, blankItemData } from "@/lib/cms";
 import type { CollectionData, CollectionField, CollectionItem, CmsFieldType } from "@/lib/types";
 
-function FieldValueInput({ field, value, onChange }: { field: CollectionField; value: any; onChange: (v: any) => void }) {
+function FieldValueInput({
+  field,
+  value,
+  onChange,
+}: {
+  field: CollectionField;
+  value: any;
+  onChange: (v: any) => void;
+}) {
   switch (field.type) {
-    case "textarea": return <TextArea value={value ?? ""} onChange={onChange} />;
-    case "number": return <NumberInput value={value ?? ""} onChange={(v: any) => onChange(v === "" ? "" : Number(v))} />;
-    case "boolean": return <Toggle value={!!value} onChange={onChange} />;
-    case "image": return <ImageInput value={value ?? ""} onChange={onChange} />;
-    case "date": return <input type="date" className={inputCls} value={value ?? ""} onChange={(e) => onChange(e.target.value)} />;
-    default: return <TextInput value={value ?? ""} onChange={onChange} />;
+    case "textarea":
+      return <TextArea value={value ?? ""} onChange={onChange} />;
+    case "number":
+      return (
+        <NumberInput
+          value={value ?? ""}
+          onChange={(v: any) => onChange(v === "" ? "" : Number(v))}
+        />
+      );
+    case "boolean":
+      return <Toggle value={!!value} onChange={onChange} />;
+    case "image":
+      return <ImageInput value={value ?? ""} onChange={onChange} />;
+    case "date":
+      return (
+        <input
+          type="date"
+          className={inputCls}
+          value={value ?? ""}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
+    default:
+      return <TextInput value={value ?? ""} onChange={onChange} />;
   }
 }
 
@@ -219,23 +371,41 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
   const [editing, setEditing] = useState<CollectionItem | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function patchCollection(patch: Partial<Pick<CollectionData, "name" | "fields" | "detailEnabled">>) {
+  async function patchCollection(
+    patch: Partial<Pick<CollectionData, "name" | "fields" | "detailEnabled">>,
+  ) {
     const next = { ...col, ...patch };
     setCol(next);
-    await fetch(`/api/collections/${col.id}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(patch) }).catch(() => {});
+    await fetch(`/api/collections/${col.id}`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(patch),
+    }).catch(() => {});
   }
   async function reloadItems() {
-    const r = await fetch(`/api/collections/${col.id}/items`).then((x) => x.json()).catch(() => null);
+    const r = await fetch(`/api/collections/${col.id}/items`)
+      .then((x) => x.json())
+      .catch(() => null);
     if (Array.isArray(r)) setCol((c) => ({ ...c, items: r }));
   }
   async function addItem() {
     setBusy(true);
-    await fetch(`/api/collections/${col.id}/items`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ data: blankItemData(col.fields) }) });
-    await reloadItems(); setBusy(false);
+    await fetch(`/api/collections/${col.id}/items`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ data: blankItemData(col.fields) }),
+    });
+    await reloadItems();
+    setBusy(false);
   }
   async function saveItem(item: CollectionItem) {
-    await fetch(`/api/collections/${col.id}/items/${item.id}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ data: item.data }) });
-    await reloadItems(); setEditing(null);
+    await fetch(`/api/collections/${col.id}/items/${item.id}`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ data: item.data }),
+    });
+    await reloadItems();
+    setEditing(null);
   }
   async function deleteItem(id: string) {
     if (!confirm("Delete this item?")) return;
@@ -243,46 +413,96 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
     await reloadItems();
   }
   async function addField(label: string) {
-    const key = uniqueFieldKey(label, col.fields.map((f) => f.key));
+    const key = uniqueFieldKey(
+      label,
+      col.fields.map((f) => f.key),
+    );
     await patchCollection({ fields: [...col.fields, { key, label, type: "text" }] });
   }
   async function deleteCollection() {
     if (!confirm(`Delete "${col.name}" and all its items?`)) return;
     await fetch(`/api/collections/${col.id}`, { method: "DELETE" });
-    router.push("/cms"); router.refresh();
+    router.push("/cms");
+    router.refresh();
   }
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
-      <Link href="/cms" className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-800"><ArrowLeft size={15} /> CMS</Link>
+      <Link
+        href="/cms"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-800"
+      >
+        <ArrowLeft size={15} /> CMS
+      </Link>
       <h1 className="text-2xl font-bold tracking-tight text-zinc-900">{col.name}</h1>
-      <p className="mt-1 text-sm text-zinc-500">/{col.slug} · {col.items.length} item{col.items.length !== 1 ? "s" : ""}</p>
+      <p className="mt-1 text-sm text-zinc-500">
+        /{col.slug} · {col.items.length} item{col.items.length !== 1 ? "s" : ""}
+      </p>
 
       <div className="mt-6 flex gap-1 border-b border-zinc-200">
         {(["items", "fields", "settings"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={`px-3 py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-indigo-600 text-indigo-700" : "text-zinc-500 hover:text-zinc-800"}`}>{t}</button>
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-3 py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-indigo-600 text-indigo-700" : "text-zinc-500 hover:text-zinc-800"}`}
+          >
+            {t}
+          </button>
         ))}
       </div>
 
       <div className="py-6">
         {tab === "items" && (
           <div>
-            <button onClick={addItem} disabled={busy} className="mb-4 flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50">{busy ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Add item</button>
+            <button
+              onClick={addItem}
+              disabled={busy}
+              className="mb-4 flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
+            >
+              {busy ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Add item
+            </button>
             {col.items.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-zinc-200 py-10 text-center text-sm text-zinc-400">No items yet.</p>
+              <p className="rounded-xl border border-dashed border-zinc-200 py-10 text-center text-sm text-zinc-400">
+                No items yet.
+              </p>
             ) : (
               <div className="overflow-hidden rounded-xl border border-zinc-200">
                 <table className="w-full text-sm">
                   <thead className="bg-zinc-50 text-left text-xs text-zinc-500">
-                    <tr>{col.fields.slice(0, 4).map((f) => <th key={f.key} className="px-4 py-2.5 font-medium">{f.label}</th>)}<th className="w-20" /></tr>
+                    <tr>
+                      {col.fields.slice(0, 4).map((f) => (
+                        <th key={f.key} className="px-4 py-2.5 font-medium">
+                          {f.label}
+                        </th>
+                      ))}
+                      <th className="w-20" />
+                    </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-100">
                     {col.items.map((it) => (
                       <tr key={it.id} className="hover:bg-zinc-50">
-                        {col.fields.slice(0, 4).map((f) => <td key={f.key} className="max-w-[200px] truncate px-4 py-2.5 text-zinc-700">{String(it.data?.[f.key] ?? "")}</td>)}
+                        {col.fields.slice(0, 4).map((f) => (
+                          <td
+                            key={f.key}
+                            className="max-w-[200px] truncate px-4 py-2.5 text-zinc-700"
+                          >
+                            {String(it.data?.[f.key] ?? "")}
+                          </td>
+                        ))}
                         <td className="px-4 py-2.5 text-right">
-                          <button onClick={() => setEditing(it)} className="mr-1 rounded-lg px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50">Edit</button>
-                          <button onClick={() => deleteItem(it.id)} aria-label="Delete item" className="rounded-lg p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={14} /></button>
+                          <button
+                            onClick={() => setEditing(it)}
+                            className="mr-1 rounded-lg px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => deleteItem(it.id)}
+                            aria-label="Delete item"
+                            className="rounded-lg p-1.5 text-zinc-400 hover:bg-red-50 hover:text-red-500"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </td>
                       </tr>
                     ))}
@@ -296,11 +516,41 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
         {tab === "fields" && (
           <div className="space-y-3">
             {col.fields.map((f, i) => (
-              <div key={f.key} className="flex items-center gap-3 rounded-xl border border-zinc-100 p-2.5">
-                <input className={inputCls + " max-w-[200px]"} value={f.label} onChange={(e) => { const fields = [...col.fields]; fields[i] = { ...f, label: e.target.value }; setCol({ ...col, fields }); }} onBlur={() => patchCollection({ fields: col.fields })} />
-                <div className="w-40"><SelectInput value={f.type} onChange={(v: string) => { const fields = [...col.fields]; fields[i] = { ...f, type: v as CmsFieldType }; patchCollection({ fields }); }} options={CMS_FIELD_TYPES} /></div>
+              <div
+                key={f.key}
+                className="flex items-center gap-3 rounded-xl border border-zinc-100 p-2.5"
+              >
+                <input
+                  className={inputCls + " max-w-[200px]"}
+                  value={f.label}
+                  onChange={(e) => {
+                    const fields = [...col.fields];
+                    fields[i] = { ...f, label: e.target.value };
+                    setCol({ ...col, fields });
+                  }}
+                  onBlur={() => patchCollection({ fields: col.fields })}
+                />
+                <div className="w-40">
+                  <SelectInput
+                    value={f.type}
+                    onChange={(v: string) => {
+                      const fields = [...col.fields];
+                      fields[i] = { ...f, type: v as CmsFieldType };
+                      patchCollection({ fields });
+                    }}
+                    options={CMS_FIELD_TYPES}
+                  />
+                </div>
                 <code className="text-xs text-zinc-400">{f.key}</code>
-                <button onClick={() => patchCollection({ fields: col.fields.filter((x) => x.key !== f.key) })} aria-label={`Remove ${f.label}`} className="ml-auto rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={15} /></button>
+                <button
+                  onClick={() =>
+                    patchCollection({ fields: col.fields.filter((x) => x.key !== f.key) })
+                  }
+                  aria-label={`Remove ${f.label}`}
+                  className="ml-auto rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             ))}
             <AddField onAdd={addField} />
@@ -309,35 +559,77 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
 
         {tab === "settings" && (
           <div className="max-w-sm space-y-5">
-            <Field label="Collection name"><TextInput value={col.name} onChange={(v: string) => setCol({ ...col, name: v })} /></Field>
-            <button onClick={() => patchCollection({ name: col.name })} className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800">Save name</button>
+            <Field label="Collection name">
+              <TextInput value={col.name} onChange={(v: string) => setCol({ ...col, name: v })} />
+            </Field>
+            <button
+              onClick={() => patchCollection({ name: col.name })}
+              className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
+            >
+              Save name
+            </button>
             <label className="flex items-center justify-between rounded-xl border border-zinc-200 p-3">
               <span className="text-sm text-zinc-700">Detail pages</span>
-              <Toggle value={!!col.detailEnabled} onChange={(v: boolean) => patchCollection({ detailEnabled: v })} />
+              <Toggle
+                value={!!col.detailEnabled}
+                onChange={(v: boolean) => patchCollection({ detailEnabled: v })}
+              />
             </label>
-            <Link href={`/collection/${col.id}/template`} className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700">Edit detail template <ExternalLink size={14} /></Link>
+            <Link
+              href={`/collection/${col.id}/template`}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+            >
+              Edit detail template <ExternalLink size={14} />
+            </Link>
             <div className="rounded-xl border border-red-200 bg-red-50 p-4">
               <p className="text-sm font-semibold text-red-800">Delete collection</p>
-              <button onClick={deleteCollection} className="mt-2 flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700"><Trash2 size={15} /> Delete</button>
+              <button
+                onClick={deleteCollection}
+                className="mt-2 flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700"
+              >
+                <Trash2 size={15} /> Delete
+              </button>
             </div>
           </div>
         )}
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-zinc-900/40 p-4 pt-[8vh] backdrop-blur-sm" onClick={() => setEditing(null)}>
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center bg-zinc-900/40 p-4 pt-[8vh] backdrop-blur-sm"
+          onClick={() => setEditing(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="mb-4 text-sm font-bold text-zinc-900">Edit item</h3>
             <div className="max-h-[60vh] space-y-3 overflow-y-auto">
               {col.fields.map((f) => (
                 <Field key={f.key} label={f.label}>
-                  <FieldValueInput field={f} value={editing.data?.[f.key]} onChange={(v) => setEditing({ ...editing, data: { ...editing.data, [f.key]: v } })} />
+                  <FieldValueInput
+                    field={f}
+                    value={editing.data?.[f.key]}
+                    onChange={(v) =>
+                      setEditing({ ...editing, data: { ...editing.data, [f.key]: v } })
+                    }
+                  />
                 </Field>
               ))}
             </div>
             <div className="mt-5 flex justify-end gap-2">
-              <button onClick={() => setEditing(null)} className="rounded-lg px-3.5 py-2 text-sm text-zinc-500 hover:bg-zinc-100">Cancel</button>
-              <button onClick={() => saveItem(editing)} className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800">Save</button>
+              <button
+                onClick={() => setEditing(null)}
+                className="rounded-lg px-3.5 py-2 text-sm text-zinc-500 hover:bg-zinc-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => saveItem(editing)}
+                className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -350,8 +642,29 @@ function AddField({ onAdd }: { onAdd: (label: string) => void }) {
   const [label, setLabel] = useState("");
   return (
     <div className="flex gap-2">
-      <input className={inputCls + " max-w-[240px]"} value={label} onChange={(e) => setLabel(e.target.value)} placeholder="New field label" onKeyDown={(e) => { if (e.key === "Enter" && label.trim()) { onAdd(label.trim()); setLabel(""); } }} />
-      <button onClick={() => { if (label.trim()) { onAdd(label.trim()); setLabel(""); } }} className="flex items-center gap-1.5 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"><Plus size={15} /> Add field</button>
+      <input
+        className={inputCls + " max-w-[240px]"}
+        value={label}
+        onChange={(e) => setLabel(e.target.value)}
+        placeholder="New field label"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && label.trim()) {
+            onAdd(label.trim());
+            setLabel("");
+          }
+        }}
+      />
+      <button
+        onClick={() => {
+          if (label.trim()) {
+            onAdd(label.trim());
+            setLabel("");
+          }
+        }}
+        className="flex items-center gap-1.5 rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+      >
+        <Plus size={15} /> Add field
+      </button>
     </div>
   );
 }
@@ -368,6 +681,7 @@ Adapt any control prop mismatch to the real `controls.tsx` signatures (do not ed
 ## Task 3: CMS hub wiring + Site hub enrichment
 
 **Files:**
+
 - Create: `components/app-shell/cms/NewCollectionButton.tsx`
 - Modify: `app/(app)/cms/page.tsx`
 - Modify: `app/(app)/site/page.tsx`
@@ -386,13 +700,23 @@ export function NewCollectionButton() {
   const [busy, setBusy] = useState(false);
   async function create() {
     setBusy(true);
-    const res = await fetch("/api/collections", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "New collection" }) });
+    const res = await fetch("/api/collections", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "New collection" }),
+    });
     const c = await res.json().catch(() => ({}));
-    if (res.ok && c?.id) { router.push(`/cms/${c.id}`); router.refresh(); }
-    else setBusy(false);
+    if (res.ok && c?.id) {
+      router.push(`/cms/${c.id}`);
+      router.refresh();
+    } else setBusy(false);
   }
   return (
-    <button onClick={create} disabled={busy} className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50">
+    <button
+      onClick={create}
+      disabled={busy}
+      className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
+    >
       {busy ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} New collection
     </button>
   );

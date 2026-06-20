@@ -12,7 +12,7 @@
 
 ## Important environment notes
 
-- **Not a git repo** — each task ends with a "Checkpoint" (save point), not a commit. **Never touch ``.**
+- **Not a git repo** — each task ends with a "Checkpoint" (save point), not a commit.
 - **Verification is at runtime** (this is a UI plan): the project has no component-test setup (vitest is node-env for `lib/` logic only). Each task's gate is `npx tsc --noEmit` **plus** driving the running dev server in a browser/curl. Do NOT add vitest UI tests. A dev server runs on **:3000** (already started with the full Plan 1A tenancy backend) — the orchestrator manages it; restart only if asked.
 - **Plan 1A is done:** these APIs exist and are workspace-scoped — `/api/workspaces` (GET/POST), `/api/workspaces/switch` (POST), `/api/workspaces/[id]` (PATCH/DELETE), `/api/workspaces/members` (GET/PATCH/DELETE), `/api/workspaces/invites` (GET/POST/DELETE), `/api/invites/[token]` (GET/POST), `/api/account` (PATCH), `/api/account/password` (POST), plus `/api/pages`, `/api/components`, `/api/assets`, `/api/submissions` (GET `?pageId=`). Server helpers: `requireUser()` (auth), `requireWorkspace()` → `{ user, workspace:{id,name,slug}, role }`, `getActiveWorkspace()`, `type Role`, `hasRole`.
 - **Next dev gotcha:** `notFound()` returns HTTP 200 in `next dev` (404 in prod) — when verifying not-found, assert on content, not status.
@@ -23,6 +23,7 @@
 ## File structure
 
 New:
+
 - `app/(app)/layout.tsx` — server shell: loads tenancy context, renders Sidebar + main.
 - `components/app-shell/Sidebar.tsx` — client sidebar (groups, collapse, mobile drawer, active highlight).
 - `components/app-shell/nav.ts` — the nav IA data (groups + items + icons) — single source of truth.
@@ -39,6 +40,7 @@ New:
 - `app/api/activity/route.ts` — GET workspace activity feed.
 
 Modified:
+
 - `app/page.tsx` — DELETED (moved into the group).
 - `components/dashboard/Dashboard.tsx` — remove its `<header>`; expose the page-grid + actions for use inside the shell.
 
@@ -49,6 +51,7 @@ Modified:
 ## Task 1: Sidebar collapse cookie helper + nav data
 
 **Files:**
+
 - Create: `components/app-shell/SidebarToggleCookie.ts`
 - Create: `components/app-shell/nav.ts`
 
@@ -56,28 +59,45 @@ Modified:
 
 ```ts
 import {
-  LayoutGrid, Component, Database, Image as ImageIcon,
-  Palette, PanelTop, Inbox, Activity, Settings, type LucideIcon,
+  LayoutGrid,
+  Component,
+  Database,
+  Image as ImageIcon,
+  Palette,
+  PanelTop,
+  Inbox,
+  Activity,
+  Settings,
+  type LucideIcon,
 } from "lucide-react";
 
 export type NavItem = { href: string; label: string; icon: LucideIcon; external?: boolean };
 export type NavGroup = { title: string; items: NavItem[] };
 
 export const NAV_GROUPS: NavGroup[] = [
-  { title: "Build", items: [
-    { href: "/", label: "Pages", icon: LayoutGrid },
-    { href: "/components", label: "Components", icon: Component },
-    { href: "/cms", label: "CMS", icon: Database },
-    { href: "/assets", label: "Assets", icon: ImageIcon },
-  ]},
-  { title: "Brand", items: [
-    { href: "/design", label: "Design", icon: Palette },
-    { href: "/site", label: "Site", icon: PanelTop },
-  ]},
-  { title: "Grow", items: [
-    { href: "/forms", label: "Forms", icon: Inbox },
-    { href: "/activity", label: "Activity", icon: Activity },
-  ]},
+  {
+    title: "Build",
+    items: [
+      { href: "/", label: "Pages", icon: LayoutGrid },
+      { href: "/components", label: "Components", icon: Component },
+      { href: "/cms", label: "CMS", icon: Database },
+      { href: "/assets", label: "Assets", icon: ImageIcon },
+    ],
+  },
+  {
+    title: "Brand",
+    items: [
+      { href: "/design", label: "Design", icon: Palette },
+      { href: "/site", label: "Site", icon: PanelTop },
+    ],
+  },
+  {
+    title: "Grow",
+    items: [
+      { href: "/forms", label: "Forms", icon: Inbox },
+      { href: "/activity", label: "Activity", icon: Activity },
+    ],
+  },
 ];
 
 /** Flat list of all nav items, for the command palette. */
@@ -104,6 +124,7 @@ export function setSidebarCookie(collapsed: boolean) {
 ## Task 2: The route-group server layout
 
 **Files:**
+
 - Create: `app/(app)/layout.tsx`
 - Create: `components/app-shell/Sidebar.tsx` (minimal first; switcher/profile/palette added in Tasks 3-5)
 
@@ -131,7 +152,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     include: { workspace: true },
     orderBy: { createdAt: "asc" },
   });
-  const workspaces = memberships.map((m) => ({ id: m.workspace.id, name: m.workspace.name, slug: m.workspace.slug, role: m.role }));
+  const workspaces = memberships.map((m) => ({
+    id: m.workspace.id,
+    name: m.workspace.name,
+    slug: m.workspace.slug,
+    role: m.role,
+  }));
 
   const jar = await cookies();
   const collapsed = jar.get(SIDEBAR_COOKIE)?.value === "collapsed";
@@ -171,9 +197,16 @@ import { CommandPalette } from "./CommandPalette";
 type WS = { id: string; name: string; slug: string; role: string };
 
 export function Sidebar({
-  collapsed: initialCollapsed, workspaces, activeWorkspaceId, role, user,
+  collapsed: initialCollapsed,
+  workspaces,
+  activeWorkspaceId,
+  role,
+  user,
 }: {
-  collapsed: boolean; workspaces: WS[]; activeWorkspaceId: string; role: string;
+  collapsed: boolean;
+  workspaces: WS[];
+  activeWorkspaceId: string;
+  role: string;
   user: { name: string; email: string };
 }) {
   const [collapsed, setCollapsed] = useState(initialCollapsed);
@@ -182,47 +215,90 @@ export function Sidebar({
   const pathname = usePathname();
   const active = workspaces.find((w) => w.id === activeWorkspaceId) ?? workspaces[0];
 
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setPaletteOpen((o) => !o); }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const toggle = () => { setCollapsed((c) => { setSidebarCookie(!c); return !c; }); };
+  const toggle = () => {
+    setCollapsed((c) => {
+      setSidebarCookie(!c);
+      return !c;
+    });
+  };
   const w = collapsed ? "w-[68px]" : "w-64";
 
-  const isActive = (href: string) => href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
   const rail = (
-    <div className={cn("flex h-full flex-col bg-zinc-950 text-zinc-300 transition-[width] duration-200", w)}>
+    <div
+      className={cn(
+        "flex h-full flex-col bg-zinc-950 text-zinc-300 transition-[width] duration-200",
+        w,
+      )}
+    >
       <div className="flex items-center gap-2 px-3 py-3.5">
         <WorkspaceSwitcher collapsed={collapsed} workspaces={workspaces} activeId={active?.id} />
       </div>
       <div className="px-3 pb-2 space-y-1">
-        <Link href="/?new=1" className={cn("flex items-center gap-2.5 rounded-lg bg-white/10 px-2.5 py-2 text-sm font-medium text-white hover:bg-white/15", collapsed && "justify-center")}>
-          <Plus size={17} />{!collapsed && "New"}
+        <Link
+          href="/?new=1"
+          className={cn(
+            "flex items-center gap-2.5 rounded-lg bg-white/10 px-2.5 py-2 text-sm font-medium text-white hover:bg-white/15",
+            collapsed && "justify-center",
+          )}
+        >
+          <Plus size={17} />
+          {!collapsed && "New"}
         </Link>
-        <button onClick={() => setPaletteOpen(true)} className={cn("flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-zinc-400 hover:bg-white/5 hover:text-white", collapsed && "justify-center")}>
-          <Search size={17} />{!collapsed && <span className="flex-1 text-left">Search</span>}{!collapsed && <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">⌘K</kbd>}
+        <button
+          onClick={() => setPaletteOpen(true)}
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-zinc-400 hover:bg-white/5 hover:text-white",
+            collapsed && "justify-center",
+          )}
+        >
+          <Search size={17} />
+          {!collapsed && <span className="flex-1 text-left">Search</span>}
+          {!collapsed && <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">⌘K</kbd>}
         </button>
       </div>
       <nav className="flex-1 overflow-y-auto px-3 py-2">
         {NAV_GROUPS.map((g) => (
           <div key={g.title} className="mb-4">
-            {!collapsed && <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">{g.title}</p>}
+            {!collapsed && (
+              <p className="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-600">
+                {g.title}
+              </p>
+            )}
             <div className="space-y-0.5">
               {g.items.map((it) => {
                 const Icon = it.icon;
                 const act = isActive(it.href);
                 return (
-                  <Link key={it.href} href={it.href} title={collapsed ? it.label : undefined}
-                    className={cn("flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
-                      act ? "bg-indigo-600 text-white" : "text-zinc-400 hover:bg-white/5 hover:text-white",
-                      collapsed && "justify-center")}>
-                    <Icon size={17} />{!collapsed && it.label}
+                  <Link
+                    key={it.href}
+                    href={it.href}
+                    title={collapsed ? it.label : undefined}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
+                      act
+                        ? "bg-indigo-600 text-white"
+                        : "text-zinc-400 hover:bg-white/5 hover:text-white",
+                      collapsed && "justify-center",
+                    )}
+                  >
+                    <Icon size={17} />
+                    {!collapsed && it.label}
                   </Link>
                 );
               })}
@@ -231,13 +307,32 @@ export function Sidebar({
         ))}
       </nav>
       <div className="border-t border-white/10 p-3 space-y-1">
-        <Link href="/settings" title={collapsed ? "Settings" : undefined}
-          className={cn("flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-zinc-400 hover:bg-white/5 hover:text-white", isActive("/settings") && "bg-white/10 text-white", collapsed && "justify-center")}>
+        <Link
+          href="/settings"
+          title={collapsed ? "Settings" : undefined}
+          className={cn(
+            "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-zinc-400 hover:bg-white/5 hover:text-white",
+            isActive("/settings") && "bg-white/10 text-white",
+            collapsed && "justify-center",
+          )}
+        >
           <SettingsIcon collapsed={collapsed} />
         </Link>
         <SidebarProfile collapsed={collapsed} user={user} />
-        <button onClick={toggle} className={cn("flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-zinc-500 hover:bg-white/5 hover:text-zinc-300", collapsed && "justify-center")}>
-          {collapsed ? <PanelLeft size={16} /> : <><PanelLeftClose size={16} /> Collapse</>}
+        <button
+          onClick={toggle}
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-zinc-500 hover:bg-white/5 hover:text-zinc-300",
+            collapsed && "justify-center",
+          )}
+        >
+          {collapsed ? (
+            <PanelLeft size={16} />
+          ) : (
+            <>
+              <PanelLeftClose size={16} /> Collapse
+            </>
+          )}
         </button>
       </div>
     </div>
@@ -249,15 +344,36 @@ export function Sidebar({
       <aside className="sticky top-0 hidden h-screen shrink-0 md:block">{rail}</aside>
       {/* mobile top bar + drawer */}
       <div className="sticky top-0 z-30 flex items-center gap-2 border-b border-zinc-200 bg-white px-4 py-2.5 md:hidden">
-        <button onClick={() => setMobileOpen(true)} className="rounded-lg p-1.5 hover:bg-zinc-100"><Menu size={20} /></button>
+        <button onClick={() => setMobileOpen(true)} className="rounded-lg p-1.5 hover:bg-zinc-100">
+          <Menu size={20} />
+        </button>
         <span className="text-sm font-semibold">{active?.name}</span>
       </div>
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div className="fixed inset-0 z-40 md:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div
+            className="fixed inset-0 z-40 md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
             <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-            <motion.div className="absolute left-0 top-0 h-full" initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }} transition={{ type: "spring", stiffness: 400, damping: 36 }}>
-              <div className="relative h-full">{rail}<button onClick={() => setMobileOpen(false)} className="absolute right-3 top-3 text-zinc-400"><X size={18} /></button></div>
+            <motion.div
+              className="absolute left-0 top-0 h-full"
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              transition={{ type: "spring", stiffness: 400, damping: 36 }}
+            >
+              <div className="relative h-full">
+                {rail}
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="absolute right-3 top-3 text-zinc-400"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
@@ -269,7 +385,12 @@ export function Sidebar({
 
 function SettingsIcon({ collapsed }: { collapsed: boolean }) {
   const { Settings } = require("lucide-react");
-  return <><Settings size={17} />{!collapsed && "Settings"}</>;
+  return (
+    <>
+      <Settings size={17} />
+      {!collapsed && "Settings"}
+    </>
+  );
 }
 ```
 
@@ -286,6 +407,7 @@ function SettingsIcon({ collapsed }: { collapsed: boolean }) {
 ## Task 3: WorkspaceSwitcher
 
 **Files:**
+
 - Create: `components/app-shell/WorkspaceSwitcher.tsx`
 
 - [ ] **Step 1: Implement**
@@ -300,7 +422,15 @@ import { cn } from "@/lib/utils";
 
 type WS = { id: string; name: string; slug: string; role: string };
 
-export function WorkspaceSwitcher({ collapsed, workspaces, activeId }: { collapsed: boolean; workspaces: WS[]; activeId?: string }) {
+export function WorkspaceSwitcher({
+  collapsed,
+  workspaces,
+  activeId,
+}: {
+  collapsed: boolean;
+  workspaces: WS[];
+  activeId?: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -319,34 +449,73 @@ export function WorkspaceSwitcher({ collapsed, workspaces, activeId }: { collaps
   async function switchTo(id: string) {
     if (id === active?.id) return setOpen(false);
     setBusy(true);
-    await fetch("/api/workspaces/switch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) });
+    await fetch("/api/workspaces/switch", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
     router.refresh();
-    setBusy(false); setOpen(false);
+    setBusy(false);
+    setOpen(false);
   }
 
   async function create() {
     const n = name.trim();
     if (!n) return;
     setBusy(true);
-    const res = await fetch("/api/workspaces", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: n }) });
+    const res = await fetch("/api/workspaces", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: n }),
+    });
     const ws = await res.json();
-    if (ws?.id) { await fetch("/api/workspaces/switch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: ws.id }) }); router.refresh(); }
-    setBusy(false); setCreating(false); setName(""); setOpen(false);
+    if (ws?.id) {
+      await fetch("/api/workspaces/switch", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: ws.id }),
+      });
+      router.refresh();
+    }
+    setBusy(false);
+    setCreating(false);
+    setName("");
+    setOpen(false);
   }
 
   return (
     <div className="relative w-full" onClick={(e) => e.stopPropagation()}>
-      <button onClick={() => setOpen((o) => !o)} className={cn("flex w-full items-center gap-2.5 rounded-lg px-1.5 py-1.5 hover:bg-white/5", collapsed && "justify-center")}>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white">{initials}</span>
-        {!collapsed && <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-white">{active?.name}</span>}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          "flex w-full items-center gap-2.5 rounded-lg px-1.5 py-1.5 hover:bg-white/5",
+          collapsed && "justify-center",
+        )}
+      >
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white">
+          {initials}
+        </span>
+        {!collapsed && (
+          <span className="min-w-0 flex-1 truncate text-left text-sm font-semibold text-white">
+            {active?.name}
+          </span>
+        )}
         {!collapsed && <ChevronsUpDown size={15} className="text-zinc-500" />}
       </button>
       {open && (
         <div className="absolute left-0 top-full z-50 mt-1 w-60 rounded-xl border border-zinc-200 bg-white p-1 shadow-2xl">
-          <p className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Workspaces</p>
+          <p className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+            Workspaces
+          </p>
           {workspaces.map((w) => (
-            <button key={w.id} onClick={() => switchTo(w.id)} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-zinc-700 hover:bg-zinc-100">
-              <span className="flex h-6 w-6 items-center justify-center rounded bg-gradient-to-br from-indigo-500 to-violet-600 text-[10px] font-bold text-white">{w.name.slice(0, 2).toUpperCase()}</span>
+            <button
+              key={w.id}
+              onClick={() => switchTo(w.id)}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-zinc-700 hover:bg-zinc-100"
+            >
+              <span className="flex h-6 w-6 items-center justify-center rounded bg-gradient-to-br from-indigo-500 to-violet-600 text-[10px] font-bold text-white">
+                {w.name.slice(0, 2).toUpperCase()}
+              </span>
               <span className="min-w-0 flex-1 truncate text-left">{w.name}</span>
               <span className="text-[10px] uppercase text-zinc-400">{w.role}</span>
               {w.id === active?.id && <Check size={14} className="text-indigo-600" />}
@@ -355,14 +524,37 @@ export function WorkspaceSwitcher({ collapsed, workspaces, activeId }: { collaps
           <div className="my-1 border-t border-zinc-100" />
           {creating ? (
             <div className="p-1.5">
-              <input autoFocus value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && create()} placeholder="Workspace name" className="w-full rounded-lg border border-zinc-300 px-2.5 py-1.5 text-sm outline-none focus:border-indigo-400" />
+              <input
+                autoFocus
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && create()}
+                placeholder="Workspace name"
+                className="w-full rounded-lg border border-zinc-300 px-2.5 py-1.5 text-sm outline-none focus:border-indigo-400"
+              />
               <div className="mt-1.5 flex gap-1.5">
-                <button onClick={create} disabled={busy} className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-zinc-900 px-2 py-1.5 text-xs font-semibold text-white disabled:opacity-50">{busy ? <Loader2 size={13} className="animate-spin" /> : "Create"}</button>
-                <button onClick={() => setCreating(false)} className="rounded-lg px-2 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100">Cancel</button>
+                <button
+                  onClick={create}
+                  disabled={busy}
+                  className="flex flex-1 items-center justify-center gap-1 rounded-lg bg-zinc-900 px-2 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                >
+                  {busy ? <Loader2 size={13} className="animate-spin" /> : "Create"}
+                </button>
+                <button
+                  onClick={() => setCreating(false)}
+                  className="rounded-lg px-2 py-1.5 text-xs text-zinc-500 hover:bg-zinc-100"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           ) : (
-            <button onClick={() => setCreating(true)} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"><Plus size={15} /> New workspace</button>
+            <button
+              onClick={() => setCreating(true)}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
+            >
+              <Plus size={15} /> New workspace
+            </button>
           )}
         </div>
       )}
@@ -379,6 +571,7 @@ export function WorkspaceSwitcher({ collapsed, workspaces, activeId }: { collaps
 ## Task 4: SidebarProfile
 
 **Files:**
+
 - Create: `components/app-shell/SidebarProfile.tsx`
 
 - [ ] **Step 1: Implement**
@@ -392,7 +585,13 @@ import { useRouter } from "next/navigation";
 import { LogOut, UserCog, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function SidebarProfile({ collapsed, user }: { collapsed: boolean; user: { name: string; email: string } }) {
+export function SidebarProfile({
+  collapsed,
+  user,
+}: {
+  collapsed: boolean;
+  user: { name: string; email: string };
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [out, setOut] = useState(false);
@@ -408,23 +607,54 @@ export function SidebarProfile({ collapsed, user }: { collapsed: boolean; user: 
   async function logout() {
     setOut(true);
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
-    router.replace("/login"); router.refresh();
+    router.replace("/login");
+    router.refresh();
   }
 
   return (
     <div className="relative" onClick={(e) => e.stopPropagation()}>
-      <button onClick={() => setOpen((o) => !o)} className={cn("flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/5", collapsed && "justify-center")}>
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-[11px] font-bold text-white">{initials}</span>
-        {!collapsed && <span className="min-w-0 flex-1 truncate text-left text-sm text-zinc-300">{user.name || user.email}</span>}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className={cn(
+          "flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-white/5",
+          collapsed && "justify-center",
+        )}
+      >
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-[11px] font-bold text-white">
+          {initials}
+        </span>
+        {!collapsed && (
+          <span className="min-w-0 flex-1 truncate text-left text-sm text-zinc-300">
+            {user.name || user.email}
+          </span>
+        )}
       </button>
       {open && (
         <div className="absolute bottom-full left-0 z-50 mb-1 w-56 rounded-xl border border-zinc-200 bg-white p-1 shadow-2xl">
           <div className="border-b border-zinc-100 px-3 py-2.5">
-            <p className="truncate text-sm font-semibold text-zinc-800">{user.name || "Your account"}</p>
+            <p className="truncate text-sm font-semibold text-zinc-800">
+              {user.name || "Your account"}
+            </p>
             <p className="truncate text-xs text-zinc-400">{user.email}</p>
           </div>
-          <Link href="/account" className="mt-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-zinc-700 hover:bg-zinc-100"><UserCog size={15} className="text-zinc-400" /> Account settings</Link>
-          <button onClick={logout} disabled={out} className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-zinc-700 hover:bg-red-50 hover:text-red-600 disabled:opacity-60">{out ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} className="text-zinc-400" />} Sign out</button>
+          <Link
+            href="/account"
+            className="mt-1 flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium text-zinc-700 hover:bg-zinc-100"
+          >
+            <UserCog size={15} className="text-zinc-400" /> Account settings
+          </Link>
+          <button
+            onClick={logout}
+            disabled={out}
+            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-zinc-700 hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+          >
+            {out ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <LogOut size={15} className="text-zinc-400" />
+            )}{" "}
+            Sign out
+          </button>
         </div>
       )}
     </div>
@@ -440,6 +670,7 @@ export function SidebarProfile({ collapsed, user }: { collapsed: boolean; user: 
 ## Task 5: Command palette (⌘K)
 
 **Files:**
+
 - Create: `components/app-shell/CommandPalette.tsx`
 
 - [ ] **Step 1: Implement** (dependency-free; navigates to nav destinations + quick actions; fetches the workspace's pages for direct jump)
@@ -463,20 +694,48 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!open) { setQ(""); setSel(0); return; }
+    if (!open) {
+      setQ("");
+      setSel(0);
+      return;
+    }
     inputRef.current?.focus();
-    fetch("/api/pages").then((r) => r.json()).then((d) => Array.isArray(d) && setPages(d.map((p: any) => ({ id: p.id, title: p.title })))).catch(() => {});
+    fetch("/api/pages")
+      .then((r) => r.json())
+      .then((d) => Array.isArray(d) && setPages(d.map((p: any) => ({ id: p.id, title: p.title }))))
+      .catch(() => {});
   }, [open]);
 
   const commands = useMemo<Cmd[]>(() => {
-    const go = (href: string) => () => { onClose(); router.push(href); };
-    const nav: Cmd[] = ALL_NAV.map((n) => ({ id: "nav:" + n.href, label: n.label, hint: "Go to", run: go(n.href) }));
+    const go = (href: string) => () => {
+      onClose();
+      router.push(href);
+    };
+    const nav: Cmd[] = ALL_NAV.map((n) => ({
+      id: "nav:" + n.href,
+      label: n.label,
+      hint: "Go to",
+      run: go(n.href),
+    }));
     const actions: Cmd[] = [
       { id: "act:settings", label: "Workspace settings", hint: "Action", run: go("/settings") },
       { id: "act:account", label: "Account settings", hint: "Action", run: go("/account") },
-      { id: "act:members", label: "Invite a teammate", hint: "Action", run: go("/settings#members") },
+      {
+        id: "act:members",
+        label: "Invite a teammate",
+        hint: "Action",
+        run: go("/settings#members"),
+      },
     ];
-    const pageCmds: Cmd[] = pages.map((p) => ({ id: "page:" + p.id, label: p.title, hint: "Edit page", run: () => { onClose(); router.push(`/editor/${p.id}`); } }));
+    const pageCmds: Cmd[] = pages.map((p) => ({
+      id: "page:" + p.id,
+      label: p.title,
+      hint: "Edit page",
+      run: () => {
+        onClose();
+        router.push(`/editor/${p.id}`);
+      },
+    }));
     return [...nav, ...actions, ...pageCmds];
   }, [pages, router, onClose]);
 
@@ -486,31 +745,70 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     return commands.filter((c) => c.label.toLowerCase().includes(s)).slice(0, 20);
   }, [q, commands]);
 
-  useEffect(() => { setSel(0); }, [q]);
+  useEffect(() => {
+    setSel(0);
+  }, [q]);
 
   function onKey(e: React.KeyboardEvent) {
-    if (e.key === "ArrowDown") { e.preventDefault(); setSel((s) => Math.min(s + 1, filtered.length - 1)); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); setSel((s) => Math.max(s - 1, 0)); }
-    else if (e.key === "Enter") { e.preventDefault(); filtered[sel]?.run(); }
-    else if (e.key === "Escape") { e.preventDefault(); onClose(); }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSel((s) => Math.min(s + 1, filtered.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSel((s) => Math.max(s - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      filtered[sel]?.run();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      onClose();
+    }
   }
 
   return (
     <AnimatePresence>
       {open && (
-        <motion.div className="fixed inset-0 z-[60] flex items-start justify-center bg-zinc-900/40 p-4 pt-[15vh] backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
-          <motion.div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10" initial={{ opacity: 0, scale: 0.97, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} onClick={(e) => e.stopPropagation()}>
+        <motion.div
+          className="fixed inset-0 z-[60] flex items-start justify-center bg-zinc-900/40 p-4 pt-[15vh] backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          <motion.div
+            className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/10"
+            initial={{ opacity: 0, scale: 0.97, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center gap-2.5 border-b border-zinc-100 px-4">
               <Search size={17} className="text-zinc-400" />
-              <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="Search pages, sections, actions…" className="w-full bg-transparent py-3.5 text-sm outline-none placeholder:text-zinc-400" />
+              <input
+                ref={inputRef}
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                onKeyDown={onKey}
+                placeholder="Search pages, sections, actions…"
+                className="w-full bg-transparent py-3.5 text-sm outline-none placeholder:text-zinc-400"
+              />
             </div>
             <div className="max-h-80 overflow-y-auto p-1.5">
-              {filtered.length === 0 && <p className="px-3 py-6 text-center text-sm text-zinc-400">No results</p>}
+              {filtered.length === 0 && (
+                <p className="px-3 py-6 text-center text-sm text-zinc-400">No results</p>
+              )}
               {filtered.map((c, i) => (
-                <button key={c.id} onMouseEnter={() => setSel(i)} onClick={c.run}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm ${i === sel ? "bg-indigo-50 text-indigo-900" : "text-zinc-700"}`}>
+                <button
+                  key={c.id}
+                  onMouseEnter={() => setSel(i)}
+                  onClick={c.run}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm ${i === sel ? "bg-indigo-50 text-indigo-900" : "text-zinc-700"}`}
+                >
                   <span className="truncate">{c.label}</span>
-                  <span className="flex items-center gap-1.5 text-[11px] text-zinc-400">{c.hint}{i === sel && <CornerDownLeft size={12} />}</span>
+                  <span className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+                    {c.hint}
+                    {i === sel && <CornerDownLeft size={12} />}
+                  </span>
                 </button>
               ))}
             </div>
@@ -530,6 +828,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 ## Task 6: Relocate the dashboard into the shell
 
 **Files:**
+
 - Create: `app/(app)/page.tsx`
 - Delete: `app/page.tsx`
 - Modify: `components/dashboard/Dashboard.tsx`
@@ -551,6 +850,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
 ## Task 7: Account settings page
 
 **Files:**
+
 - Create: `app/(app)/account/page.tsx`
 - Create: `components/app-shell/account/AccountForm.tsx`
 
@@ -585,7 +885,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Check } from "lucide-react";
 
-function Card({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
+function Card({
+  title,
+  desc,
+  children,
+}: {
+  title: string;
+  desc?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-6">
       <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
@@ -600,25 +908,51 @@ export function AccountForm({ initialName, email }: { initialName: string; email
   const [name, setName] = useState(initialName);
   const [savingName, setSavingName] = useState(false);
   const [nameOk, setNameOk] = useState(false);
-  const [cur, setCur] = useState(""); const [next, setNext] = useState("");
-  const [pwBusy, setPwBusy] = useState(false); const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [cur, setCur] = useState("");
+  const [next, setNext] = useState("");
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   async function saveName(e: React.FormEvent) {
-    e.preventDefault(); setSavingName(true); setNameOk(false);
-    const res = await fetch("/api/account", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ name }) });
+    e.preventDefault();
+    setSavingName(true);
+    setNameOk(false);
+    const res = await fetch("/api/account", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
     setSavingName(false);
-    if (res.ok) { setNameOk(true); router.refresh(); setTimeout(() => setNameOk(false), 1500); }
+    if (res.ok) {
+      setNameOk(true);
+      router.refresh();
+      setTimeout(() => setNameOk(false), 1500);
+    }
   }
   async function savePw(e: React.FormEvent) {
-    e.preventDefault(); setPwBusy(true); setPwMsg(null);
-    const res = await fetch("/api/account/password", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ current: cur, next }) });
+    e.preventDefault();
+    setPwBusy(true);
+    setPwMsg(null);
+    const res = await fetch("/api/account/password", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ current: cur, next }),
+    });
     const d = await res.json().catch(() => ({}));
     setPwBusy(false);
-    setPwMsg(res.ok ? { ok: true, text: "Password updated. Other sessions were signed out." } : { ok: false, text: d.error || "Failed" });
-    if (res.ok) { setCur(""); setNext(""); }
+    setPwMsg(
+      res.ok
+        ? { ok: true, text: "Password updated. Other sessions were signed out." }
+        : { ok: false, text: d.error || "Failed" },
+    );
+    if (res.ok) {
+      setCur("");
+      setNext("");
+    }
   }
 
-  const input = "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100";
+  const input =
+    "w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100";
 
   return (
     <>
@@ -632,15 +966,49 @@ export function AccountForm({ initialName, email }: { initialName: string; email
             <label className="mb-1 block text-xs font-medium text-zinc-600">Email</label>
             <input className={input + " bg-zinc-50 text-zinc-400"} value={email} disabled />
           </div>
-          <button disabled={savingName} className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50">{savingName ? <Loader2 size={15} className="animate-spin" /> : nameOk ? <Check size={15} /> : null} Save</button>
+          <button
+            disabled={savingName}
+            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {savingName ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : nameOk ? (
+              <Check size={15} />
+            ) : null}{" "}
+            Save
+          </button>
         </form>
       </Card>
       <Card title="Password" desc="Changing your password signs out your other sessions.">
         <form onSubmit={savePw} className="space-y-3">
-          <input className={input} type="password" placeholder="Current password" value={cur} onChange={(e) => setCur(e.target.value)} required />
-          <input className={input} type="password" placeholder="New password (min 8)" value={next} onChange={(e) => setNext(e.target.value)} minLength={8} required />
-          {pwMsg && <p className={pwMsg.ok ? "text-xs text-emerald-600" : "text-xs text-red-600"}>{pwMsg.text}</p>}
-          <button disabled={pwBusy} className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50">{pwBusy && <Loader2 size={15} className="animate-spin" />} Update password</button>
+          <input
+            className={input}
+            type="password"
+            placeholder="Current password"
+            value={cur}
+            onChange={(e) => setCur(e.target.value)}
+            required
+          />
+          <input
+            className={input}
+            type="password"
+            placeholder="New password (min 8)"
+            value={next}
+            onChange={(e) => setNext(e.target.value)}
+            minLength={8}
+            required
+          />
+          {pwMsg && (
+            <p className={pwMsg.ok ? "text-xs text-emerald-600" : "text-xs text-red-600"}>
+              {pwMsg.text}
+            </p>
+          )}
+          <button
+            disabled={pwBusy}
+            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {pwBusy && <Loader2 size={15} className="animate-spin" />} Update password
+          </button>
         </form>
       </Card>
     </>
@@ -657,6 +1025,7 @@ export function AccountForm({ initialName, email }: { initialName: string; email
 ## Task 8: Workspace settings page (general / members / invites / danger)
 
 **Files:**
+
 - Create: `app/(app)/settings/page.tsx`
 - Create: `components/app-shell/settings/SettingsClient.tsx`
 
@@ -695,7 +1064,8 @@ type WS = { id: string; name: string; slug: string };
 type Member = { membershipId: string; userId: string; name: string; email: string; role: string };
 type Invite = { id: string; email: string; role: string; token: string; expiresAt: string };
 const ROLES = ["VIEWER", "EDITOR", "ADMIN", "OWNER"];
-const input = "rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100";
+const input =
+  "rounded-lg border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-100";
 
 export function SettingsClient({ workspace, role }: { workspace: WS; role: string }) {
   const router = useRouter();
@@ -704,7 +1074,13 @@ export function SettingsClient({ workspace, role }: { workspace: WS; role: strin
     <>
       <div className="mt-6 flex gap-1 border-b border-zinc-200">
         {(["general", "members", "invites", "danger"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={`px-3 py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-indigo-600 text-indigo-700" : "text-zinc-500 hover:text-zinc-800"}`}>{t}</button>
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`px-3 py-2 text-sm font-medium capitalize ${tab === t ? "border-b-2 border-indigo-600 text-indigo-700" : "text-zinc-500 hover:text-zinc-800"}`}
+          >
+            {t}
+          </button>
         ))}
       </div>
       <div className="py-6">
@@ -719,27 +1095,54 @@ export function SettingsClient({ workspace, role }: { workspace: WS; role: strin
 
 function General({ workspace, onSaved }: { workspace: WS; onSaved: () => void }) {
   const [name, setName] = useState(workspace.name);
-  const [busy, setBusy] = useState(false); const [ok, setOk] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [ok, setOk] = useState(false);
   async function save(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setOk(false);
-    const res = await fetch(`/api/workspaces/${workspace.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ name }) });
-    setBusy(false); if (res.ok) { setOk(true); onSaved(); setTimeout(() => setOk(false), 1500); }
+    e.preventDefault();
+    setBusy(true);
+    setOk(false);
+    const res = await fetch(`/api/workspaces/${workspace.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    setBusy(false);
+    if (res.ok) {
+      setOk(true);
+      onSaved();
+      setTimeout(() => setOk(false), 1500);
+    }
   }
   return (
     <form onSubmit={save} className="max-w-sm space-y-3">
       <label className="block text-xs font-medium text-zinc-600">Workspace name</label>
       <input className={input + " w-full"} value={name} onChange={(e) => setName(e.target.value)} />
-      <button disabled={busy} className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy ? <Loader2 size={15} className="animate-spin" /> : ok ? <Check size={15} /> : null} Save</button>
+      <button
+        disabled={busy}
+        className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+      >
+        {busy ? <Loader2 size={15} className="animate-spin" /> : ok ? <Check size={15} /> : null}{" "}
+        Save
+      </button>
     </form>
   );
 }
 
 function Members() {
   const [members, setMembers] = useState<Member[]>([]);
-  const load = () => fetch("/api/workspaces/members").then((r) => r.json()).then((d) => Array.isArray(d) && setMembers(d));
-  useEffect(() => { load(); }, []);
+  const load = () =>
+    fetch("/api/workspaces/members")
+      .then((r) => r.json())
+      .then((d) => Array.isArray(d) && setMembers(d));
+  useEffect(() => {
+    load();
+  }, []);
   async function changeRole(m: Member, role: string) {
-    await fetch("/api/workspaces/members", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ membershipId: m.membershipId, role }) });
+    await fetch("/api/workspaces/members", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ membershipId: m.membershipId, role }),
+    });
     load();
   }
   async function remove(m: Member) {
@@ -751,10 +1154,26 @@ function Members() {
     <div className="divide-y divide-zinc-100 rounded-xl border border-zinc-200">
       {members.map((m) => (
         <div key={m.membershipId} className="flex items-center gap-3 px-4 py-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white">{(m.name || m.email).slice(0, 2).toUpperCase()}</span>
-          <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-zinc-800">{m.name || "—"}</p><p className="truncate text-xs text-zinc-400">{m.email}</p></div>
-          <select value={m.role} onChange={(e) => changeRole(m, e.target.value)} className={input}>{ROLES.map((r) => <option key={r} value={r}>{r}</option>)}</select>
-          <button onClick={() => remove(m)} className="rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"><Trash2 size={15} /></button>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white">
+            {(m.name || m.email).slice(0, 2).toUpperCase()}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-zinc-800">{m.name || "—"}</p>
+            <p className="truncate text-xs text-zinc-400">{m.email}</p>
+          </div>
+          <select value={m.role} onChange={(e) => changeRole(m, e.target.value)} className={input}>
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => remove(m)}
+            className="rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-500"
+          >
+            <Trash2 size={15} />
+          </button>
         </div>
       ))}
     </div>
@@ -763,39 +1182,105 @@ function Members() {
 
 function Invites() {
   const [invites, setInvites] = useState<Invite[]>([]);
-  const [email, setEmail] = useState(""); const [role, setRole] = useState("EDITOR");
-  const [busy, setBusy] = useState(false); const [link, setLink] = useState(""); const [copied, setCopied] = useState(false); const [err, setErr] = useState("");
-  const load = () => fetch("/api/workspaces/invites").then((r) => r.json()).then((d) => Array.isArray(d) && setInvites(d));
-  useEffect(() => { load(); }, []);
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("EDITOR");
+  const [busy, setBusy] = useState(false);
+  const [link, setLink] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [err, setErr] = useState("");
+  const load = () =>
+    fetch("/api/workspaces/invites")
+      .then((r) => r.json())
+      .then((d) => Array.isArray(d) && setInvites(d));
+  useEffect(() => {
+    load();
+  }, []);
   async function create(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setErr(""); setLink("");
-    const res = await fetch("/api/workspaces/invites", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email, role }) });
+    e.preventDefault();
+    setBusy(true);
+    setErr("");
+    setLink("");
+    const res = await fetch("/api/workspaces/invites", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, role }),
+    });
     const d = await res.json().catch(() => ({}));
     setBusy(false);
-    if (res.ok) { setLink(d.inviteUrl); setEmail(""); load(); } else setErr(d.error || "Failed");
+    if (res.ok) {
+      setLink(d.inviteUrl);
+      setEmail("");
+      load();
+    } else setErr(d.error || "Failed");
   }
-  async function revoke(id: string) { await fetch(`/api/workspaces/invites?id=${id}`, { method: "DELETE" }); load(); }
+  async function revoke(id: string) {
+    await fetch(`/api/workspaces/invites?id=${id}`, { method: "DELETE" });
+    load();
+  }
   return (
     <div className="space-y-5">
       <form onSubmit={create} className="flex flex-wrap items-end gap-2">
-        <div className="flex-1"><label className="mb-1 block text-xs font-medium text-zinc-600">Invite by email</label><input className={input + " w-full"} type="email" placeholder="teammate@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
-        <select value={role} onChange={(e) => setRole(e.target.value)} className={input}>{["VIEWER", "EDITOR", "ADMIN"].map((r) => <option key={r} value={r}>{r}</option>)}</select>
-        <button disabled={busy} className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50">{busy && <Loader2 size={15} className="animate-spin" />} Invite</button>
+        <div className="flex-1">
+          <label className="mb-1 block text-xs font-medium text-zinc-600">Invite by email</label>
+          <input
+            className={input + " w-full"}
+            type="email"
+            placeholder="teammate@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <select value={role} onChange={(e) => setRole(e.target.value)} className={input}>
+          {["VIEWER", "EDITOR", "ADMIN"].map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+        <button
+          disabled={busy}
+          className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          {busy && <Loader2 size={15} className="animate-spin" />} Invite
+        </button>
       </form>
       {err && <p className="text-xs text-red-600">{err}</p>}
       {link && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-          <p className="mb-1.5 text-xs font-medium text-emerald-800">No email service configured — share this invite link:</p>
+          <p className="mb-1.5 text-xs font-medium text-emerald-800">
+            No email service configured — share this invite link:
+          </p>
           <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-white p-2">
             <code className="min-w-0 flex-1 truncate text-xs text-zinc-600">{link}</code>
-            <button onClick={() => { navigator.clipboard?.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 1500); }} className="flex items-center gap-1 rounded-md bg-zinc-900 px-2 py-1 text-xs font-medium text-white">{copied ? <Check size={12} /> : <Copy size={12} />} {copied ? "Copied" : "Copy"}</button>
+            <button
+              onClick={() => {
+                navigator.clipboard?.writeText(link);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+              }}
+              className="flex items-center gap-1 rounded-md bg-zinc-900 px-2 py-1 text-xs font-medium text-white"
+            >
+              {copied ? <Check size={12} /> : <Copy size={12} />} {copied ? "Copied" : "Copy"}
+            </button>
           </div>
         </div>
       )}
       {invites.length > 0 && (
         <div className="divide-y divide-zinc-100 rounded-xl border border-zinc-200">
           {invites.map((i) => (
-            <div key={i.id} className="flex items-center gap-3 px-4 py-2.5"><div className="min-w-0 flex-1"><p className="truncate text-sm text-zinc-700">{i.email}</p><p className="text-xs text-zinc-400">{i.role} · pending</p></div><button onClick={() => revoke(i.id)} className="text-xs font-medium text-red-500 hover:underline">Revoke</button></div>
+            <div key={i.id} className="flex items-center gap-3 px-4 py-2.5">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-zinc-700">{i.email}</p>
+                <p className="text-xs text-zinc-400">{i.role} · pending</p>
+              </div>
+              <button
+                onClick={() => revoke(i.id)}
+                className="text-xs font-medium text-red-500 hover:underline"
+              >
+                Revoke
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -805,21 +1290,44 @@ function Invites() {
 
 function Danger({ workspace, role }: { workspace: WS; role: string }) {
   const router = useRouter();
-  const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
   async function del() {
-    if (!confirm(`Delete "${workspace.name}"? This permanently removes its pages, CMS, and assets.`)) return;
-    setBusy(true); setErr("");
+    if (
+      !confirm(`Delete "${workspace.name}"? This permanently removes its pages, CMS, and assets.`)
+    )
+      return;
+    setBusy(true);
+    setErr("");
     const res = await fetch(`/api/workspaces/${workspace.id}`, { method: "DELETE" });
     const d = await res.json().catch(() => ({}));
-    if (res.ok) { router.push("/"); router.refresh(); } else { setErr(d.error || "Failed"); setBusy(false); }
+    if (res.ok) {
+      router.push("/");
+      router.refresh();
+    } else {
+      setErr(d.error || "Failed");
+      setBusy(false);
+    }
   }
-  if (role !== "OWNER") return <p className="text-sm text-zinc-500">Only the workspace owner can delete the workspace.</p>;
+  if (role !== "OWNER")
+    return (
+      <p className="text-sm text-zinc-500">Only the workspace owner can delete the workspace.</p>
+    );
   return (
     <div className="rounded-xl border border-red-200 bg-red-50 p-5">
       <h3 className="text-sm font-semibold text-red-800">Delete this workspace</h3>
-      <p className="mt-1 text-xs text-red-600">Permanent. You must have another workspace to switch to.</p>
+      <p className="mt-1 text-xs text-red-600">
+        Permanent. You must have another workspace to switch to.
+      </p>
       {err && <p className="mt-2 text-xs text-red-700">{err}</p>}
-      <button onClick={del} disabled={busy} className="mt-3 flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50">{busy ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} Delete workspace</button>
+      <button
+        onClick={del}
+        disabled={busy}
+        className="mt-3 flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+      >
+        {busy ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />} Delete
+        workspace
+      </button>
     </div>
   );
 }
@@ -834,6 +1342,7 @@ function Danger({ workspace, role }: { workspace: WS; role: string }) {
 ## Task 9: Invite-accept page
 
 **Files:**
+
 - Create: `app/invite/[token]/page.tsx` (OUTSIDE the `(app)` group — standalone)
 - Create: `components/app-shell/InviteAccept.tsx`
 
@@ -867,16 +1376,34 @@ import { Loader2 } from "lucide-react";
 
 export function InviteAccept({ token }: { token: string }) {
   const router = useRouter();
-  const [state, setState] = useState<{ valid: boolean; workspaceName?: string; role?: string; email?: string } | null>(null);
-  const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const [state, setState] = useState<{
+    valid: boolean;
+    workspaceName?: string;
+    role?: string;
+    email?: string;
+  } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
 
-  useEffect(() => { fetch(`/api/invites/${token}`).then((r) => r.json()).then(setState).catch(() => setState({ valid: false })); }, [token]);
+  useEffect(() => {
+    fetch(`/api/invites/${token}`)
+      .then((r) => r.json())
+      .then(setState)
+      .catch(() => setState({ valid: false }));
+  }, [token]);
 
   async function accept() {
-    setBusy(true); setErr("");
+    setBusy(true);
+    setErr("");
     const res = await fetch(`/api/invites/${token}`, { method: "POST" });
     const d = await res.json().catch(() => ({}));
-    if (res.ok) { router.push("/"); router.refresh(); } else { setErr(d.error || "Could not accept"); setBusy(false); }
+    if (res.ok) {
+      router.push("/");
+      router.refresh();
+    } else {
+      setErr(d.error || "Could not accept");
+      setBusy(false);
+    }
   }
 
   if (!state) return <Loader2 className="animate-spin text-zinc-400" />;
@@ -885,15 +1412,30 @@ export function InviteAccept({ token }: { token: string }) {
       {state.valid ? (
         <>
           <h1 className="text-xl font-bold text-zinc-900">Join {state.workspaceName}</h1>
-          <p className="mt-1.5 text-sm text-zinc-500">You've been invited as <span className="font-medium">{state.role}</span>.</p>
+          <p className="mt-1.5 text-sm text-zinc-500">
+            You've been invited as <span className="font-medium">{state.role}</span>.
+          </p>
           {err && <p className="mt-3 text-sm text-red-600">{err}</p>}
-          <button onClick={accept} disabled={busy} className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-zinc-900 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{busy && <Loader2 size={15} className="animate-spin" />} Accept invitation</button>
+          <button
+            onClick={accept}
+            disabled={busy}
+            className="mt-5 flex w-full items-center justify-center gap-1.5 rounded-xl bg-zinc-900 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {busy && <Loader2 size={15} className="animate-spin" />} Accept invitation
+          </button>
         </>
       ) : (
         <>
           <h1 className="text-xl font-bold text-zinc-900">Invite unavailable</h1>
-          <p className="mt-1.5 text-sm text-zinc-500">This invitation is invalid, expired, or already used.</p>
-          <button onClick={() => router.push("/")} className="mt-5 text-sm font-semibold text-indigo-600">Go to dashboard</button>
+          <p className="mt-1.5 text-sm text-zinc-500">
+            This invitation is invalid, expired, or already used.
+          </p>
+          <button
+            onClick={() => router.push("/")}
+            className="mt-5 text-sm font-semibold text-indigo-600"
+          >
+            Go to dashboard
+          </button>
         </>
       )}
     </div>
@@ -912,6 +1454,7 @@ export function InviteAccept({ token }: { token: string }) {
 ## Task 10: Activity API + page
 
 **Files:**
+
 - Create: `app/api/activity/route.ts`
 - Create: `app/(app)/activity/page.tsx`
 
@@ -934,15 +1477,29 @@ export async function GET() {
   });
   // resolve actor names in one query
   const actorIds = [...new Set(events.map((e) => e.actorId))];
-  const users = await prisma.user.findMany({ where: { id: { in: actorIds } }, select: { id: true, name: true, email: true } });
+  const users = await prisma.user.findMany({
+    where: { id: { in: actorIds } },
+    select: { id: true, name: true, email: true },
+  });
   const byId = new Map(users.map((u) => [u.id, u]));
-  return NextResponse.json(events.map((e) => ({
-    id: e.id, type: e.type, targetId: e.targetId, meta: safe(e.meta),
-    actor: byId.get(e.actorId)?.name || byId.get(e.actorId)?.email || "Someone",
-    createdAt: e.createdAt.toISOString(),
-  })));
+  return NextResponse.json(
+    events.map((e) => ({
+      id: e.id,
+      type: e.type,
+      targetId: e.targetId,
+      meta: safe(e.meta),
+      actor: byId.get(e.actorId)?.name || byId.get(e.actorId)?.email || "Someone",
+      createdAt: e.createdAt.toISOString(),
+    })),
+  );
 }
-function safe(s: string) { try { return JSON.parse(s); } catch { return {}; } }
+function safe(s: string) {
+  try {
+    return JSON.parse(s);
+  } catch {
+    return {};
+  }
+}
 ```
 
 - [ ] **Step 2: `app/(app)/activity/page.tsx`** — client page that fetches + renders a timeline. Map `type` → human verb (`page.created` → "created a page", `page.published` → "published a page", `invite.sent` → "invited someone", `member.joined` → "joined the workspace"). Group by day. Use a contextual empty state ("Activity will appear here as your team builds.") when empty. (Write a focused client component inline in the page file.)
@@ -956,6 +1513,7 @@ function safe(s: string) { try { return JSON.parse(s); } catch { return {}; } }
 ## Task 11: Forms, Components, Assets list pages
 
 **Files:**
+
 - Create: `app/(app)/forms/page.tsx`
 - Create: `app/(app)/components/page.tsx`
 - Create: `app/(app)/assets/page.tsx`
@@ -981,7 +1539,7 @@ export default async function FormsPage() {
 }
 ```
 
-  Create `components/app-shell/FormsClient.tsx`: a page wrapper (heading "Forms", list of pages with a submission count badge; clicking a page with count>0 opens `<SubmissionsModal page={{id,title}} onClose=… />`). Empty state if all counts are 0.
+Create `components/app-shell/FormsClient.tsx`: a page wrapper (heading "Forms", list of pages with a submission count badge; clicking a page with count>0 opens `<SubmissionsModal page={{id,title}} onClose=… />`). Empty state if all counts are 0.
 
 - [ ] **Step 2: `app/(app)/components/page.tsx`** — server: list the workspace's reusable components (`prisma.component.findMany({ where: { workspaceId } })`), each linking to `/component/[id]`. Card grid mirroring the dashboard style. Empty state with a short explainer ("Save any section as a reusable component from the editor.").
 
@@ -996,6 +1554,7 @@ export default async function FormsPage() {
 ## Task 12: CMS / Design / Site hub pages
 
 **Files:**
+
 - Create: `app/(app)/cms/page.tsx`
 - Create: `app/(app)/design/page.tsx`
 - Create: `app/(app)/site/page.tsx`

@@ -12,7 +12,7 @@
 
 ## Important environment notes
 
-- **This project is NOT a git repo.** Each task ends with a "Checkpoint" step. If you want real commits, run `git init && git add -A && git commit -m "baseline"` first; otherwise treat each Checkpoint as a manual review/save point. **Never touch the nested `` directory — it is a separate project with its own `.git`.**
+- **This project is NOT a git repo.** Each task ends with a "Checkpoint" step. If you want real commits, run `git init && git add -A && git commit -m "baseline"` first; otherwise treat each Checkpoint as a manual review/save point.
 - After any `prisma/schema.prisma` change you MUST run `npx prisma db push` **and restart `next dev`** (the cached Prisma client is a known gotcha in this repo).
 - Path alias `@/*` maps to repo root. Tests live in `tests/**/*.test.ts` and run with `npm test` (`vitest run`).
 - Existing guard shape (keep this pattern): `requireApiUser()` returns `{ user }` **or** `{ response }`; callers do `if ("response" in x) return x.response;`.
@@ -41,6 +41,7 @@ Modified: `prisma/schema.prisma`, `app/page.tsx`, `app/api/auth/signup/route.ts`
 ## Task 1: Schema — add tenancy models + scope columns
 
 **Files:**
+
 - Modify: `prisma/schema.prisma`
 
 - [ ] **Step 1: Add the `Role` enum and four models at the end of the schema**
@@ -120,46 +121,61 @@ In `model User`, add this line alongside `sessions` / `resets`:
 These are plain indexed scalars (no FK relation object) to keep migration on existing SQLite data painless. Add to each model the two lines shown.
 
 In `model Page` (add after `theme`):
+
 ```prisma
   workspaceId     String?
 ```
+
 and add at the end of the model body:
+
 ```prisma
   @@index([workspaceId])
 ```
 
 In `model Component` (after `content`):
+
 ```prisma
   workspaceId String?
 ```
+
 and at end of model:
+
 ```prisma
   @@index([workspaceId])
 ```
 
 In `model Asset` (after `size`):
+
 ```prisma
   workspaceId String?
 ```
+
 and at end of model:
+
 ```prisma
   @@index([workspaceId])
 ```
 
 In `model Collection` (after `detailTemplate`):
+
 ```prisma
   workspaceId    String?
 ```
+
 and at end of model:
+
 ```prisma
   @@index([workspaceId])
 ```
 
 In `model Site`, change the id default and add a unique workspace link. Replace:
+
 ```prisma
   id         String   @id @default("site")
 ```
+
 with:
+
 ```prisma
   id          String   @id @default(cuid())
   workspaceId String?  @unique
@@ -168,9 +184,11 @@ with:
 - [ ] **Step 4: Push the schema and regenerate the client**
 
 Run:
+
 ```bash
 npx prisma db push && npx prisma generate
 ```
+
 Expected: "Your database is now in sync with your Prisma schema." and "Generated Prisma Client".
 
 - [ ] **Step 5: Restart the dev server** (kill any running `next dev`, then `npm run dev`). The cached client must be refreshed.
@@ -182,6 +200,7 @@ Expected: "Your database is now in sync with your Prisma schema." and "Generated
 ## Task 2: Pure role helpers (TDD)
 
 **Files:**
+
 - Create: `lib/workspace.ts` (helpers only this task)
 - Test: `tests/workspace.test.ts`
 
@@ -263,6 +282,7 @@ Expected: PASS (5 assertions).
 ## Task 3: Server tenancy guards
 
 **Files:**
+
 - Modify: `lib/workspace.ts`
 
 - [ ] **Step 1: Append the server-side context + guards**
@@ -340,7 +360,12 @@ export async function setActiveWorkspace(id: string): Promise<boolean> {
   });
   if (!m) return false;
   const jar = await cookies();
-  jar.set(WS_COOKIE, id, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 365 });
+  jar.set(WS_COOKIE, id, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
   return true;
 }
 
@@ -379,6 +404,7 @@ Expected: PASS (the pure tests are unaffected; the import additions must not bre
 ## Task 4: One-time data migration
 
 **Files:**
+
 - Create: `scripts/migrate-workspaces.ts`
 
 - [ ] **Step 1: Write the script**
@@ -389,11 +415,13 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 function slugify(s: string): string {
-  return (s || "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "acme";
+  return (
+    (s || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "acme"
+  );
 }
 
 async function main() {
@@ -418,17 +446,41 @@ async function main() {
   console.log(`Ensured OWNER membership for ${users.length} user(s)`);
 
   // 3. attach all existing content (idempotent: only rows still unscoped)
-  const r1 = await prisma.page.updateMany({ where: { workspaceId: null }, data: { workspaceId: ws.id } });
-  const r2 = await prisma.component.updateMany({ where: { workspaceId: null }, data: { workspaceId: ws.id } });
-  const r3 = await prisma.asset.updateMany({ where: { workspaceId: null }, data: { workspaceId: ws.id } });
-  const r4 = await prisma.collection.updateMany({ where: { workspaceId: null }, data: { workspaceId: ws.id } });
-  const r5 = await prisma.site.updateMany({ where: { workspaceId: null }, data: { workspaceId: ws.id } });
-  console.log("Scoped:", { pages: r1.count, components: r2.count, assets: r3.count, collections: r4.count, sites: r5.count });
+  const r1 = await prisma.page.updateMany({
+    where: { workspaceId: null },
+    data: { workspaceId: ws.id },
+  });
+  const r2 = await prisma.component.updateMany({
+    where: { workspaceId: null },
+    data: { workspaceId: ws.id },
+  });
+  const r3 = await prisma.asset.updateMany({
+    where: { workspaceId: null },
+    data: { workspaceId: ws.id },
+  });
+  const r4 = await prisma.collection.updateMany({
+    where: { workspaceId: null },
+    data: { workspaceId: ws.id },
+  });
+  const r5 = await prisma.site.updateMany({
+    where: { workspaceId: null },
+    data: { workspaceId: ws.id },
+  });
+  console.log("Scoped:", {
+    pages: r1.count,
+    components: r2.count,
+    assets: r3.count,
+    collections: r4.count,
+    sites: r5.count,
+  });
 }
 
 main()
   .then(() => console.log("Migration complete."))
-  .catch((e) => { console.error(e); process.exit(1); })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());
 ```
 
@@ -448,6 +500,7 @@ Run: `npx prisma studio` (or a quick query) and confirm every `Page` has a non-n
 ## Task 5: New users get a starter workspace
 
 **Files:**
+
 - Modify: `app/api/auth/signup/route.ts`
 
 - [ ] **Step 1: Create a workspace right after the session is created**
@@ -455,9 +508,9 @@ Run: `npx prisma studio` (or a quick query) and confirm every `Page` has a non-n
 Open `app/api/auth/signup/route.ts`. It already creates the user and calls `createSession(user.id)`. Immediately **after** the `createSession(...)` call and **before** the success response, add:
 
 ```ts
-  // Give every new user their own workspace (per-team tenancy backbone).
-  const { createWorkspace } = await import("@/lib/workspace");
-  await createWorkspace(user.id, `${(name || "My").trim()}'s Workspace`);
+// Give every new user their own workspace (per-team tenancy backbone).
+const { createWorkspace } = await import("@/lib/workspace");
+await createWorkspace(user.id, `${(name || "My").trim()}'s Workspace`);
 ```
 
 (Use the same `name` variable the route already validated. If the route names it differently, use that variable; the result string just needs a sensible default.)
@@ -475,6 +528,7 @@ Then check the DB: the new user has exactly one `Membership` (role OWNER) to a f
 ## Task 6: Activity logging helper
 
 **Files:**
+
 - Create: `lib/activity.ts`
 
 - [ ] **Step 1: Write the helper**
@@ -507,6 +561,7 @@ export async function logActivity(
 ## Task 7: Scope + role-gate the Pages routes
 
 **Files:**
+
 - Modify: `app/api/pages/route.ts`
 - Modify: `app/api/pages/[id]/route.ts`
 - Modify: `app/api/pages/[id]/publish/route.ts`
@@ -565,16 +620,21 @@ Open the file. Replace its `requireApiUser` import with the workspace guards, an
   and change the lookup to scope by workspace, e.g. replace `prisma.page.findUnique({ where: { id } })` with
   `prisma.page.findFirst({ where: { id, workspaceId: a.workspace.id } })`.
 - In **PUT/PATCH** and **DELETE**, replace the guard with:
+
   ```ts
   const a = await requireApiRole("EDITOR");
   if ("response" in a) return a.response;
   ```
+
   and make the write workspace-safe by scoping on both keys. For updates use:
+
   ```ts
   const result = await prisma.page.updateMany({ where: { id, workspaceId: a.workspace.id }, data });
   if (result.count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
   ```
+
   (then re-fetch with `findFirst` if the handler returns the row). For delete:
+
   ```ts
   const result = await prisma.page.deleteMany({ where: { id, workspaceId: a.workspace.id } });
   if (result.count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -583,6 +643,7 @@ Open the file. Replace its `requireApiUser` import with the workspace guards, an
 - [ ] **Step 3: Update `publish` and `versions` routes the same way**
 
 For `app/api/pages/[id]/publish/route.ts`, `app/api/pages/[id]/versions/route.ts`, and `app/api/pages/[id]/versions/[versionId]/route.ts`:
+
 - Swap the import to `requireApiRole` (these are all mutations / publish → use `requireApiRole("EDITOR")`; the GET on versions list may use `requireApiWorkspace`).
 - Before operating on a page or version, confirm the parent page belongs to the active workspace:
   ```ts
@@ -594,10 +655,12 @@ For `app/api/pages/[id]/publish/route.ts`, `app/api/pages/[id]/versions/route.ts
 - [ ] **Step 4: Runtime verify**
 
 With the dev server running and signed in:
+
 ```bash
 # list pages (should be 200 and only your workspace's pages)
 curl -s -b cookies.txt http://localhost:3000/api/pages | head -c 200
 ```
+
 (Use a cookie jar from a logged-in browser session, or test via the UI.) Confirm: creating a page works; fetching a page id that exists in another workspace returns 404; logged-out request returns 401.
 
 - [ ] **Step 5: Checkpoint.**
@@ -607,6 +670,7 @@ curl -s -b cookies.txt http://localhost:3000/api/pages | head -c 200
 ## Task 8: Scope + role-gate the Collections (CMS) routes
 
 **Files:**
+
 - Modify: `app/api/collections/route.ts`
 - Modify: `app/api/collections/[id]/route.ts`
 - Modify: `app/api/collections/[id]/items/route.ts`
@@ -659,12 +723,17 @@ export async function POST(req: Request) {
 - [ ] **Step 2: Gate the collection detail + item routes**
 
 For `[id]/route.ts`, `[id]/items/route.ts`, `[id]/items/[itemId]/route.ts`:
+
 - Swap import to `requireApiWorkspace` (GET) / `requireApiRole("EDITOR")` (mutations) from `@/lib/workspace`.
 - After resolving the collection id, verify ownership before any read/write:
+
   ```ts
-  const collection = await prisma.collection.findFirst({ where: { id, workspaceId: a.workspace.id } });
+  const collection = await prisma.collection.findFirst({
+    where: { id, workspaceId: a.workspace.id },
+  });
   if (!collection) return NextResponse.json({ error: "Not found" }, { status: 404 });
   ```
+
   Items are reached through their `collectionId`, so this single ownership check is sufficient — keep the existing item queries unchanged after it.
 
 - [ ] **Step 3: Runtime verify** — list collections (200, scoped), create one (editor), and confirm a collection id from another workspace returns 404. Logged out → 401.
@@ -676,6 +745,7 @@ For `[id]/route.ts`, `[id]/items/route.ts`, `[id]/items/[itemId]/route.ts`:
 ## Task 9: Scope + role-gate the Components routes
 
 **Files:**
+
 - Modify: `app/api/components/route.ts`
 - Modify: `app/api/components/[id]/route.ts`
 
@@ -697,6 +767,7 @@ For `[id]/route.ts`, `[id]/items/route.ts`, `[id]/items/[itemId]/route.ts`:
 ## Task 10: Per-workspace Site (API + public renderers)
 
 **Files:**
+
 - Modify: `app/api/site/route.ts`
 - Modify: `app/p/[slug]/page.tsx`
 - Modify: `app/c/[slug]/[item]/page.tsx`
@@ -781,6 +852,7 @@ The published page must use the Site, components, and collections of **its own**
 - Replace `const comps = await prisma.component.findMany();` with
   `const comps = await prisma.component.findMany({ where: { workspaceId: page.workspaceId } });`
 - Replace the `collectionRows` query with
+
   ```ts
   const collectionRows = await prisma.collection.findMany({
     where: { workspaceId: page.workspaceId },
@@ -801,6 +873,7 @@ Open that file. It renders a CMS detail page and similarly loads the singleton `
 ## Task 11: Scope + gate Assets, Upload, Submissions, AI
 
 **Files:**
+
 - Modify: `app/api/assets/route.ts`
 - Modify: `app/api/upload/route.ts`
 - Modify: `app/api/submissions/route.ts`
@@ -811,6 +884,7 @@ Open that file. It renders a CMS detail page and similarly loads the singleton `
 - [ ] **Step 2: `app/api/upload/route.ts`** — this writes an `Asset` after storing the file. Guard with `requireApiRole("EDITOR")` and add `workspaceId: a.workspace.id` to the `Asset` create `data`.
 
 - [ ] **Step 3: `app/api/submissions/route.ts`** — **POST stays public** (visitor form submissions — do not add a guard). For **GET** (the inbox), replace `requireApiUser()` with `requireApiWorkspace()` and ensure the requested `pageId` belongs to the active workspace before returning rows:
+
   ```ts
   const page = await prisma.page.findFirst({ where: { id: pageId, workspaceId: a.workspace.id } });
   if (!page) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -827,6 +901,7 @@ Open that file. It renders a CMS detail page and similarly loads the singleton `
 ## Task 12: Scope the dashboard query
 
 **Files:**
+
 - Modify: `app/page.tsx`
 
 - [ ] **Step 1: Use the active workspace for the page list**
@@ -874,6 +949,7 @@ export default async function Home() {
 ## Task 13: Workspaces API (list / create / switch / rename / delete)
 
 **Files:**
+
 - Create: `app/api/workspaces/route.ts`
 - Create: `app/api/workspaces/switch/route.ts`
 - Create: `app/api/workspaces/[id]/route.ts`
@@ -968,7 +1044,8 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   if (a.workspace.id !== id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   // refuse to delete the user's only workspace
   const count = await prisma.membership.count({ where: { userId: a.user.id } });
-  if (count <= 1) return NextResponse.json({ error: "Cannot delete your only workspace" }, { status: 400 });
+  if (count <= 1)
+    return NextResponse.json({ error: "Cannot delete your only workspace" }, { status: 400 });
   await prisma.workspace.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }
@@ -983,6 +1060,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 ## Task 14: Members API (list / change role / remove)
 
 **Files:**
+
 - Create: `app/api/workspaces/members/route.ts`
 
 - [ ] **Step 1: Write the route**
@@ -1004,7 +1082,13 @@ export async function GET() {
     orderBy: { createdAt: "asc" },
   });
   return NextResponse.json(
-    members.map((m) => ({ membershipId: m.id, userId: m.user.id, name: m.user.name, email: m.user.email, role: m.role })),
+    members.map((m) => ({
+      membershipId: m.id,
+      userId: m.user.id,
+      name: m.user.name,
+      email: m.user.email,
+      role: m.role,
+    })),
   );
 }
 
@@ -1017,12 +1101,17 @@ export async function PATCH(req: Request) {
   const body = await req.json().catch(() => ({}));
   const role = body.role as Role;
   if (!ROLES.includes(role)) return NextResponse.json({ error: "Bad role" }, { status: 400 });
-  const m = await prisma.membership.findFirst({ where: { id: String(body.membershipId), workspaceId: a.workspace.id } });
+  const m = await prisma.membership.findFirst({
+    where: { id: String(body.membershipId), workspaceId: a.workspace.id },
+  });
   if (!m) return NextResponse.json({ error: "Not found" }, { status: 404 });
   // never leave a workspace without an owner
   if (m.role === "OWNER" && role !== "OWNER") {
-    const owners = await prisma.membership.count({ where: { workspaceId: a.workspace.id, role: "OWNER" } });
-    if (owners <= 1) return NextResponse.json({ error: "Workspace needs an owner" }, { status: 400 });
+    const owners = await prisma.membership.count({
+      where: { workspaceId: a.workspace.id, role: "OWNER" },
+    });
+    if (owners <= 1)
+      return NextResponse.json({ error: "Workspace needs an owner" }, { status: 400 });
   }
   await prisma.membership.update({ where: { id: m.id }, data: { role } });
   return NextResponse.json({ ok: true });
@@ -1033,11 +1122,16 @@ export async function DELETE(req: Request) {
   const a = await requireApiRole("ADMIN");
   if ("response" in a) return a.response;
   const membershipId = new URL(req.url).searchParams.get("membershipId") || "";
-  const m = await prisma.membership.findFirst({ where: { id: membershipId, workspaceId: a.workspace.id } });
+  const m = await prisma.membership.findFirst({
+    where: { id: membershipId, workspaceId: a.workspace.id },
+  });
   if (!m) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (m.role === "OWNER") {
-    const owners = await prisma.membership.count({ where: { workspaceId: a.workspace.id, role: "OWNER" } });
-    if (owners <= 1) return NextResponse.json({ error: "Cannot remove the last owner" }, { status: 400 });
+    const owners = await prisma.membership.count({
+      where: { workspaceId: a.workspace.id, role: "OWNER" },
+    });
+    if (owners <= 1)
+      return NextResponse.json({ error: "Cannot remove the last owner" }, { status: 400 });
   }
   await prisma.membership.delete({ where: { id: m.id } });
   return NextResponse.json({ ok: true });
@@ -1053,6 +1147,7 @@ export async function DELETE(req: Request) {
 ## Task 15: Invites API + accept flow
 
 **Files:**
+
 - Create: `app/api/workspaces/invites/route.ts`
 - Create: `app/api/invites/[token]/route.ts`
 
@@ -1077,7 +1172,13 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(
-    invites.map((i) => ({ id: i.id, email: i.email, role: i.role, token: i.token, expiresAt: i.expiresAt.toISOString() })),
+    invites.map((i) => ({
+      id: i.id,
+      email: i.email,
+      role: i.role,
+      token: i.token,
+      expiresAt: i.expiresAt.toISOString(),
+    })),
   );
 }
 
@@ -1086,13 +1187,18 @@ export async function POST(req: Request) {
   const a = await requireApiRole("ADMIN");
   if ("response" in a) return a.response;
   const body = await req.json().catch(() => ({}));
-  const email = String(body.email || "").trim().toLowerCase();
+  const email = String(body.email || "")
+    .trim()
+    .toLowerCase();
   const role = (ROLES.includes(body.role) ? body.role : "EDITOR") as Role;
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return NextResponse.json({ error: "Valid email required" }, { status: 400 });
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
+    return NextResponse.json({ error: "Valid email required" }, { status: 400 });
 
   const token = newToken();
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
-  await prisma.invite.create({ data: { workspaceId: a.workspace.id, email, role, token, invitedById: a.user.id, expiresAt } });
+  await prisma.invite.create({
+    data: { workspaceId: a.workspace.id, email, role, token, invitedById: a.user.id, expiresAt },
+  });
   await logActivity(a.workspace.id, a.user.id, "invite.sent", undefined, { email, role });
 
   const origin = new URL(req.url).origin;
@@ -1126,7 +1232,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
   const invite = await prisma.invite.findUnique({ where: { token }, include: { workspace: true } });
   if (!invite) return NextResponse.json({ error: "Invalid invite" }, { status: 404 });
   const valid = !invite.acceptedAt && invite.expiresAt > new Date();
-  return NextResponse.json({ valid, email: invite.email, role: invite.role, workspaceName: invite.workspace.name });
+  return NextResponse.json({
+    valid,
+    email: invite.email,
+    role: invite.role,
+    workspaceName: invite.workspace.name,
+  });
 }
 
 // POST /api/invites/[token] — accept (must be signed in)
@@ -1163,6 +1274,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ token:
 ## Task 16: Account API (profile + password)
 
 **Files:**
+
 - Create: `app/api/account/route.ts`
 - Create: `app/api/account/password/route.ts`
 
@@ -1203,13 +1315,17 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const current = String(body.current || "");
   const next = String(body.next || "");
-  if (next.length < 8) return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
+  if (next.length < 8)
+    return NextResponse.json({ error: "Password must be at least 8 characters" }, { status: 400 });
 
   const row = await prisma.user.findUnique({ where: { id: u.user.id } });
   if (!row || !(await verifyPassword(current, row.passwordHash))) {
     return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 });
   }
-  await prisma.user.update({ where: { id: u.user.id }, data: { passwordHash: await hashPassword(next) } });
+  await prisma.user.update({
+    where: { id: u.user.id },
+    data: { passwordHash: await hashPassword(next) },
+  });
   // invalidate other sessions for safety
   return NextResponse.json({ ok: true });
 }
@@ -1245,7 +1361,7 @@ Expected: all tests pass (the pre-existing 63 + the new `tests/workspace.test.ts
 ## Self-review (author check against the spec)
 
 - **Spec §4 data model** → Tasks 1 (models + scope columns).
-- **Spec §5 tenancy plumbing** (`getActiveWorkspace`, `requireWorkspace`, `requireApiWorkspace`, `requireWorkspaceRole`, `setActiveWorkspace`) → Tasks 2–3. *Note: the spec named the gate `requireWorkspaceRole`; this plan implements it as `requireApiRole(min)` (route-handler form) plus `hasRole` for server pages — same capability, clearer split.*
+- **Spec §5 tenancy plumbing** (`getActiveWorkspace`, `requireWorkspace`, `requireApiWorkspace`, `requireWorkspaceRole`, `setActiveWorkspace`) → Tasks 2–3. _Note: the spec named the gate `requireWorkspaceRole`; this plan implements it as `requireApiRole(min)` (route-handler form) plus `hasRole` for server pages — same capability, clearer split._
 - **Spec §6 migration** → Task 4 (+ Task 5 for new-user starter workspace, an implied requirement once tenancy is real).
 - **Spec §8 per-workspace content + public renderers** → Tasks 7–12 (Site made per-workspace; `/p` and `/c` scoped).
 - **Spec §9 roles/members/invites + account** (data + API only; UI is Plan 1B) → Tasks 13–16, with the role matrix enforced via `requireApiRole` (VIEWER read, EDITOR content, ADMIN members, OWNER destroy).

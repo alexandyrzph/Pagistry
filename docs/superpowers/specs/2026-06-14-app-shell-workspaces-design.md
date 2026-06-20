@@ -20,7 +20,7 @@ Two limitations break the "real product" feel:
 
 1. **Navigation** is a top navbar with a hardcoded "Acme Inc · Workspace" chip. The product
    already has more primary destinations than a navbar comfortably holds, and more are coming.
-2. **Tenancy** is a single *shared* workspace — every signed-in user sees the same pages.
+2. **Tenancy** is a single _shared_ workspace — every signed-in user sees the same pages.
    This is the one thing that quietly breaks the SaaS illusion and blocks collaboration,
    profiles, and team monetization.
 
@@ -35,7 +35,7 @@ a launchable product, and a tool worth using.
 
 ### Research that shaped this spec
 
-- **Positioning:** the open white space is *"AI builds it, you own it"* (AI-first generation +
+- **Positioning:** the open white space is _"AI builds it, you own it"_ (AI-first generation +
   clean, exportable, version-controlled code). Realtime collaboration is the other uncontested
   angle — no AI-first builder has Figma-grade multiplayer. Both are deferred workstreams; this
   spec lays their foundation.
@@ -69,7 +69,7 @@ a launchable product, and a tool worth using.
 - **Realtime collaboration** — separate workstream; this spec only makes its preconditions true.
 - **Rename + final palette** — branding workstream.
 - **Deep anti-empty work** (seeded demo content, template gallery) — branding/UX workstream.
-  This spec ships *contextual empty states* on every new surface, not seeding.
+  This spec ships _contextual empty states_ on every new surface, not seeding.
 - **SMTP email** — invites and resets surface an on-screen link (existing pattern).
 
 ---
@@ -117,8 +117,7 @@ One-time, idempotent script run after `prisma db push`:
    the default workspace.
 4. Backfill nothing for `ActivityEvent` (starts empty).
 
-Constraints: touches **only this app's** database — the nested `` (separate
-Spring/Vite project with its own `.git`) is never read or modified. Restart `next dev` after
+Constraints: touches **only this app's** database. Restart `next dev` after
 the schema change (cached-client gotcha).
 
 ---
@@ -165,16 +164,16 @@ navigation.
 
 ## 8. Manager pages
 
-| Route | Purpose | Notes |
-|---|---|---|
-| `/` | **Pages** | Existing dashboard grid, header removed, workspace-scoped. |
-| `/components` | **Components** list | Links into existing `/component/[id]` editor. |
-| `/cms` | **CMS / Collections** list | Links into existing `/collection/[id]`. |
-| `/assets` | **Assets** browser | Reuses the AssetPicker grid as a full page. |
-| `/design` | **Design system** manager | Promotes the editor's design panel to a page; writes workspace tokens. |
-| `/site` | **Site** (header/footer) landing | Links to the `/site/[region]` editors. |
-| `/forms` | **Forms / submissions** | Today's modal generalized to a page, across all pages. |
-| `/activity` | **Activity** feed | Reverse-chron `ActivityEvent` timeline with actor avatars. |
+| Route         | Purpose                          | Notes                                                                  |
+| ------------- | -------------------------------- | ---------------------------------------------------------------------- |
+| `/`           | **Pages**                        | Existing dashboard grid, header removed, workspace-scoped.             |
+| `/components` | **Components** list              | Links into existing `/component/[id]` editor.                          |
+| `/cms`        | **CMS / Collections** list       | Links into existing `/collection/[id]`.                                |
+| `/assets`     | **Assets** browser               | Reuses the AssetPicker grid as a full page.                            |
+| `/design`     | **Design system** manager        | Promotes the editor's design panel to a page; writes workspace tokens. |
+| `/site`       | **Site** (header/footer) landing | Links to the `/site/[region]` editors.                                 |
+| `/forms`      | **Forms / submissions**          | Today's modal generalized to a page, across all pages.                 |
+| `/activity`   | **Activity** feed                | Reverse-chron `ActivityEvent` timeline with actor avatars.             |
 
 Every page renders a **contextual empty state** (what appears here, why it matters, one CTA) —
 never "No data yet."
@@ -188,14 +187,14 @@ created, member joined, invite sent. Logging is best-effort and never blocks the
 
 ### Role matrix
 
-| Capability | Viewer | Editor | Admin | Owner |
-|---|:---:|:---:|:---:|:---:|
-| View pages / CMS / assets | ✅ | ✅ | ✅ | ✅ |
-| Create / edit / publish content | — | ✅ | ✅ | ✅ |
-| Manage design system & site | — | ✅ | ✅ | ✅ |
-| Manage members & invites | — | — | ✅ | ✅ |
-| Workspace settings (name/slug/logo) | — | — | ✅ | ✅ |
-| Delete / transfer workspace, billing | — | — | — | ✅ |
+| Capability                           | Viewer | Editor | Admin | Owner |
+| ------------------------------------ | :----: | :----: | :---: | :---: |
+| View pages / CMS / assets            |   ✅   |   ✅   |  ✅   |  ✅   |
+| Create / edit / publish content      |   —    |   ✅   |  ✅   |  ✅   |
+| Manage design system & site          |   —    |   ✅   |  ✅   |  ✅   |
+| Manage members & invites             |   —    |   —    |  ✅   |  ✅   |
+| Workspace settings (name/slug/logo)  |   —    |   —    |  ✅   |  ✅   |
+| Delete / transfer workspace, billing |   —    |   —    |   —   |  ✅   |
 
 Enforced server-side in every mutating route via `requireWorkspaceRole(...)`. The UI also hides
 or disables controls a role can't use (defense in depth, but the server is the gate).
@@ -222,7 +221,7 @@ or disables controls a role can't use (defense in depth, but the server is the g
 
 Sidebar and shell chrome are driven by CSS custom properties (a small token set:
 rail bg, rail fg, rail muted, accent, active bg). Default values give the dark-rail look; the
-branding workstream changes them in one place. No light/dark *toggle* obligation in this spec
+branding workstream changes them in one place. No light/dark _toggle_ obligation in this spec
 beyond the profile-menu theme switch wiring (can be a no-op placeholder if the token system
 isn't dual-mode yet — to be confirmed during planning).
 
@@ -246,7 +245,7 @@ isn't dual-mode yet — to be confirmed during planning).
 
 ## 12. Roadmap context (the five workstreams)
 
-1. **App Shell + Workspaces** — *this spec.*
+1. **App Shell + Workspaces** — _this spec._
 2. **Workspace depth** — billing/AI credits, deeper member management (covered partly here).
 3. **Branding + "don't feel empty"** — rename, palette lock, seeded demo workspace, template
    gallery, richer dashboard, marketing landing page.
