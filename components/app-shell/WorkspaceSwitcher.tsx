@@ -35,7 +35,7 @@ export function WorkspaceSwitcher({
   async function switchTo(id: string) {
     if (id === active?.id) return setOpen(false);
     setBusy(true);
-    await api.post(endpoints.workspaces.switch, { id });
+    await api.post(endpoints.workspaces.switch, { id }).catch(() => {});
     router.refresh();
     setBusy(false);
     setOpen(false);

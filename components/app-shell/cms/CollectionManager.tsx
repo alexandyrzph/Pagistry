@@ -90,7 +90,9 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
   async function addItem() {
     setBusy(true);
     try {
-      await api.post(endpoints.collections.items(col.id), { data: blankItemData(col.fields) });
+      await api
+        .post(endpoints.collections.items(col.id), { data: blankItemData(col.fields) })
+        .catch(() => {});
       await reloadItems();
     } finally {
       setBusy(false);
@@ -98,7 +100,7 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
   }
 
   async function saveItem(item: CollectionItem) {
-    await api.put(endpoints.collections.item(col.id, item.id), { data: item.data });
+    await api.put(endpoints.collections.item(col.id, item.id), { data: item.data }).catch(() => {});
     await reloadItems();
     setEditing(null);
   }
@@ -111,7 +113,7 @@ export function CollectionManager({ initial }: { initial: CollectionData }) {
       destructive: true,
     });
     if (!ok) return;
-    await api.delete(endpoints.collections.item(col.id, id));
+    await api.delete(endpoints.collections.item(col.id, id)).catch(() => {});
     await reloadItems();
   }
 
