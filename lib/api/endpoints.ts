@@ -48,6 +48,12 @@ export const endpoints = {
     switch: "/api/sites/switch",
     home: (id: string) => `/api/sites/${id}/home`,
   },
+  domains: {
+    list: "/api/domains",
+    byId: (id: string) => `/api/domains/${id}`,
+    verify: (id: string) => `/api/domains/${id}/verify`,
+    check: (host: string) => `/api/domains/check?domain=${encodeURIComponent(host)}`,
+  },
   workspaces: {
     list: "/api/workspaces",
     switch: "/api/workspaces/switch",
