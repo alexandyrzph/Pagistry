@@ -27,13 +27,14 @@ export function Canvas() {
   const components = useComponents();
   const collections = useCollections();
   const site = useSite();
-  const { active, setDragWidth } = useBreakpoints();
+  const { active, setDragWidth, dragWidth } = useBreakpoints();
   const zoom = useCanvasZoom((s) => s.zoom);
   const setZoom = useCanvasZoom((s) => s.setZoom);
   const setViewportWidth = useCanvasZoom((s) => s.setViewportWidth);
   const { frame } = useIframe();
   const [resizeSide, setResizeSide] = useState<"left" | "right" | null>(null);
   const resizing = resizeSide !== null;
+  const desktopFill = active.id === "desktop" && dragWidth == null;
 
   // Drag-to-resize the preview width via the side "pipes". Centered device, so a
   // drag of dx on one side changes the width by 2·dx (divided by zoom, since the
@@ -105,18 +106,24 @@ export function Canvas() {
   const lastFitKey = useRef("");
   useEffect(() => {
     if (!avail.w) return;
+    if (desktopFill) {
+      lastFitKey.current = "";
+      setZoom(1);
+      return;
+    }
     if (lastFitKey.current === active.id) return; // already fit this breakpoint
     lastFitKey.current = active.id;
     const fit = avail.w / active.width;
     setZoom(fit < 0.999 ? fit : 1);
-  }, [active.id, active.width, avail.w, setZoom]);
+  }, [desktopFill, active.id, active.width, avail.w, setZoom]);
 
   // Authoring viewport follows the active breakpoint's base bucket.
   useEffect(() => {
     setViewport(active.base);
   }, [active.id, active.base, setViewport]);
 
-  const width = active.width;
+  const renderWidth = desktopFill && avail.w ? Math.round(avail.w) : active.width;
+  const renderZoom = desktopFill ? 1 : zoom;
 
   // Stable reference so CanvasFrame's CSS effect doesn't loop.
   const cssExtra = useMemo(
@@ -177,7 +184,10 @@ export function Canvas() {
   return (
     <div
       ref={scrollRef}
-      className="relative flex flex-1 overflow-auto overscroll-none bg-zinc-100 p-6 lg:p-10"
+      className={cn(
+        "relative flex flex-1 overflow-auto overscroll-none bg-zinc-100",
+        desktopFill ? "p-0" : "p-6 lg:p-10",
+      )}
       onClick={() => select(null)}
     >
       {/* Scroll footprint: takes the device's *scaled* size so overflow-auto can
@@ -189,7 +199,10 @@ export function Canvas() {
           "relative mx-auto h-full shrink-0",
           !resizing && "transition-[width] duration-300 ease-out",
         )}
-        style={{ width: width * zoom, height: avail.h ? avail.h * zoom : undefined }}
+        style={{
+          width: renderWidth * renderZoom,
+          height: avail.h ? avail.h * renderZoom : undefined,
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         <div
@@ -198,12 +211,12 @@ export function Canvas() {
             !resizing && "transition-[width,transform] duration-300 ease-out",
           )}
           style={{
-            width,
+            width: renderWidth,
             height: avail.h || undefined,
-            transform: `scale(${zoom})`,
+            transform: `scale(${renderZoom})`,
           }}
         >
-          <DeviceFrame viewport={active.base} slug={slug}>
+          <DeviceFrame viewport={active.base} slug={slug} fullBleed={desktopFill}>
             <CanvasFrame tree={tree} theme={theme} editable={!previewMode} cssExtra={cssExtra}>
               <motion.div
                 key={(pageId ?? "page") + (previewMode ? ":preview" : ":edit")}
@@ -219,7 +232,7 @@ export function Canvas() {
         </div>
 
         {/* drag-to-resize "pipes" on each side of the device (edit mode only) */}
-        {!previewMode && (
+        {!previewMode && !desktopFill && (
           <>
             <DeviceResizer
               side="left"

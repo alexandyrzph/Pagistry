@@ -14,13 +14,18 @@ export function DeviceFrame({
   viewport,
   slug,
   children,
+  fullBleed,
 }: {
   viewport: Viewport;
   slug: string;
   children: React.ReactNode;
+  fullBleed?: boolean;
   onContentClick?: () => void;
 }) {
   if (viewport === "desktop") {
+    if (fullBleed) {
+      return <div className="h-full w-full overflow-y-auto bg-white">{children}</div>;
+    }
     return (
       <div className="flex h-full w-full flex-col overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-zinc-200">
         <div className="flex h-9 shrink-0 items-center gap-2 border-b border-zinc-200 bg-zinc-50 px-3.5">
