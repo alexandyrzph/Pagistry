@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-21
 **Status:** Draft (design) — pending implementation plans (this spec spawns several)
-**Scope:** A full commerce capability layered onto the existing multi-workspace page builder: products, variants, inventory, cart, checkout, payments, orders, shipping, tax, discounts, and multi-currency. Each workspace runs its own store against its own connected Stripe account.
+**Scope:** A full commerce capability layered onto the existing multi-site page builder: products, variants, inventory, cart, checkout, payments, orders, shipping, tax, discounts, and multi-currency. Commerce is enabled per **Site** — a `Site` becomes a store when commerce is turned on — and each store-site runs against its own connected Stripe account. A workspace can therefore own several sites, only some of which are stores.
 
 This is a LARGE feature. The spec defines the target architecture and data model once, then phases the build (P1–P5). Each phase becomes its own implementation plan; do not try to land it all at once.
 
@@ -12,11 +12,11 @@ This is a LARGE feature. The spec defines the target architecture and data model
 
 ### Goal
 
-Let a workspace turn its Pagecraft site into a real storefront: define a product catalog (with variants, images, inventory), drop product/grid/cart/checkout blocks onto pages the same way the `collection` block works today, and take real payments through Stripe — with tax, shipping, discounts, and multi-currency handled correctly. Orders, inventory, and catalog are mirrored locally; Stripe owns money and tax.
+Let a workspace turn one of its Pagecraft **sites** into a real storefront: enable commerce on a `Site`, define a product catalog (with variants, images, inventory), drop product/grid/cart/checkout blocks onto that site's pages the same way the `collection` block works today, and take real payments through Stripe — with tax, shipping, discounts, and multi-currency handled correctly. Orders, inventory, and catalog are mirrored locally and scoped to the store-site; Stripe owns money and tax.
 
 ### What each phase includes (summary; full detail in §9)
 
-- **P1 — Catalog & product pages.** `Product`/`ProductVariant`/`ProductImage` models, admin catalog UI, Stripe Connect onboarding per workspace, product → Stripe Product/Price sync, `Product`/`ProductGrid` storefront blocks, product detail pages reusing the `app/c/[slug]/[item]` pattern.
+- **P1 — Catalog & product pages.** `Store` (1:1 satellite of a `Site`), `Product`/`ProductVariant`/`ProductImage` models, admin catalog UI, Stripe Connect onboarding per store-site, product → Stripe Product/Price sync, `Product`/`ProductGrid` storefront blocks, product detail pages reusing the `app/c/[slug]/[item]` pattern.
 - **P2 — Cart & checkout.** `Cart`/`CartItem`, Add-to-Cart + Cart + Checkout blocks, server cart endpoints, Stripe Checkout Session creation, `POST /api/webhooks/stripe` settling `Order`/`OrderItem`.
 - **P3 — Inventory, shipping, tax, discounts.** Inventory decrement on order settlement, Stripe Tax, Checkout `shipping_options` (or local `ShippingRate`/zone), Stripe promotion codes.
 - **P4 — Order management & customer accounts.** Orders dashboard, refunds, fulfillment status, Stripe customer portal / order history.
@@ -24,11 +24,11 @@ Let a workspace turn its Pagecraft site into a real storefront: define a product
 
 ### Non-goals (for this spec)
 
-- **Marketplace / multi-vendor per store.** One store == one workspace == one connected Stripe account. (Connect itself is multi-tenant across workspaces, but a single storefront is not a marketplace of independent sellers.)
+- **Marketplace / multi-vendor per store.** One store == one store-`Site` == one connected Stripe account. (Connect itself is multi-tenant across sites/workspaces, but a single storefront is not a marketplace of independent sellers.)
 - **Self-hosted payment processing / PCI scope.** We never touch raw card data; Stripe-hosted Checkout and the customer portal keep us out of PCI-DSS SAQ-A+ territory.
 - **POS / in-person, warehouses / multi-location inventory, B2B price lists, RFQ.** These are the reasons to switch to Medusa later (§2); not built here.
 - **Subscriptions / usage billing** beyond a P5 stub. The catalog model is one-time-purchase first.
-- **Custom domains / localization** — owned by sibling specs (see §11). Storefront pages serve under whatever domain the custom-domains spec provides; product content localizes per the localization spec in a later phase.
+- **Custom domains / localization** — owned by sibling specs (see §11). Storefront pages serve under whatever domain the custom-domains spec maps to the store-`Site` (host → `Domain` → `Site`); product content localizes per the localization spec in a later phase.
 
 ---
 
@@ -48,15 +48,15 @@ Build commerce directly on Prisma + SQLite, using Stripe as the source of truth 
 
 We mirror just enough catalog (`Product`/`ProductVariant`) into Stripe (`Product`/`Price`) so Checkout can reference real line items, and we mirror Stripe outcomes back into local `Order`/`OrderItem` via webhooks.
 
-**Why:** It reuses everything we already have — `workspaceId` tenancy, role guards (`lib/auth/workspace.ts`), the block registry, the `collection` binding pattern, the CMS detail-page mechanism, Asset uploads, and `/api/ai`. It adds one external dependency (the `stripe` SDK) and one webhook route, not a second backend. Compliance, fraud, SCA, and tax math — the parts that are genuinely hard and risky to own — stay with Stripe.
+**Why:** It reuses everything we already have — the foundation's `siteId` content scoping and `Site`-resolved tenancy, role guards (`lib/auth/workspace.ts`, including the foundation's `requireApiSite`), the block registry, the `collection` binding pattern, the CMS detail-page mechanism, Asset uploads, and `/api/ai`. It adds one external dependency (the `stripe` SDK) and one webhook route, not a second backend. Compliance, fraud, SCA, and tax math — the parts that are genuinely hard and risky to own — stay with Stripe.
 
 **Cost of the decision:** Stripe is now a hard runtime dependency for any store; the local DB and Stripe can drift (mitigated by treating webhooks as the reconciliation channel and storing Stripe ids on every mirrored row); and some commerce primitives we'd otherwise model (tax rules, presentment currency math) live in Stripe and are only reflected locally, not authored locally.
 
-### Per-workspace Stripe Connect (LOCKED)
+### Per-store-site Stripe Connect (LOCKED)
 
-Each workspace connects **its own** Stripe account via **Stripe Connect (Standard or Express)**. Funds settle to the merchant's account; the platform (Pagecraft) is the application. Concretely:
+Each store-`Site` connects **its own** Stripe account via **Stripe Connect (Standard or Express)**. Funds settle to the merchant's account; the platform (Pagecraft) is the application. Because commerce is per-site, a workspace with two store-sites has two connected accounts — one per `Store`. Concretely:
 
-- Store a `stripeAccountId` (the connected account, `acct_…`) per workspace.
+- Store a `stripeAccountId` (the connected account, `acct_…`) on the store-site's `Store` row (`Store.siteId @unique`).
 - All Stripe API calls for that store run **on behalf of the connected account** — via the `Stripe-Account` header (`stripeAccount` request option) for Standard, so products, prices, checkout sessions, and webhooks all belong to the merchant.
 - Use **direct charges** on the connected account (simplest for Standard; the merchant is the merchant of record). An `application_fee_percent`/`application_fee_amount` can be attached if Pagecraft ever monetizes transactions; default 0 for P1–P4.
 - Onboarding uses **Account Links** (hosted onboarding) to collect KYC; we never see banking details.
@@ -67,7 +67,7 @@ Each workspace connects **its own** Stripe account via **Stripe Connect (Standar
 
 [Medusa v2](https://medusajs.com) is an open-source headless commerce engine (Node service + Postgres) that ships warehouses/stock locations, multi-region pricing, B2B price lists, multi-channel/POS, fulfillment providers, and a full admin out of the box. It's the "right" answer if commerce becomes the product rather than a feature of the builder.
 
-**Why deferred:** it's a *second backend* — a separate Node service, a Postgres database (we're on SQLite), and a sync layer between Medusa's catalog/orders and our page/CMS/tenancy models. That's a large infra and operational step for a feature most workspaces will use in a basic single-region, single-warehouse way. Stripe-native covers that 90% with one SDK.
+**Why deferred:** it's a *second backend* — a separate Node service, a Postgres database (we're on SQLite), and a sync layer between Medusa's catalog/orders and our page/CMS/site models. That's a large infra and operational step for a feature most workspaces will use in a basic single-region, single-warehouse way. Stripe-native covers that 90% with one SDK.
 
 **When to switch to Medusa:** when we need any of — real multi-location/warehouse inventory, B2B customer-specific price lists, multi-channel/POS sharing one catalog, complex tax/fulfillment provider routing, or our own checkout UI with deep cart logic (bundles, gift cards, store credit). At that point Stripe becomes Medusa's payment provider and our blocks bind to Medusa's catalog instead of local Prisma models. The block/binding layer and admin UI designed here are the parts we'd keep; the data model would move behind Medusa.
 
@@ -75,18 +75,18 @@ Each workspace connects **its own** Stripe account via **Stripe Connect (Standar
 
 ## 3. Data model (new Prisma models)
 
-All new models follow the existing schema conventions in `prisma/schema.prisma`: `cuid()` ids, JSON-as-`String` columns for flexible blobs (as `Page.content`, `Collection.fields`, `CollectionItem.data` already do), `DateTime` `createdAt`/`updatedAt`, nullable `workspaceId String?` with `@@index([workspaceId])` for tenancy scoping, and `onDelete: Cascade` on owned relations.
+All new models follow the existing schema conventions in `prisma/schema.prisma`: `cuid()` ids, JSON-as-`String` columns for flexible blobs (as `Page.content`, `Collection.fields`, `CollectionItem.data` already do), `DateTime` `createdAt`/`updatedAt`, and `onDelete: Cascade` on owned relations. Per the foundation model, commerce content scopes to a **`Site`** (or, equivalently, to its `Store`), not to a workspace: catalog/cart/order rows carry `siteId` (with `@@index([siteId])`) — or `storeId`, since `Store` is 1:1 with `Site` — and resolve their owning workspace through the `Site` row. The model bodies below use `siteId` as the scoping column; `storeId` is interchangeable wherever a row already joins to `Store`.
 
 **Mirrored vs Stripe-owned** is called out per model. Rule of thumb: catalog and order *records* are ours; the `stripe*Id` columns are foreign keys into Stripe; money/tax *math* is Stripe's and only reflected here.
 
-### Store settings (per workspace)
+### Store settings (1:1 satellite of a Site)
 
-Rather than overload `Workspace`, add a 1:1 `Store` row keyed by `workspaceId` (mirrors how `Site` is one-per-workspace):
+Commerce is enabled on a `Site` by giving it a `Store` row. Rather than push commerce columns onto every `Site` (most sites aren't stores), add a 1:1 `Store` satellite keyed by `siteId @unique` — present only for sites that sell, so non-store sites carry no commerce columns. A `Site` *is* a store exactly when a `Store` row exists for it; that row holds the store settings and the connected `stripeAccountId`:
 
 ```
 model Store {
   id                String   @id @default(cuid())
-  workspaceId       String   @unique
+  siteId            String   @unique            // the Site this store is enabled on
   stripeAccountId   String?              // acct_… connected account (Connect)
   chargesEnabled    Boolean  @default(false)  // mirrored from account.charges_enabled
   payoutsEnabled    Boolean  @default(false)
@@ -99,15 +99,15 @@ model Store {
 }
 ```
 
-`stripeAccountId`, `chargesEnabled`, `payoutsEnabled` are **mirrored from Stripe** (set during Connect onboarding and on `account.updated` webhooks). Everything else is local config.
+`stripeAccountId`, `chargesEnabled`, `payoutsEnabled` are **mirrored from Stripe** (set during Connect onboarding and on `account.updated` webhooks). Everything else is local config. The owning workspace (for role checks) is reached via `Store.siteId → Site.workspaceId`, exactly as the foundation's `requireApiSite` resolves it.
 
 ### Product
 
 ```
 model Product {
   id              String   @id @default(cuid())
-  workspaceId     String
-  handle          String                       // URL slug, unique per workspace
+  siteId          String                       // the store-Site this product belongs to
+  handle          String                       // URL slug, unique per site
   title           String   @default("Untitled product")
   description     String   @default("")        // rich text / markdown
   status          String   @default("draft")   // "draft" | "active" | "archived"
@@ -120,12 +120,12 @@ model Product {
   variants ProductVariant[]
   images   ProductImage[]
 
-  @@unique([workspaceId, handle])
-  @@index([workspaceId])
+  @@unique([siteId, handle])
+  @@index([siteId])
 }
 ```
 
-Local-owned. `stripeProductId` is the only Stripe-owned column. `handle` is the storefront URL key (see §4 product detail route). `data` lets us bind arbitrary attributes onto storefront cards the same way `CollectionItem.data` does today.
+Local-owned. `stripeProductId` is the only Stripe-owned column. `handle` is the storefront URL key (see §4 product detail route) and is unique within the store-site. `data` lets us bind arbitrary attributes onto storefront cards the same way `CollectionItem.data` does today.
 
 ### ProductVariant
 
@@ -134,7 +134,7 @@ model ProductVariant {
   id             String   @id @default(cuid())
   productId      String
   product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  workspaceId    String                          // denormalized for direct scoping
+  siteId         String                          // denormalized for direct scoping
   title          String   @default("Default")    // "Small / Black"
   options        String   @default("{}")          // JSON: { Size: "S", Color: "Black" }
   sku            String?
@@ -148,7 +148,7 @@ model ProductVariant {
   updatedAt      DateTime @updatedAt
 
   @@index([productId])
-  @@index([workspaceId])
+  @@index([siteId])
 }
 ```
 
@@ -178,7 +178,7 @@ Reuses the existing `Asset` model + `/api/upload` + `AssetPicker`. `url` is deno
 ```
 model Cart {
   id           String   @id @default(cuid())
-  workspaceId  String
+  siteId       String                          // the store-Site this cart belongs to
   token        String   @unique               // anonymous cart id, stored in a cookie
   email        String?
   currency     String   @default("usd")
@@ -189,7 +189,7 @@ model Cart {
 
   items CartItem[]
 
-  @@index([workspaceId])
+  @@index([siteId])
 }
 
 model CartItem {
@@ -214,8 +214,8 @@ Local-owned. The cart is a server record keyed by an anonymous `token` cookie (a
 ```
 model Order {
   id                 String   @id @default(cuid())
-  workspaceId        String
-  number             Int                          // human order number, per-workspace sequence
+  siteId             String                       // the store-Site this order belongs to
+  number             Int                          // human order number, per-store-site sequence
   email              String
   status             String   @default("pending") // "pending" | "paid" | "fulfilled" | "cancelled" | "refunded"
   currency           String   @default("usd")
@@ -234,8 +234,8 @@ model Order {
 
   items OrderItem[]
 
-  @@unique([workspaceId, number])
-  @@index([workspaceId])
+  @@unique([siteId, number])
+  @@index([siteId])
   @@index([stripePaymentIntentId])
 }
 
@@ -255,7 +255,7 @@ model OrderItem {
 }
 ```
 
-`Order` is a **mirror of a settled Stripe Checkout Session / PaymentIntent**, created by the webhook handler — but it's also the canonical local record for the merchant's order history and inventory. The money fields are copied from Stripe's computed amounts (we don't recompute tax/shipping locally). `OrderItem` snapshots title/price so historical orders stay accurate when the catalog later changes. `@@unique([workspaceId, number])` plus `stripeCheckoutSessionId @unique` give us idempotency anchors (§8).
+`Order` is a **mirror of a settled Stripe Checkout Session / PaymentIntent**, created by the webhook handler — but it's also the canonical local record for the merchant's order history and inventory. The money fields are copied from Stripe's computed amounts (we don't recompute tax/shipping locally). `OrderItem` snapshots title/price so historical orders stay accurate when the catalog later changes. `@@unique([siteId, number])` plus `stripeCheckoutSessionId @unique` give us idempotency anchors (§8).
 
 ### Discounts / promotions — delegate to Stripe (thin local mirror)
 
@@ -264,15 +264,15 @@ Default: **don't model discount logic locally.** Create Stripe **Coupons + Promo
 ```
 model DiscountCode {
   id                 String   @id @default(cuid())
-  workspaceId        String
+  siteId             String                       // the store-Site this code belongs to
   code               String                       // human code shown to buyers
   stripePromotionCodeId String?                   // promo_… (Stripe-owned)
   stripeCouponId        String?                   // coupon math lives in Stripe
   active             Boolean  @default(true)
   createdAt          DateTime @default(now())
 
-  @@unique([workspaceId, code])
-  @@index([workspaceId])
+  @@unique([siteId, code])
+  @@index([siteId])
 }
 ```
 
@@ -285,7 +285,7 @@ If `Store.shippingMode == "stripe"`: create Stripe **Shipping Rates** and refere
 ```
 model ShippingRate {
   id              String   @id @default(cuid())
-  workspaceId     String
+  siteId          String                         // the store-Site this rate belongs to
   name            String                         // "Standard", "Express"
   amount          Int      @default(0)           // minor units
   currency        String   @default("usd")
@@ -296,7 +296,7 @@ model ShippingRate {
   active          Boolean  @default(true)
   createdAt       DateTime @default(now())
 
-  @@index([workspaceId])
+  @@index([siteId])
 }
 ```
 
@@ -312,7 +312,7 @@ New blocks register exactly like the existing ones: a `*.defs.ts` exporting `Blo
 
 ### Data context (mirror the `collection` pattern)
 
-The `collection` block reads its data from a React context (`useCollections()` / `CollectionsProvider`) that the editor and `BlockRenderer` populate, rather than fetching. We add a parallel **`ProductsProvider` / `useProducts()`** context carrying a `workspaceId`-scoped product map (id → product + variants + images), built server-side the same way `buildCollectionMap` builds the collection map in `lib/cms/collection-service.ts`. Storefront pages and the editor preview pass it into `BlockRenderer` alongside `components`/`collections`.
+The `collection` block reads its data from a React context (`useCollections()` / `CollectionsProvider`) that the editor and `BlockRenderer` populate, rather than fetching. We add a parallel **`ProductsProvider` / `useProducts()`** context carrying a `siteId`-scoped product map (id → product + variants + images), built server-side the same way `buildCollectionMap` builds the collection map in `lib/cms/collection-service.ts`. Storefront pages and the editor preview pass it into `BlockRenderer` alongside `components`/`collections`.
 
 ### New blocks
 
@@ -334,16 +334,16 @@ The CMS detail mechanism is the exact pattern to reuse. Today `app/c/[slug]/[ite
 2. loads the `CollectionItem` by id,
 3. parses the per-collection `detailTemplate` block tree,
 4. runs `applyTokens(template, data)` (`lib/cms/cms-tokens.ts`) to fill `{{field}}` placeholders,
-5. renders header + filled tree + footer via `BlockRenderer`, scoped to the collection's `workspaceId`.
+5. renders header + filled tree + footer via `BlockRenderer`, scoped to the collection's `siteId`.
 
-**Proposed product route: `app/store/[handle]/page.tsx`.** It mirrors that file almost line-for-line:
+**Proposed product route: `app/store/[handle]/page.tsx`.** It mirrors that file almost line-for-line, but the store-`Site` comes from the request host (custom-domains spec: host → `Domain` → `Site`), so the lookups are scoped to that site:
 
-1. load `Product` by `(workspaceId, handle)` where `status == "active"`,
+1. resolve the store-`Site` from the host, then load `Product` by `(siteId, handle)` where `status == "active"`,
 2. build a token data object from the product (title, description, price, image, plus `data` attributes and a serialized variant list),
 3. render a **per-store product detail template** — a block tree authored in the admin (a `Store.productTemplate` JSON column, the direct analog of `Collection.detailTemplate`) — with `applyTokens` filling `{{title}}`, `{{price}}`, etc., and a **Product block** inside it providing the interactive variant selector + Add-to-Cart (the interactive bits the token system can't express are real blocks, not tokens),
-4. wrap with the workspace header/footer and design-system CSS exactly as the CMS detail page does (`designSystemCss` + `responsiveCss`, `parseDesignSystem(site)`).
+4. wrap with the site's header/footer and design-system CSS exactly as the CMS detail page does (`designSystemCss` + `responsiveCss`, `parseDesignSystem(site)`), using the store-`Site`'s own tokens.
 
-A **storefront index** at `app/store/page.tsx` (or any normal page hosting a `ProductGrid` block) lists products. Both `/store` routes must be added to the **public allowlist in `proxy.ts`** next to `/p/` and `/c/` (they're buyer-facing, not builder pages). Like the existing public pages, they're `export const dynamic = "force-dynamic"`.
+A **storefront index** at `app/store/page.tsx` (or any normal page on the store-site hosting a `ProductGrid` block) lists that site's products. Both `/store` routes must be added to the **public allowlist in `proxy.ts`** next to `/p/` and `/c/` (they're buyer-facing, not builder pages). Like the existing public pages, they're `export const dynamic = "force-dynamic"`.
 
 > Alternative considered: extend the CMS detail mechanism itself (treat products as a special Collection). Rejected — products need typed price/inventory/variant structure and Stripe sync that the generic `CollectionItem.data` blob doesn't model well. A dedicated route + models is cleaner, while still *reusing the rendering pattern*.
 
@@ -354,13 +354,13 @@ A **storefront index** at `app/store/page.tsx` (or any normal page hosting a `Pr
 ### 5.1 Catalog management + Stripe sync
 
 1. Editor+ opens the admin Products UI, creates a `Product` (+ at least a `Default` `ProductVariant`), uploads images via the existing `Asset`/`/api/upload` pipeline, optionally generates a description via `POST /api/ai` (reuse the existing rewrite/generate path — a "Generate description" action that sends product attributes as the prompt).
-2. On save (`POST /api/products`, guarded `withRole("EDITOR")`), we write local rows, then **sync to Stripe on the connected account**: upsert a Stripe `Product` (store `stripeProductId`), and for each variant create/repoint a Stripe `Price` (store `stripePriceId`). All Stripe calls pass `{ stripeAccount: store.stripeAccountId }`.
+2. On save (`POST /api/products`, guarded by the site's workspace role — `withRole("EDITOR")` resolved through `requireApiSite`), we write local rows, then **sync to Stripe on the store-site's connected account**: upsert a Stripe `Product` (store `stripeProductId`), and for each variant create/repoint a Stripe `Price` (store `stripePriceId`). All Stripe calls pass `{ stripeAccount: store.stripeAccountId }` where `store` is the `Site`'s `Store` row.
 3. Price edits create a **new** immutable Stripe Price and archive the old one (never mutate). Inventory edits are local-only (Stripe has no inventory concept).
 4. Sync is best-effort + retryable: if Stripe is unreachable, the product saves locally with `stripeProductId == null` and a "needs sync" flag; a retry action (or a small reconcile job) completes the sync. A product can't be sold until it has a `stripePriceId`.
 
-### 5.2 Stripe Connect onboarding (per workspace)
+### 5.2 Stripe Connect onboarding (per store-site)
 
-1. In Store Settings, an OWNER/ADMIN clicks "Connect Stripe". `POST /api/store/connect` creates a Connect account (Standard) for the workspace if none exists, stores `stripeAccountId` on `Store`, then creates an **Account Link** and returns its URL.
+1. In the store-site's Store Settings, an OWNER/ADMIN (of the site's workspace) clicks "Connect Stripe". `POST /api/store/connect` creates a Connect account (Standard) for that store-`Site` if none exists, stores `stripeAccountId` on the site's `Store` row, then creates an **Account Link** and returns its URL.
 2. Browser redirects to Stripe-hosted onboarding (KYC, bank). On return, Stripe hits the configured return URL; we re-fetch the account and mirror `chargesEnabled`/`payoutsEnabled`.
 3. An `account.updated` webhook keeps `chargesEnabled`/`payoutsEnabled` current. The storefront refuses checkout (and the admin shows a banner) until `chargesEnabled == true`.
 
@@ -368,25 +368,25 @@ A **storefront index** at `app/store/page.tsx` (or any normal page hosting a `Pr
 
 1. First add-to-cart with no `pc_cart` cookie: `POST /api/cart/items` creates a `Cart` (anonymous `token`), sets the `pc_cart` cookie, adds a `CartItem`. The client holds an optimistic copy in a cart context/store for instant UI; the server cart is authoritative.
 2. Quantity/remove mutate via `/api/cart/items/[id]`; the server clamps quantity to available inventory when policy is `deny`.
-3. Cart is `workspaceId`-scoped via the storefront's workspace (resolved from the store/domain), independent of the builder's `pc_ws` cookie — buyers are not authenticated members.
+3. Cart is `siteId`-scoped via the storefront's store-`Site` (resolved from the request host → `Domain` → `Site`), independent of the builder's `pc_ws`/`pc_site` cookies — buyers are not authenticated members.
 
 ### 5.4 Checkout → Stripe → webhook → Order
 
-1. Buyer clicks Checkout. `POST /api/checkout` loads the server cart, **re-reads each variant** for current price/stock (authority), and builds a **Stripe Checkout Session** on the connected account with: `line_items` referencing `stripePriceId` × quantity, `mode: "payment"`, `automatic_tax: { enabled: store.taxEnabled }`, `shipping_options` (§6), `allow_promotion_codes: true`, `success_url`/`cancel_url` (Pagecraft pages), `customer_creation`, and `metadata: { cartId, workspaceId }`. Store `cart.stripeCheckoutSessionId`. Return `session.url`; the Checkout block redirects there.
+1. Buyer clicks Checkout. `POST /api/checkout` loads the server cart, **re-reads each variant** for current price/stock (authority), and builds a **Stripe Checkout Session** on the store-site's connected account with: `line_items` referencing `stripePriceId` × quantity, `mode: "payment"`, `automatic_tax: { enabled: store.taxEnabled }`, `shipping_options` (§6), `allow_promotion_codes: true`, `success_url`/`cancel_url` (Pagecraft pages on the store-site), `customer_creation`, and `metadata: { cartId, siteId }`. Store `cart.stripeCheckoutSessionId`. Return `session.url`; the Checkout block redirects there.
 2. Buyer completes payment on Stripe's hosted page (tax, shipping, promo all handled there).
-3. Stripe fires **`checkout.session.completed`** to `POST /api/webhooks/stripe`. The handler **verifies the signature** (§8), looks up the cart via `metadata.cartId` (and the session id), and **idempotently** creates an `Order` + `OrderItem`s from the session's line items and computed totals (`amount_subtotal`, `total_details.amount_tax`, `amount_shipping`, `total_details.amount_discount`, `amount_total`), copies the shipping address and `stripePaymentIntentId`/`stripeCustomerId`, assigns the next per-workspace `number`, marks the cart `converted`, and **decrements inventory** for each line (transactional; §8). Send a confirmation (reuse any existing mail path, or rely on Stripe receipt emails in P2).
+3. Stripe fires **`checkout.session.completed`** to `POST /api/webhooks/stripe`. The handler **verifies the signature** (§8), looks up the cart via `metadata.cartId` (and the session id), and **idempotently** creates an `Order` + `OrderItem`s from the session's line items and computed totals (`amount_subtotal`, `total_details.amount_tax`, `amount_shipping`, `total_details.amount_discount`, `amount_total`), copies the shipping address and `stripePaymentIntentId`/`stripeCustomerId`, assigns the next per-store-site `number`, marks the cart `converted`, and **decrements inventory** for each line (transactional; §8). Send a confirmation (reuse any existing mail path, or rely on Stripe receipt emails in P2).
 4. Buyer is redirected to `success_url`; that page reads the order by session id and shows confirmation. (The order may settle a beat after redirect — the success page tolerates "processing".)
 
 ### 5.5 Refunds
 
-From the Orders dashboard, OWNER/ADMIN issues a refund: `POST /api/orders/[id]/refund` creates a Stripe Refund against `stripePaymentIntentId` (full or partial) on the connected account. The **`charge.refunded`** webhook updates `Order.status` → `refunded` and (optionally) restocks inventory. Stripe is authoritative for the refund; we mirror status.
+From the store-site's Orders dashboard, OWNER/ADMIN issues a refund: `POST /api/orders/[id]/refund` creates a Stripe Refund against `stripePaymentIntentId` (full or partial) on the store-site's connected account. The **`charge.refunded`** webhook updates `Order.status` → `refunded` and (optionally) restocks inventory. Stripe is authoritative for the refund; we mirror status.
 
 ### 5.6 Customer order history
 
 Two options, sequenced:
 
 - **P4 default — Stripe customer portal.** Link buyers to the hosted customer portal (configured per connected account) for receipts/order history. No local accounts needed. **Dependency:** requires `stripeCustomerId` on the order (set at checkout via `customer_creation`).
-- **Later — site-membership tie-in.** If/when the storefront gains buyer accounts (a separate concern from workspace `Membership`, which is for builders), we can show order history natively by querying local `Order`s for the signed-in buyer's email. This **depends on a buyer-auth concept that does not exist today** — flagged as an open question (§11), not built in P4.
+- **Later — buyer-account tie-in.** If/when the storefront gains buyer accounts (a separate concern from workspace `Membership`, which is for builders), we can show order history natively by querying the store-site's local `Order`s for the signed-in buyer's email. This **depends on a buyer-auth concept that does not exist today** — flagged as an open question (§11), not built in P4.
 
 ---
 
@@ -405,14 +405,14 @@ The throughline: we **author** catalog + base price + shipping/discount intent l
 
 ## 7. Admin UI
 
-New admin surface under `app/(app)/` (sibling to existing `cms`, `design`, `settings`, `site`), e.g. `app/(app)/store/`. All pages are builder pages — gated by `proxy.ts` session + server `requireWorkspace()`, and each mutation route is `withRole(...)`-guarded.
+New admin surface under `app/(app)/` (sibling to existing `cms`, `design`, `settings`, `site`), e.g. `app/(app)/store/`. The store admin is scoped to the **active site** (the builder's `pc_site` context) and only appears for sites with commerce enabled (a `Store` row). All pages are builder pages — gated by `proxy.ts` session + the foundation's `requireApiSite` (which resolves the site's workspace), and each mutation route is `withRole(...)`-guarded through that site.
 
-- **Products** — list/create/edit products; per-product variant editor (options → variants matrix, price, sku, inventory), image manager (AssetPicker), status (draft/active/archived), "Generate description" (→ `/api/ai`), and a per-variant Stripe sync indicator. Editor+ to mutate.
-- **Orders** — dashboard of `Order`s for the workspace: number, date, email, total, status; detail view with line items, shipping address, Stripe links, and refund action. Editor+ to view; ADMIN+ to refund.
+- **Products** — list/create/edit the active site's products; per-product variant editor (options → variants matrix, price, sku, inventory), image manager (AssetPicker), status (draft/active/archived), "Generate description" (→ `/api/ai`), and a per-variant Stripe sync indicator. Editor+ to mutate.
+- **Orders** — dashboard of `Order`s for the active store-site: number, date, email, total, status; detail view with line items, shipping address, Stripe links, and refund action. Editor+ to view; ADMIN+ to refund.
 - **Discounts** — list/create promotion codes (proxied to Stripe), activate/deactivate. ADMIN+.
 - **Store Settings** — Stripe Connect status + "Connect/Manage" (OWNER/ADMIN only), default currency, tax toggle, shipping mode + `ShippingRate` editor, product detail template entry point (opens the editor on `Store.productTemplate`, like editing a collection detail template), success/cancel page selection. OWNER/ADMIN.
 
-**Role mapping** (reusing `Role`/`ROLE_RANK` from `lib/auth/workspace.ts`):
+**Role mapping** (reusing `Role`/`ROLE_RANK` from `lib/auth/workspace.ts`; roles are the buyer's-site **workspace** roles, resolved through `requireApiSite`, since per-site roles are a future foundation enhancement):
 
 - VIEWER — read catalog/orders.
 - EDITOR — manage catalog (products/variants/inventory/images), edit product template, add commerce blocks to pages.
@@ -425,7 +425,7 @@ New admin surface under `app/(app)/` (sibling to existing `cms`, `design`, `sett
 
 ## 8. Security, permissions, integrity
 
-- **Tenancy.** Every product/order/cart/store query is `workspaceId`-scoped. Admin routes resolve the workspace from `pc_ws` via the existing guards; storefront/cart routes resolve the workspace from the store/domain (not from a builder session — buyers aren't members). Carts are isolated by the opaque `pc_cart` token.
+- **Tenancy.** Every product/order/cart/store query is `siteId`-scoped (the store-`Site`); the owning workspace for role checks is resolved through `Site.workspaceId` (`requireApiSite`). Admin routes resolve the active store-site from `pc_site` (within the `pc_ws` workspace) via the foundation guards; storefront/cart routes resolve the store-site from the request host (host → `Domain` → `Site`), not from a builder session — buyers aren't members. Carts are isolated by the opaque `pc_cart` token.
 - **Role guards.** Mutations use `withRole`/`requireApiRole` (`lib/api/api-handler.ts`); read endpoints use `withWorkspace`. Public storefront read endpoints (catalog, cart) are intentionally unauthenticated but workspace-scoped and rate-limit-eligible.
 - **Webhook signature verification.** `POST /api/webhooks/stripe` reads the **raw body** (Next 16 route handler: read `await req.text()`, do not pre-parse JSON) and verifies via `stripe.webhooks.constructEvent(rawBody, sig, secret)`. Reject (400) on bad signature. The route is under `/api`, already exempt from the `proxy.ts` session gate. Connect events may arrive with an account context — verify against the platform endpoint secret (and per-account secret if used).
 - **Idempotency.** Webhooks retry; settlement must be safe to replay. Use `Order.stripeCheckoutSessionId @unique` (and/or a processed-event log keyed by Stripe event id) so a duplicate `checkout.session.completed` is a no-op. Outbound Stripe writes (checkout create, refunds) pass an **Idempotency-Key** so client retries don't double-charge.
@@ -440,7 +440,7 @@ New admin surface under `app/(app)/` (sibling to existing `cms`, `design`, `sett
 Each phase is a self-contained implementation plan with its own gate. Land them in order.
 
 - **P1 — Catalog + product blocks + product pages + Stripe Connect.**
-  Models: `Store`, `Product`, `ProductVariant`, `ProductImage`. Admin Products UI + image upload + AI descriptions. Connect onboarding (`/api/store/connect`, account-link return, `account.updated`). Product↔Stripe Product/Price sync. `ProductsProvider`/`useProducts`. `ProductGrid` + `Product` blocks. `app/store/[handle]` + `app/store` routes; `proxy.ts` allowlist. **No payments yet** — products are browseable.
+  Models: `Store` (1:1 satellite of a `Site` via `siteId @unique` — enabling commerce on a site), `Product`, `ProductVariant`, `ProductImage` (all `siteId`-scoped). Admin Products UI (scoped to the active site) + image upload + AI descriptions. Connect onboarding per store-site (`/api/store/connect`, account-link return, `account.updated`). Product↔Stripe Product/Price sync on the store-site's account. `ProductsProvider`/`useProducts`. `ProductGrid` + `Product` blocks. `app/store/[handle]` + `app/store` routes resolving the store-site from the host; `proxy.ts` allowlist. **No payments yet** — products are browseable.
 
 - **P2 — Cart + Checkout + Order webhooks.**
   Models: `Cart`, `CartItem`, `Order`, `OrderItem`. `pc_cart` cookie + cart context. AddToCart/Cart/Checkout blocks. `/api/cart/*`, `/api/checkout` (Checkout Session). `/api/webhooks/stripe` with signature verification + idempotent `checkout.session.completed` → `Order`. Success/cancel pages. **End-to-end paid purchase works.**
@@ -487,5 +487,6 @@ Framework-free logic gets unit tests, the way `lib/cms/cms.ts` is tested in isol
 
 ### Related specs
 
-- **Custom domains** — the storefront (`/store/*`) serves under the domain that spec provides; this spec assumes a way to resolve a request's workspace from its host. The `app/store/*` routes plug into that resolution.
-- **Localization** — `Product`/`ProductVariant`/template content can be localized per the localization spec in a later phase; the `data` JSON blob and template-token approach are localization-friendly, but per-locale catalog is out of scope here.
+- **Multi-site model (foundation — dependency)** — commerce is enabled on a `Site`: the `Store` model is a 1:1 satellite of `Site` (`Store.siteId @unique`), and all catalog/cart/order rows are `siteId`-scoped. This spec relies on that foundation's `Site` entity, `requireApiSite` guard (workspace resolved via `Site.workspaceId`), and active-site (`pc_site`) builder context. A `Site` is a store exactly when it has a `Store` row.
+- **Custom domains** — the storefront (`/store/*`) serves under the domain that spec maps to the store-`Site` (host → `Domain` → `Site`); this spec relies on that host→site resolution to scope catalog/cart/order reads. The `app/store/*` routes plug into that resolution.
+- **Localization** — `Product`/`ProductVariant`/template content can be localized per the localization spec in a later phase (locale config lives on the store-`Site`); the `data` JSON blob and template-token approach are localization-friendly, but per-locale catalog is out of scope here.

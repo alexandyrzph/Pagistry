@@ -2,14 +2,14 @@
 
 **Date:** 2026-06-21
 **Status:** Draft (design) — pending implementation plan
-**Scope:** Published-site localization for the multi-workspace page builder. Adds per-locale content to `Page`, `CollectionItem`, and the per-workspace `Site` (header/footer), serves them under a subpath locale prefix, and drafts translations with the existing AI route.
-**Related specs:** custom-domains (locale subpath sits _inside_ a custom domain) and e-commerce (localizing product content is a later phase that reuses this overlay).
+**Scope:** Published-site localization for the multi-site page builder. Adds per-locale content to `Page`, `CollectionItem`, and the per-site `Site` (header/footer), serves them under a subpath locale prefix, and drafts translations with the existing AI route.
+**Related specs:** multi-site model (`Site` is a first-class entity; locale config lives on `Site`; content is `siteId`-scoped — this spec depends on it), custom-domains (locale subpath sits _inside_ a Site's host) and e-commerce (localizing product content is a later phase that reuses this overlay).
 
 ---
 
 ## 1. Goal & scope
 
-Let a workspace publish one site in several languages from a **single source of truth**. The author builds the page once in the default locale; each additional locale stores only the text that differs. Visitors reach a language via a URL prefix (`example.com/fr/about`), search engines see proper `hreflang`/`lang` signals, and the author can ask AI to draft a whole locale in one click.
+Let a site be published in several languages from a **single source of truth**. Localization is **per-site**: under the foundation's multi-site model a workspace owns many sites, and each one enables its own locale set — the Marketing, Blog, and Store sites in one workspace can each go multilingual independently (or not at all). The author builds the page once in the site's default locale; each additional locale stores only the text that differs. Visitors reach a language via a URL prefix (`example.com/fr/about`), search engines see proper `hreflang`/`lang` signals, and the author can ask AI to draft a whole locale in one click.
 
 **Localizable content (in scope):**
 
@@ -37,7 +37,7 @@ One domain, a leading locale segment: `/<locale>/…`. **The default locale is u
 - **Rule:** the default locale is served at the existing URLs (`/p/<slug>`, `/c/<slug>/<item>`, and — under a custom domain — `/<slug>`). Every non-default locale `L` is served at the same path with `/<L>` prepended (`/fr/p/<slug>`). Requesting the default locale _with_ its prefix (`/en/p/<slug>` when `en` is default) **301-redirects** to the canonical unprefixed URL.
 - **Why unprefixed default:** zero migration — all already-published URLs keep working and remain the default-locale canonical; the primary market gets the cleanest URL; no forced redirect on the most-trafficked path. (Prefixing _all_ locales, including default, is the only real alternative; it is cleaner conceptually but breaks every existing link and adds a redirect on the busiest path. Rejected for those costs.)
 - **Why subpath over the alternatives:**
-  - **Subdomain (`fr.example.com`) / ccTLD (`example.fr`)** — needs DNS records and a TLS cert per locale, and collides with the per-workspace custom-domains model (each workspace already maps one hostname). Heavier ops for no SEO advantage over subpaths. Rejected.
+  - **Subdomain (`fr.example.com`) / ccTLD (`example.fr`)** — needs DNS records and a TLS cert per locale, and collides with the per-site custom-domains model (each Site maps its own hostname(s) via the foundation's Host → Domain → Site routing). Heavier ops for no SEO advantage over subpaths. Rejected.
   - **Subpath** — single host, single cert, works unchanged under a custom domain (the locale segment is simply the first path segment after the host), and is the easiest to detect in `proxy.ts`. Chosen.
 
 ### Translation model: field-level sparse overrides + AI assist
@@ -55,7 +55,7 @@ All new fields follow the codebase's existing convention of **JSON-encoded strin
 
 ### 3.1 Locale config on `Site`
 
-`Site` is per-workspace (`workspaceId @unique`) and already holds site-wide config (header, footer, colors, textStyles) — the natural home for locale config.
+Under the foundation's multi-site model, `Site` is a first-class entity (a workspace has many) and already holds per-site config (header, footer, colors, textStyles) — the natural home for locale config. Putting `defaultLocale`/`locales` on `Site` makes the locale set **genuinely per-site**: two sites in the same workspace can enable different locales (Marketing in `["en","fr"]`, Store in `["en","es","de"]`), and a monolingual site simply leaves `locales` at `["en"]`.
 
 ```prisma
 model Site {
@@ -120,7 +120,7 @@ A normalized `Translation(entityType, entityId, locale, key, value)` table is th
 - **Read path is already a single row.** `/p/[slug]`, `/c/[slug]/[item]`, and `PageDocument` already load exactly one `Page` / `CollectionItem` / `Site`. The overlay is a pure in-memory merge over data we hold — **no extra query, no join, no N+1**. A table adds a per-render `WHERE entityId=? AND locale=?` fetch (and another for header/footer) on the hot public path.
 - **Convention fit.** Page content, theme, header, footer, and CMS data are all JSON blobs here; overrides as JSON keep one mental model and one write on save.
 - **Atomic writes & versioning.** Overrides ride along in the same row write, snapshot cleanly into `PageVersion` (extend it to carry `i18n`; see §9), and restore atomically.
-- **Trade-offs acknowledged:** cross-entity queries ("every untranslated string in the workspace", shared translation memory) are easy with a table and awkward with blobs — but we don't need them at this scale; "untranslated" is computed in-app per page (§6). If a future translation-memory / vendor-export feature arrives, a normalized table can be **derived** from the blobs without changing the render contract.
+- **Trade-offs acknowledged:** cross-entity queries ("every untranslated string in the site", shared translation memory) are easy with a table and awkward with blobs — but we don't need them at this scale; "untranslated" is computed in-app per page (§6). If a future translation-memory / vendor-export feature arrives, a normalized table can be **derived** from the blobs without changing the render contract.
 
 ### 3.4 Size & limits
 
@@ -176,7 +176,9 @@ The contract: **structure comes from the base tree; only text values are swapped
 
 `proxy.ts` (Next 16's renamed middleware) currently runs on every navigation and only does an optimistic auth gate. Localization adds a **syntactic** locale strip in front of the existing logic.
 
-**Constraint:** proxy runs at the edge and **cannot touch Prisma**, so it cannot validate a segment against `Site.locales`. It therefore does _syntactic_ detection only; the page route (which has DB access) does the _authoritative_ validation.
+Under the foundation, routing is **Host → Domain → Site**, then the locale strip sits _inside_ that Site's host: the first path segment after the host is the optional locale, validated against **that Site's** `Site.locales`.
+
+**Constraint:** proxy runs at the edge and **cannot touch Prisma**, so it cannot resolve the host to a Site or validate a segment against that Site's `Site.locales`. It therefore does _syntactic_ detection only; the page route (which has DB access, and which already resolved Host → Site) does the _authoritative_ validation.
 
 ### 5.1 In `proxy.ts`
 
@@ -199,10 +201,10 @@ Proxy also sets a `pc_locale` cookie (non-authoritative, for the client locale s
 
 ### 5.2 In the page routes
 
-`/p/[slug]` and `/c/[slug]/[item]` (and `PageDocument`) read the active locale from `headers()` → `x-pc-locale`, defaulting to the workspace's `Site.defaultLocale` when absent:
+`/p/[slug]` and `/c/[slug]/[item]` (and `PageDocument`) read the active locale from `headers()` → `x-pc-locale`, defaulting to the resolved Site's `Site.defaultLocale` when absent:
 
-1. Load the `Page`/`Item` and its workspace `Site` (already happens).
-2. Resolve `activeLocale`: if the header value is in `site.locales` → use it; if it equals `defaultLocale` (i.e. someone hit `/en/…` when `en` is default) → `redirect` to the canonical unprefixed URL; if it is _not_ a known locale → `notFound()` (a bogus `/zz/…`).
+1. Resolve the host → `Site` (foundation: Host → Domain → Site), then load the `Page`/`Item` **within that site** (`siteId`-scoped — already happens).
+2. Resolve `activeLocale` **against that Site's** `Site.locales`: if the header value is in `site.locales` → use it; if it equals that site's `defaultLocale` (i.e. someone hit `/en/…` when `en` is the site default) → `redirect` to the canonical unprefixed URL; if it is _not_ one of that site's locales → `notFound()` (a bogus `/zz/…`, or a locale enabled on a _different_ site in the workspace but not this one).
 3. Overlay (§4.3) and render.
 
 ### 5.3 Resolution table
@@ -219,7 +221,7 @@ Proxy also sets a `pc_locale` cookie (non-authoritative, for the client locale s
 
 ### 5.4 Coexistence with custom domains
 
-The custom-domains spec maps a workspace hostname's root paths onto published pages (e.g. `acme.com/about` → `/p/about`). Locale detection must run **first**: `acme.com/fr/about` → proxy strips `/fr`, sets `x-pc-locale=fr`, then the custom-domain rewrite maps `/about` → `/p/about`. The two are composable because both are pure path rewrites in `proxy.ts`; the spec will land the locale strip _before_ the domain map and share one `resolveLocalePrefix` helper. The only genuine ambiguity — a custom-domain root segment that is _both_ a valid locale and a real page slug (`acme.com/fr` where a page is literally slugged `fr`) — is resolved at the route by checking `Site.locales` membership: a known locale wins.
+Under the foundation, a host resolves Host → `Domain` → `Site`, and the custom-domains spec maps that Site's root paths onto its published pages (e.g. `acme.com/about` → `/p/about`, scoped to the Site `acme.com` resolves to). Locale detection must run **first**: `acme.com/fr/about` → proxy strips `/fr`, sets `x-pc-locale=fr`, then the custom-domain rewrite maps `/about` → `/p/about`. The two are composable because both are pure path rewrites in `proxy.ts`; the spec will land the locale strip _before_ the domain map and share one `resolveLocalePrefix` helper. The only genuine ambiguity — a root segment that is _both_ a valid locale and a real page slug (`acme.com/fr` where that site has a page literally slugged `fr`) — is resolved at the route by checking **that Site's** `Site.locales` membership: a known locale for that site wins.
 
 ---
 
@@ -288,11 +290,11 @@ Extend `app/api/ai/route.ts` with a third `mode` alongside `rewrite`/`page`/`gen
   }
   ```
 
-  A shared `lib/i18n/urls.ts` builds these from `Site.defaultLocale` + `locales` (default unprefixed, others prefixed), and is reused by the sitemap and the locale-switcher block. Under a custom domain, `BASE` is the workspace hostname.
+  A shared `lib/i18n/urls.ts` builds these from the active Site's `Site.defaultLocale` + `locales` (default unprefixed, others prefixed) — always within one Site's locale set and host — and is reused by the sitemap and the locale-switcher block. Under a custom domain, `BASE` is that Site's host (Host → Domain → Site, foundation).
 
 - **`generateMetadata` per-locale meta:** overlay `metaTitle`/`metaDescription`/`ogImage` from `page.i18n[locale]` (the `$seo.*` keys, §3.2) before returning, and translate the JSON-LD `name`/`description` likewise.
-- **Sitemap (`app/sitemap.ts`):** for each published page, emit **one entry per enabled locale** (default unprefixed, others prefixed), each carrying `alternates.languages` (Next's `MetadataRoute.Sitemap` supports an `alternates.languages` field). Extend the same way for CMS detail URLs in P4.
-- **Locale-switcher BLOCK (public site):** a new registry block `localeSwitcher` (category Basic) that server-renders links to the **current path** in each enabled locale, marking the active one. It reads `Site.locales` + the active locale + the current pathname (passed through render context) and uses `lib/i18n/urls.ts` to build each target. Author-droppable into header/footer or any page. Locale display names via `Intl.DisplayNames` (open question §11 on overrideable labels).
+- **Sitemap (`app/sitemap.ts`):** scoped to the Site being served (the foundation makes pages `siteId`-scoped and the sitemap host-resolved to a Site), for each of that site's published pages emit **one entry per locale enabled on that site** (default unprefixed, others prefixed), each carrying `alternates.languages` (Next's `MetadataRoute.Sitemap` supports an `alternates.languages` field). Extend the same way for CMS detail URLs in P4.
+- **Locale-switcher BLOCK (public site):** a new registry block `localeSwitcher` (category Basic) that server-renders links to the **current path** in each locale enabled on the current Site, marking the active one. It reads the active Site's `Site.locales` + the active locale + the current pathname (passed through render context) and uses `lib/i18n/urls.ts` to build each target — so it lists exactly the languages that Site offers, on that Site's domain. Author-droppable into header/footer or any page. Locale display names via `Intl.DisplayNames` (open question §11 on overrideable labels).
 
 ---
 
@@ -328,6 +330,6 @@ Pure functions first (the gate is `tsc --noEmit` + `vitest` + `eslint` flat-stri
 - **Mixed-language pages.** Fallback means an untranslated field renders in the default language inside an otherwise-translated page. This is standard i18n behavior and surfaced by the untranslated indicators; not a bug.
 - **Rich-text translation.** `text` block stores HTML; AI must preserve tags and we re-sanitize on save. Malformed model output is dropped per-field (validate keys, sanitize values) rather than corrupting the tree.
 - **AI cost / large pages.** Batching + per-field caps bound token use; very large pages chunk across requests. No streaming UI in P3 (just a spinner + progressive writes).
-- **`hreflang` correctness.** Requires absolute, domain-correct URLs — must read the active host (custom domain vs `pagecraft.app`). `lib/i18n/urls.ts` centralizes this; verify against the custom-domains spec's host resolution.
+- **`hreflang` correctness.** Requires absolute, domain-correct URLs — must read the active Site's host (its custom domain vs the platform default), resolved Host → Domain → Site per the foundation. `lib/i18n/urls.ts` centralizes this; verify against the custom-domains spec's host resolution.
 - **Open questions:** (a) overrideable locale **display labels** (Intl.DisplayNames vs author-set names per locale) — propose author-overrideable, default to Intl; (b) where per-locale `ogImage` lives — chosen: `$seo.ogImage` in the same `i18n` map; (c) should the AI translate `url`/`buttonHref` (e.g. to a localized external link)? — default no, links are shared; revisit if requested; (d) translating shared **component instances** — overrides key on the instance block id, so each placement translates independently (fine, but note shared components won't share translations — acceptable for v1); (e) RTL depth — baseline `dir` only in this spec, full RTL is a separate effort.
 - **Related-spec coupling:** custom-domains owns host/root-path resolution that this spec's URL builder and proxy ordering depend on; e-commerce will localize product content by reusing `CollectionItem.i18n` (or an analogous `Product.i18n`) and the same overlay — keep the overlay helpers product-agnostic.
