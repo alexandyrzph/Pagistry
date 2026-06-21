@@ -13,11 +13,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   const item = cart?.items.find((i) => i.id === id);
   if (!cart || !item) return notFound();
   const variant = await prisma.productVariant.findFirst({ where: { id: item.variantId, siteId } });
+  if (!variant) return notFound();
   const body = await req.json().catch(() => ({}));
   const qty = clampQuantity(
     Number(body?.quantity ?? 1),
-    variant?.inventory ?? -1,
-    variant?.inventoryPolicy ?? "deny",
+    variant.inventory,
+    variant.inventoryPolicy,
   );
   await prisma.cartItem.update({ where: { id }, data: { quantity: qty } });
   const updated = await prisma.cart.findUnique({
