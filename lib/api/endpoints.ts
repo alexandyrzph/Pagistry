@@ -52,6 +52,10 @@ export const endpoints = {
     switch: "/api/sites/switch",
     home: (id: string) => `/api/sites/${id}/home`,
   },
+  products: {
+    list: "/api/products",
+    byId: (id: string) => `/api/products/${id}`,
+  },
   domains: {
     list: "/api/domains",
     byId: (id: string) => `/api/domains/${id}`,
