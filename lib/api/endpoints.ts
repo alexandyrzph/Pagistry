@@ -1,4 +1,8 @@
 export const endpoints = {
+  store: {
+    root: "/api/store",
+    connect: "/api/store/connect",
+  },
   activity: "/api/activity",
   ai: "/api/ai",
   upload: "/api/upload",
