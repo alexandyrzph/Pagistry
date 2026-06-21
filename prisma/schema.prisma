@@ -27,6 +27,8 @@ model Site {
   domains     Domain[]
   store       Store?
   products    Product[]
+  carts       Cart[]
+  orders      Order[]
 
   @@unique([workspaceId, handle])
   @@index([workspaceId])
@@ -340,4 +342,76 @@ model ProductImage {
   createdAt DateTime @default(now())
 
   @@index([productId])
+}
+
+model Cart {
+  id                      String   @id @default(cuid())
+  siteId                  String
+  site                    Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  token                   String   @unique @default(cuid())
+  email                   String?
+  currency                String   @default("usd")
+  status                  String   @default("open")
+  stripeCheckoutSessionId String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  items CartItem[]
+
+  @@index([siteId])
+}
+
+model CartItem {
+  id         String   @id @default(cuid())
+  cartId     String
+  cart       Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variantId  String
+  quantity   Int      @default(1)
+  unitAmount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([cartId])
+}
+
+model Order {
+  id                      String   @id @default(cuid())
+  siteId                  String
+  site                    Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  number                  Int
+  email                   String
+  status                  String   @default("pending")
+  currency                String   @default("usd")
+  subtotalAmount          Int      @default(0)
+  shippingAmount          Int      @default(0)
+  taxAmount               Int      @default(0)
+  discountAmount          Int      @default(0)
+  totalAmount             Int      @default(0)
+  shippingAddress         String   @default("{}")
+  stripeCheckoutSessionId String?  @unique
+  stripePaymentIntentId   String?
+  stripeCustomerId        String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  items OrderItem[]
+
+  @@unique([siteId, number])
+  @@index([siteId])
+  @@index([stripePaymentIntentId])
+}
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId    String
+  productTitle String
+  variantTitle String
+  sku          String?
+  quantity     Int
+  unitAmount   Int
+  createdAt    DateTime @default(now())
+
+  @@index([orderId])
 }
