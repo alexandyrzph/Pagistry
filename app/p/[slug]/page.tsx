@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { PageDocument } from "@/components/PageDocument";
 import { resolveHostSite } from "@/lib/domains/resolve";
-import { requestHost } from "@/lib/domains/host";
+import { requestHost } from "@/lib/domains/request-host";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const page = await loadPage(slug);
-  if (!page) return { title: "Page not found" };
+  if (!page || !page.published) return { title: "Page not found" };
   const title = page.metaTitle || page.title;
   const description = page.metaDescription || undefined;
   const images = page.ogImage ? [page.ogImage] : undefined;

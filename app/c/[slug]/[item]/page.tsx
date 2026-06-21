@@ -8,7 +8,7 @@ import { responsiveCss } from "@/lib/blocks/styles";
 import { designSystemCss, parseDesignSystem } from "@/lib/design/design-system";
 import { BlockRenderer, type ComponentMap } from "@/components/BlockRenderer";
 import { resolveHostSite } from "@/lib/domains/resolve";
-import { requestHost } from "@/lib/domains/host";
+import { requestHost } from "@/lib/domains/request-host";
 
 export const dynamic = "force-dynamic";
 

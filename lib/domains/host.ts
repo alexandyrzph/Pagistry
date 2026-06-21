@@ -1,5 +1,3 @@
-import { headers } from "next/headers";
-
 const LOCAL = new Set(["localhost", "127.0.0.1", "0.0.0.0", "[::1]"]);
 
 export function normalizeHost(raw: string): string {
@@ -31,11 +29,6 @@ export function customDomainRewrite(pathname: string): string | null {
     return null;
   }
   return `/p${pathname}`;
-}
-
-export async function requestHost(): Promise<string> {
-  const h = await headers();
-  return h.get("x-forwarded-host") ?? h.get("host") ?? "";
 }
 
 export function dnsInstructions(hostname: string, token: string) {
