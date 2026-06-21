@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withSite, withSiteRole } from "@/lib/api/api-handler";
-import { json, created, badRequest } from "@/lib/api/api-response";
+import { json, created, badRequest, error } from "@/lib/api/api-response";
 import { validateHostname } from "@/lib/domains/validate";
 import { dnsInstructions } from "@/lib/domains/host";
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     const result = validateHostname(String(body?.hostname ?? ""));
     if ("error" in result) return badRequest(result.error);
     const existing = await prisma.domain.findUnique({ where: { hostname: result.hostname } });
-    if (existing) return json({ error: "That domain is already in use" }, 409);
+    if (existing) return error(409, "That domain is already in use");
     const domain = await prisma.domain.create({
       data: { siteId: ctx.site.id, hostname: result.hostname },
     });
