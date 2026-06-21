@@ -4,6 +4,7 @@ export const endpoints = {
     items: "/api/cart/items",
     item: (id: string) => `/api/cart/items/${id}`,
   },
+  checkout: { create: "/api/checkout" },
   store: {
     root: "/api/store",
     connect: "/api/store/connect",
