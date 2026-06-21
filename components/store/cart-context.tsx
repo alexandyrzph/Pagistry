@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 
@@ -45,6 +45,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     const { data } = await api.get<{ cart: ClientCart }>(endpoints.cart.root);
     setCart(data.cart);
+  }, []);
+  useEffect(() => {
+    api
+      .get<{ cart: ClientCart }>(endpoints.cart.root)
+      .then((r) => setCart(r.data.cart))
+      .catch(() => {});
   }, []);
   return (
     <CartCtx.Provider value={{ cart, addItem, updateItem, removeItem, refresh }}>

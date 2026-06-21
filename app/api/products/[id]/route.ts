@@ -39,7 +39,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         if (typeof v?.id !== "string") continue;
         const priceChanged = typeof v?.priceAmount === "number";
         await prisma.productVariant.updateMany({
-          where: { id: v.id, siteId: ctx.site.id },
+          where: { id: v.id, productId: id, siteId: ctx.site.id },
           data: {
             ...(typeof v.title === "string" ? { title: v.title } : {}),
             ...(typeof v.options === "string" ? { options: v.options } : {}),
