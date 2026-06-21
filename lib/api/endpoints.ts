@@ -1,4 +1,9 @@
 export const endpoints = {
+  cart: {
+    root: "/api/cart",
+    items: "/api/cart/items",
+    item: (id: string) => `/api/cart/items/${id}`,
+  },
   store: {
     root: "/api/store",
     connect: "/api/store/connect",
