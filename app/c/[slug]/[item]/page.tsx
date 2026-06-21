@@ -7,11 +7,16 @@ import { applyTokens } from "@/lib/cms/cms-tokens";
 import { responsiveCss } from "@/lib/blocks/styles";
 import { designSystemCss, parseDesignSystem } from "@/lib/design/design-system";
 import { BlockRenderer, type ComponentMap } from "@/components/BlockRenderer";
+import { resolveHostSite } from "@/lib/domains/resolve";
+import { requestHost } from "@/lib/domains/host";
 
 export const dynamic = "force-dynamic";
 
 async function load(slug: string, itemId: string) {
-  const collection = await prisma.collection.findFirst({ where: { slug } });
+  const resolved = await resolveHostSite(await requestHost());
+  const collection = resolved
+    ? await prisma.collection.findFirst({ where: { siteId: resolved.siteId, slug } })
+    : await prisma.collection.findFirst({ where: { slug } });
   if (!collection || !collection.detailEnabled) return null;
   const item = await prisma.collectionItem.findUnique({ where: { id: itemId } });
   if (!item || item.collectionId !== collection.id) return null;
