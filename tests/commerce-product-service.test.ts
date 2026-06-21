@@ -1,4 +1,5 @@
 import { describe, it, expect, afterAll, vi } from "vitest";
+import { buildProductMap } from "@/lib/commerce/product-service";
 import { PrismaClient } from "@prisma/client";
 
 const state = vi.hoisted(() => ({ siteId: "", roleCalls: [] as string[] }));
@@ -45,5 +46,36 @@ describe("POST /api/products", () => {
       }),
     );
     expect(dup.status).toBe(409);
+  });
+});
+
+describe("buildProductMap", () => {
+  it("shapes rows into an id-keyed product map with parsed variants", () => {
+    const map = buildProductMap([
+      {
+        id: "p1",
+        handle: "tee",
+        title: "Tee",
+        description: "",
+        status: "active",
+        data: '{"vendor":"Acme"}',
+        images: [{ url: "/a.png", alt: "", position: 0 }],
+        variants: [
+          {
+            id: "v1",
+            title: "S",
+            options: '{"Size":"S"}',
+            priceAmount: 1500,
+            currency: "usd",
+            inventory: 3,
+            inventoryPolicy: "deny",
+          },
+        ],
+      },
+    ]);
+    expect(map.p1.handle).toBe("tee");
+    expect(map.p1.data.vendor).toBe("Acme");
+    expect(map.p1.variants[0].priceAmount).toBe(1500);
+    expect(map.p1.minPrice).toEqual({ amount: 1500, currency: "usd" });
   });
 });

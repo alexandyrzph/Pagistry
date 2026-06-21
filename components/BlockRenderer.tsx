@@ -6,6 +6,8 @@ import { resolveStyles, blockHtmlId, blockHtmlClass } from "@/lib/blocks/styles"
 import { cn } from "@/lib/utils";
 import type { Block, CollectionMap, Viewport } from "@/lib/types";
 import { CollectionsProvider } from "@/components/editor/collections-context";
+import type { ProductMap } from "@/lib/commerce/product-service";
+import { ProductsProvider } from "@/components/store/products-context";
 
 // Clean, chrome-free renderer used by the live preview and the public page.
 // The editor has its own recursive renderer that adds selection/drag chrome.
@@ -140,6 +142,7 @@ export function BlockRenderer({
   animate = false,
   components = {},
   collections,
+  products,
   inlineStyles = true,
 }: {
   tree: Block[];
@@ -152,6 +155,11 @@ export function BlockRenderer({
    * the ambient editor context is inherited untouched.
    */
   collections?: CollectionMap;
+  /**
+   * Product data for any Commerce blocks. When provided, it's exposed via
+   * context for this subtree. When omitted, the ambient context is inherited.
+   */
+  products?: ProductMap;
   /**
    * When true (default) each block gets its current-viewport styles inlined.
    * When false, styling comes purely from the `.b-<id>` stylesheet (base +
@@ -176,12 +184,18 @@ export function BlockRenderer({
     </>
   );
 
-  if (!collections) return content;
+  const withProducts = products ? (
+    <ProductsProvider value={{ map: products }}>{content}</ProductsProvider>
+  ) : (
+    content
+  );
+
+  if (!collections) return withProducts;
   return (
     <CollectionsProvider
       value={{ list: Object.values(collections), map: collections, refresh: async () => {} }}
     >
-      {content}
+      {withProducts}
     </CollectionsProvider>
   );
 }
