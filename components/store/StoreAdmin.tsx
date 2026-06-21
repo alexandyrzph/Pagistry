@@ -48,7 +48,6 @@ export function StoreAdmin({
   const [store] = useState<Store>(initialStore);
   const [products, setProducts] = useState<EditableProduct[]>(initialProducts);
   const [editing, setEditing] = useState<EditableProduct | null>(null);
-  const [creating, setCreating] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
   async function reload() {
@@ -74,20 +73,16 @@ export function StoreAdmin({
     }
   }
 
-  async function createProduct() {
-    setCreating(true);
-    try {
-      const { data } = await api.post<{ product: EditableProduct }>(endpoints.products.list, {
-        title: "New product",
-      });
-      setProducts((p) => [data.product, ...p]);
-      setEditing(data.product);
-    } catch (e) {
-      const d = (axios.isAxiosError(e) ? e.response?.data : null) ?? {};
-      await alert({ title: "Couldn't create product", message: d.error || "Please try again." });
-    } finally {
-      setCreating(false);
-    }
+  function openNewProduct() {
+    setEditing({
+      id: "",
+      handle: "",
+      title: "New product",
+      description: "",
+      status: "draft",
+      variants: [{ id: "", title: "Default", priceAmount: 0, currency: "", inventory: 0 }],
+      images: [],
+    });
   }
 
   async function deleteProduct(id: string) {
@@ -112,12 +107,7 @@ export function StoreAdmin({
     <div className="mx-auto max-w-5xl px-6 py-10">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Store</h1>
-        <Button
-          variant="neutral"
-          onPress={createProduct}
-          isLoading={creating}
-          leadingIcon={<Plus size={15} />}
-        >
+        <Button variant="neutral" onPress={openNewProduct} leadingIcon={<Plus size={15} />}>
           New product
         </Button>
       </div>
@@ -207,7 +197,12 @@ export function StoreAdmin({
       <ProductEditor
         product={editing}
         onSaved={(updated) => {
-          setProducts((list) => list.map((p) => (p.id === updated.id ? updated : p)));
+          setProducts((list) => {
+            const exists = list.some((p) => p.id === updated.id);
+            return exists
+              ? list.map((p) => (p.id === updated.id ? updated : p))
+              : [updated, ...list];
+          });
           setEditing(null);
         }}
         onCancel={() => setEditing(null)}

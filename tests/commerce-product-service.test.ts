@@ -47,6 +47,31 @@ describe("POST /api/products", () => {
     );
     expect(dup.status).toBe(409);
   });
+
+  it("auto-suffixes the handle for repeated drafts with no explicit handle", async () => {
+    const ws = await prisma.workspace.create({ data: { name: "T", slug: `t2-${Date.now()}` } });
+    wsIds.push(ws.id);
+    const site = await prisma.site.create({
+      data: { workspaceId: ws.id, name: "S", handle: "s2" },
+    });
+    state.siteId = site.id;
+    const { POST } = await import("@/app/api/products/route");
+
+    const make = () =>
+      POST(
+        new Request("http://x/api/products", {
+          method: "POST",
+          body: JSON.stringify({ title: "New product" }),
+        }),
+      );
+
+    const first = await make();
+    const second = await make();
+    expect(first.status).toBe(201);
+    expect(second.status).toBe(201);
+    expect((await first.json()).product.handle).toBe("new-product");
+    expect((await second.json()).product.handle).toBe("new-product-2");
+  });
 });
 
 describe("buildProductMap", () => {

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import axios from "axios";
 import { Plus, Trash2 } from "lucide-react";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
+import { useAlert } from "@/components/ui/dialog-provider";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import {
@@ -78,6 +80,8 @@ function Editor({
   onCancel: () => void;
   onDelete: (id: string) => void;
 }) {
+  const alert = useAlert();
+  const isNew = !product.id;
   const [title, setTitle] = useState(product.title);
   const [description, setDescription] = useState(product.description);
   const [status, setStatus] = useState(product.status);
@@ -89,19 +93,34 @@ function Editor({
   async function save() {
     setSaving(true);
     try {
-      const { data } = await api.patch<{ product: EditableProduct }>(
-        endpoints.products.byId(product.id),
-        {
-          title,
-          description,
-          status,
-          variants: [
-            { id: product.variants[0]?.id, priceAmount: Math.round(price * 100), inventory },
-          ],
-          images,
-        },
-      );
-      onSaved(data.product);
+      const priceAmount = Math.round(price * 100);
+      const variantId = product.variants[0]?.id;
+      const payload = {
+        title,
+        description,
+        status,
+        variants: [{ id: variantId, priceAmount, inventory }],
+        images,
+      };
+      if (isNew) {
+        const { data } = await api.post<{ product: EditableProduct }>(
+          endpoints.products.list,
+          payload,
+        );
+        onSaved(data.product);
+      } else {
+        const { data } = await api.patch<{ product: EditableProduct }>(
+          endpoints.products.byId(product.id),
+          payload,
+        );
+        onSaved(data.product);
+      }
+    } catch (e) {
+      const d = (axios.isAxiosError(e) ? e.response?.data : null) ?? {};
+      await alert({
+        title: isNew ? "Couldn't create product" : "Couldn't save product",
+        message: d.error || "Please try again.",
+      });
     } finally {
       setSaving(false);
     }
@@ -109,7 +128,9 @@ function Editor({
 
   return (
     <>
-      <h3 className="mb-4 text-sm font-bold text-zinc-900">Edit product</h3>
+      <h3 className="mb-4 text-sm font-bold text-zinc-900">
+        {isNew ? "New product" : "Edit product"}
+      </h3>
       <div className="max-h-[60vh] space-y-3 overflow-y-auto">
         <Field label="Title">
           <TextInput value={title} onChange={setTitle} />
@@ -163,13 +184,17 @@ function Editor({
         </Field>
       </div>
       <div className="mt-5 flex items-center justify-between gap-2">
-        <Button
-          variant="danger"
-          leadingIcon={<Trash2 size={15} />}
-          onPress={() => onDelete(product.id)}
-        >
-          Delete product
-        </Button>
+        {!isNew ? (
+          <Button
+            variant="danger"
+            leadingIcon={<Trash2 size={15} />}
+            onPress={() => onDelete(product.id)}
+          >
+            Delete product
+          </Button>
+        ) : (
+          <span />
+        )}
         <div className="flex gap-2">
           <Button variant="ghost" onPress={onCancel}>
             Cancel
