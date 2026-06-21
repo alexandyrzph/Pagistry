@@ -12,7 +12,9 @@ export async function GET() {
       where: { siteId: ctx.site.id },
       orderBy: { createdAt: "asc" },
     });
-    return json(domains);
+    return json(
+      domains.map((d) => ({ ...d, dns: dnsInstructions(d.hostname, d.verificationToken) })),
+    );
   });
 }
 

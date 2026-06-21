@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Search, Menu, X, Settings } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { NAV_GROUPS } from "./nav";
 import { setSidebarCookie } from "./SidebarToggleCookie";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
 import { SidebarProfile } from "./SidebarProfile";
+import { SettingsMenu } from "./SettingsMenu";
 import { CommandPalette } from "./CommandPalette";
 
 type WS = { id: string; name: string; slug: string; role: string };
@@ -57,7 +58,8 @@ export function Sidebar({
     });
   };
   const w = collapsed ? "w-[68px]" : "w-64";
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const isActive = (href: string) =>
+    href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
   const rail = (
     <div
@@ -126,19 +128,7 @@ export function Sidebar({
         ))}
       </nav>
       <div className="space-y-1 border-t border-[#e8eaed] px-4 py-3">
-        <Link
-          href="/settings"
-          title={collapsed ? "Settings" : undefined}
-          className={cn(
-            "flex items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[13.5px] font-medium text-[#4b5563] transition-colors hover:bg-black/[0.03] hover:text-[#111827]",
-            isActive("/settings") &&
-              "border border-[#e8eaed] bg-white font-semibold text-[#111827] shadow-xs",
-            collapsed && "justify-center",
-          )}
-        >
-          <Settings size={17} />
-          {!collapsed && "Settings"}
-        </Link>
+        <SettingsMenu collapsed={collapsed} />
         <SidebarProfile collapsed={collapsed} user={user} />
       </div>
     </div>
