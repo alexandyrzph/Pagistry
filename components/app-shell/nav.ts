@@ -7,6 +7,7 @@ import {
   PanelTop,
   Inbox,
   Activity,
+  ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
 
@@ -35,6 +36,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/forms", label: "Forms", icon: Inbox },
       { href: "/activity", label: "Activity", icon: Activity },
+      { href: "/store", label: "Store", icon: ShoppingBag },
     ],
   },
 ];
