@@ -1,19 +1,30 @@
 {
 	on_demand_tls {
-		ask http://127.0.0.1:3000/api/domains/check
+		ask http://app:3000/api/domains/check
 	}
+}
+
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+{$APP_DOMAIN}, www.{$APP_DOMAIN} {
+	import security_headers
+	reverse_proxy app:3000
 }
 
 https:// {
 	tls {
 		on_demand
 	}
-	reverse_proxy 127.0.0.1:3000 {
+	import security_headers
+	reverse_proxy app:3000 {
 		header_up X-Forwarded-Host {host}
 		header_up X-Forwarded-Proto {scheme}
 	}
-}
-
-pagecraft.app, www.pagecraft.app {
-	reverse_proxy 127.0.0.1:3000
 }
