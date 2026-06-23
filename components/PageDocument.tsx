@@ -9,8 +9,8 @@ import { BlockRenderer, type ComponentMap } from "@/components/BlockRenderer";
 type PageRow = { content: string; theme: string; siteId: string };
 
 /**
- * Renders a page exactly as the public site does — shared by the public route
- * (`/p/[slug]`) and the internal screenshot route (`/internal/shot/[id]`).
+ * Renders a page exactly as the public site does — used by the public route
+ * (`/p/[slug]`).
  * Pass `animate={false}` for screenshots so the capture is the final frame.
  */
 export async function PageDocument({ page, animate = true }: { page: PageRow; animate?: boolean }) {

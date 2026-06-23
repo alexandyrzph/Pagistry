@@ -31,13 +31,12 @@ npm run dev             # http://localhost:3000
 
 ## Scripts
 
-| Command                   | Description                                                   |
-| ------------------------- | ------------------------------------------------------------- |
-| `npm run dev`             | Start the dev server                                          |
-| `npm run build`           | Production build                                              |
-| `npm run start`           | Run the production build                                      |
-| `npm test`                | Run the Vitest unit suite                                     |
-| `node scripts/verify.mjs` | Playwright end-to-end GUI smoke test (server must be running) |
+| Command         | Description               |
+| --------------- | ------------------------- |
+| `npm run dev`   | Start the dev server      |
+| `npm run build` | Production build          |
+| `npm run start` | Run the production build  |
+| `npm test`      | Run the Vitest unit suite |
 
 ## Architecture
 
