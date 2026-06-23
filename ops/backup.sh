@@ -1,5 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 set -e
+set -o pipefail
 STAMP=$(date +%Y%m%d-%H%M%S)
 DEST=/home/ubuntu/pagecraft-backups
 mkdir -p "$DEST"
