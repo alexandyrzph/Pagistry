@@ -3,13 +3,13 @@
 - **Date:** 2026-06-14
 - **Status:** Approved (design) — ready for implementation plan
 - **Owner:** Alexander
-- **Product:** Pagecraft Studio (working name — rename pending; see Branding workstream)
+- **Product:** Pagistry Studio (working name — rename pending; see Branding workstream)
 
 ---
 
 ## 1. Context
 
-Pagecraft is a polished full-stack drag-and-drop visual page builder (Next.js 16, React 19,
+Pagistry is a polished full-stack drag-and-drop visual page builder (Next.js 16, React 19,
 Tailwind v4, Prisma + SQLite, framer-motion, zustand, dnd-kit, tiptap). It already has: a
 drag-and-drop block editor on an iframe canvas, AI section/page generation, a CMS
 (collections + bindings), global header/footer, version history, a shared design system

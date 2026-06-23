@@ -166,7 +166,7 @@ export function TopBarBrand({
     <>
       <button
         onClick={goHome}
-        title="Pagecraft — all pages"
+        title="Pagistry — all pages"
         className="flex items-center rounded-lg transition-transform hover:scale-[1.04]"
       >
         <LogoMark size={30} className="rounded-lg shadow-sm ring-1 ring-black/5" />

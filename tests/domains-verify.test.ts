@@ -11,12 +11,12 @@ import { verifyDns } from "@/lib/domains/verify";
 beforeEach(() => {
   resolveTxt.mockReset();
   resolveCname.mockReset();
-  process.env.PAGECRAFT_CNAME_TARGET = "cname.pagecraft.app";
+  process.env.PAGISTRY_CNAME_TARGET = "cname.pagistry.com";
 });
 
 describe("verifyDns", () => {
   it("ok when the TXT token matches (ownership) regardless of routing", async () => {
-    resolveTxt.mockResolvedValue([["pagecraft-domain-verification=tok"]]);
+    resolveTxt.mockResolvedValue([["pagistry-domain-verification=tok"]]);
     resolveCname.mockRejectedValue(new Error("ENODATA"));
     const r = await verifyDns("acme.com", "tok");
     expect(r.ok).toBe(true);
@@ -24,7 +24,7 @@ describe("verifyDns", () => {
     expect(r.error).toBeNull();
   });
   it("fails when the TXT token mismatches", async () => {
-    resolveTxt.mockResolvedValue([["pagecraft-domain-verification=other"]]);
+    resolveTxt.mockResolvedValue([["pagistry-domain-verification=other"]]);
     const r = await verifyDns("acme.com", "tok");
     expect(r.ok).toBe(false);
     expect(r.ownership).toBe(false);
@@ -37,8 +37,8 @@ describe("verifyDns", () => {
     expect(r.error).toMatch(/ownership/i);
   });
   it("reports routing true when CNAME points at the target", async () => {
-    resolveTxt.mockResolvedValue([["pagecraft-domain-verification=tok"]]);
-    resolveCname.mockResolvedValue(["cname.pagecraft.app"]);
+    resolveTxt.mockResolvedValue([["pagistry-domain-verification=tok"]]);
+    resolveCname.mockResolvedValue(["cname.pagistry.com"]);
     const r = await verifyDns("www.acme.com", "tok");
     expect(r.routing).toBe(true);
   });

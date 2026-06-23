@@ -119,14 +119,14 @@ describe("TopBar — goHome", () => {
   it("pushes to / through confirmLeave when the brand mark is clicked", () => {
     const confirmLeave = vi.fn((a: () => void) => a());
     renderTopBar({}, confirmLeave);
-    fireEvent.click(screen.getByTitle("Pagecraft — all pages"));
+    fireEvent.click(screen.getByTitle("Pagistry — all pages"));
     expect(confirmLeave).toHaveBeenCalledTimes(1);
     expect(pushMock).toHaveBeenCalledWith("/");
   });
 
   it("does not navigate when confirmLeave swallows the action", () => {
     renderTopBar({}, () => {});
-    fireEvent.click(screen.getByTitle("Pagecraft — all pages"));
+    fireEvent.click(screen.getByTitle("Pagistry — all pages"));
     expect(pushMock).not.toHaveBeenCalled();
   });
 });

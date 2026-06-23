@@ -3,7 +3,7 @@ import { validateHostname } from "@/lib/domains/validate";
 
 describe("validateHostname", () => {
   beforeEach(() => {
-    process.env.APP_PRIMARY_HOST = "pagecraft.app";
+    process.env.APP_PRIMARY_HOST = "pagistry.com";
   });
   it("accepts a normal domain and a subdomain (normalized)", () => {
     expect(validateHostname("Acme.com")).toEqual({ hostname: "acme.com" });
@@ -12,7 +12,7 @@ describe("validateHostname", () => {
   it("rejects empty, IPs, the app host, localhost, single-label, and malformed input", () => {
     expect("error" in validateHostname("")).toBe(true);
     expect("error" in validateHostname("127.0.0.1")).toBe(true);
-    expect("error" in validateHostname("pagecraft.app")).toBe(true);
+    expect("error" in validateHostname("pagistry.com")).toBe(true);
     expect("error" in validateHostname("localhost")).toBe(true);
     expect("error" in validateHostname("nodot")).toBe(true);
     expect("error" in validateHostname("bad host.com")).toBe(true);

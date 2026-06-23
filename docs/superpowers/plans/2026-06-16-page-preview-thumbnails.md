@@ -527,7 +527,7 @@ export default async function PublicPage({ params }: { params: Promise<{ slug: s
     "@type": "WebPage",
     name: page.metaTitle || page.title,
     description: page.metaDescription || undefined,
-    url: `https://pagecraft.app/p/${slug}`,
+    url: `https://pagistry.com/p/${slug}`,
   };
 
   return (

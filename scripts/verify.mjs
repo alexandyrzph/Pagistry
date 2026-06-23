@@ -20,7 +20,7 @@ page.on("pageerror", (e) => errors.push(String(e)));
 try {
   // 1. Dashboard
   await page.goto(BASE + "/", { waitUntil: "networkidle" });
-  await page.waitForSelector("text=Pagecraft");
+  await page.waitForSelector("text=Pagistry");
   await page.screenshot({ path: OUT + "/1-dashboard.png", fullPage: true });
   log("dashboard loaded:", await page.title());
 

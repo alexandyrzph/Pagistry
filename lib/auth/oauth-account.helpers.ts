@@ -5,7 +5,7 @@ export function normalizeOAuthEmail(profile: OAuthProfile): string | null {
 }
 
 export function fallbackEmail(provider: Provider, profile: OAuthProfile): string {
-  return `${provider}-${profile.providerAccountId}@users.noreply.pagecraft.local`;
+  return `${provider}-${profile.providerAccountId}@users.noreply.pagistry.local`;
 }
 
 export function oauthDisplayName(profile: OAuthProfile): string {

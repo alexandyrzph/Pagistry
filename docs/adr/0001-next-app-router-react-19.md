@@ -5,7 +5,7 @@
 
 ## Context
 
-Pagecraft is both a public-facing product (published pages at `/p/<slug>`,
+Pagistry is both a public-facing product (published pages at `/p/<slug>`,
 CMS detail pages at `/c/<slug>/<item>`) and a rich, highly-interactive editor.
 This implies two conflicting needs:
 

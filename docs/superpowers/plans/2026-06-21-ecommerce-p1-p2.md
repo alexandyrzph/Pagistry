@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Turn a Pagecraft `Site` into a real storefront — define a product catalog, browse it on host-served `/store` pages, and take a real payment through Stripe Checkout that settles into a local `Order`.
+**Goal:** Turn a Pagistry `Site` into a real storefront — define a product catalog, browse it on host-served `/store` pages, and take a real payment through Stripe Checkout that settles into a local `Order`.
 
 **Architecture:** Commerce is enabled on a `Site` by a 1:1 `Store` satellite (`Store.siteId @unique`). Catalog/cart/order rows are **`siteId`-scoped** and resolve their workspace via `Site.workspaceId` (the foundation's `requireApiSite`). Each store-Site connects **its own** Stripe account via Connect (Standard); all Stripe calls run on that account (`{ stripeAccount }`). The local DB owns catalog + order **records**; Stripe owns **money/tax** math, mirrored back via `POST /api/webhooks/stripe`. Storefront `/store/*` routes resolve the store-Site from the request **host** (`resolveHostSite`), reusing the custom-domains layer; admin lives under `app/(app)/store/` scoped to the active site (`pc_site`).
 

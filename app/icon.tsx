@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 export const size = { width: 32, height: 32 };
 export const contentType = "image/png";
 
-// Branded favicon: the Pagecraft layout mark on the brand gradient.
+// Branded favicon: the Pagistry layout mark on the brand gradient.
 export default function Icon() {
   return new ImageResponse(
     <div

@@ -1,4 +1,4 @@
-# Pagecraft Site Cinematic Enhancement — Implementation Plan
+# Pagistry Site Cinematic Enhancement — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
@@ -6,19 +6,19 @@
 >
 > **VISUAL CRAFT NOTE:** This is a marketing site. For the presentational new sections (Phase 5: bento Features, TemplateGallery, UseCases, Comparison, FAQ), the implementing subagent SHOULD invoke the **frontend-design** skill to elevate the compiling skeletons here into distinctive, polished UI cohesive with the existing site. The motion/WebGL/showcase logic (Phases 1–4) is fully specified.
 
-**Goal:** Elevate the existing Pagecraft landing page to an award-tier, alive feel: smooth scroll, parallax depth, a WebGL hero, a pinned scroll-scrub product showcase, magnetic CTAs, and new product-focused content sections — without hurting load performance or accessibility.
+**Goal:** Elevate the existing Pagistry landing page to an award-tier, alive feel: smooth scroll, parallax depth, a WebGL hero, a pinned scroll-scrub product showcase, magnetic CTAs, and new product-focused content sections — without hurting load performance or accessibility.
 
 **Architecture:** Add GSAP+ScrollTrigger+Lenis (scroll choreography) and Three.js/R3F (WebGL hero) alongside the existing framer-motion. A `useMotionEnv` hook gates everything heavy by reduced-motion + mobile/low-power. WebGL is `ssr:false`-dynamic and lazy-mounted so the static build and LCP are unaffected.
 
 **Tech Stack:** Next 16 (App Router, Turbopack), React 19.2, Tailwind v4, Untitled UI, framer-motion 12, **gsap 3.15 + @gsap/react + gsap/ScrollTrigger**, **lenis 1.3 (`lenis/react`)**, **three + @react-three/fiber 9 + @react-three/drei 10**.
 
-**Spec:** `docs/superpowers/specs/2026-06-20-pagecraft-site-enhancement-design.md` (dnd-pagebuilder repo).
+**Spec:** `docs/superpowers/specs/2026-06-20-pagistry-site-enhancement-design.md` (dnd-pagebuilder repo).
 
-**CRITICAL — this builds in the EXTERNAL repo `~/Desktop/projects/pagecraft-site`.** Every npm/git command runs there: start each Bash command with `cd ~/Desktop/projects/pagecraft-site`. The project is **`src/`-based** (`@/` → `./src`). className util is **`cx` from `@/utils/cx`**. Brand tokens are UU violet (`bg-brand-600`, etc.). framer-motion, content (`@/lib/content`), and the existing sections + `EditorMock` already exist.
+**CRITICAL — this builds in the EXTERNAL repo `~/Desktop/projects/pagistry-site`.** Every npm/git command runs there: start each Bash command with `cd ~/Desktop/projects/pagistry-site`. The project is **`src/`-based** (`@/` → `./src`). className util is **`cx` from `@/utils/cx`**. Brand tokens are UU violet (`bg-brand-600`, etc.). framer-motion, content (`@/lib/content`), and the existing sections + `EditorMock` already exist.
 
 ---
 
-## File Structure (created/modified in `~/Desktop/projects/pagecraft-site`)
+## File Structure (created/modified in `~/Desktop/projects/pagistry-site`)
 
 **Create:**
 
@@ -50,7 +50,7 @@
 - [ ] **Step 1: Install deps**
 
 ```bash
-cd ~/Desktop/projects/pagecraft-site
+cd ~/Desktop/projects/pagistry-site
 npm install gsap @gsap/react lenis three @react-three/fiber @react-three/drei
 npm install -D @types/three
 ```
@@ -201,7 +201,7 @@ In `src/components/sections/Stats.tsx`, import `useParallax` and attach its ref 
 - [ ] **Step 7: Verify & commit**
 
 ```bash
-cd ~/Desktop/projects/pagecraft-site
+cd ~/Desktop/projects/pagistry-site
 npx tsc --noEmit            # expect 0 errors
 npm run build               # expect success (static build green)
 git add -A && git commit -m "feat(motion): Lenis+GSAP smooth scroll, motion-env gating, parallax helper"
@@ -354,7 +354,7 @@ export function HeroBackdrop() {
 - [ ] **Step 5: Verify & commit**
 
 ```bash
-cd ~/Desktop/projects/pagecraft-site
+cd ~/Desktop/projects/pagistry-site
 npx tsc --noEmit            # 0 errors
 npm run build               # MUST stay green — the WebGL is ssr:false dynamic, so it must not appear in the static/server bundle
 git add -A && git commit -m "feat(webgl): R3F hero backdrop (drifting blocks) + static fallback + 3D-tilt mock"
@@ -439,7 +439,7 @@ export function ProductShowcase() {
     return (
       <section className="mx-auto max-w-7xl px-6 py-24">
         <h2 className="text-center text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-          How Pagecraft is different
+          How Pagistry is different
         </h2>
         <div className="mt-12 grid gap-10 lg:grid-cols-2">
           <div className="space-y-8">
@@ -465,7 +465,7 @@ export function ProductShowcase() {
         <div className="mx-auto grid w-full max-w-7xl gap-12 px-6 lg:grid-cols-2">
           <div className="flex flex-col justify-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              How Pagecraft is different
+              How Pagistry is different
             </h2>
             <div className="relative mt-8 h-44">
               {SHOWCASE_STEPS.map((s, i) => (
@@ -513,7 +513,7 @@ Note: the pinned wrapper gives the section a scroll length of `steps * 100%`; `o
 - [ ] **Step 3: Verify & commit**
 
 ```bash
-cd ~/Desktop/projects/pagecraft-site
+cd ~/Desktop/projects/pagistry-site
 npx tsc --noEmit            # 0 errors
 npm run build               # green
 git add -A && git commit -m "feat(section): pinned scroll-scrub Product Showcase (+ reduced-motion fallback)"
@@ -580,7 +580,7 @@ In `src/components/sections/Testimonials.tsx`, make it `"use client"`, import `u
 - [ ] **Step 3: Verify & commit**
 
 ```bash
-cd ~/Desktop/projects/pagecraft-site
+cd ~/Desktop/projects/pagistry-site
 npx tsc --noEmit && npm run build
 git add -A && git commit -m "feat(motion): magnetic CTAs + testimonials parallax"
 ```
@@ -633,21 +633,21 @@ export const USE_CASES: UseCase[] = [
   },
 ];
 
-export type CompareRow = { feature: string; pagecraft: boolean; code: boolean; builders: boolean };
+export type CompareRow = { feature: string; pagistry: boolean; code: boolean; builders: boolean };
 export const COMPARISON: CompareRow[] = [
-  { feature: "No code required", pagecraft: true, code: false, builders: true },
-  { feature: "Pixel-level control", pagecraft: true, code: true, builders: false },
-  { feature: "Per-breakpoint design", pagecraft: true, code: true, builders: false },
-  { feature: "Built-in CMS", pagecraft: true, code: false, builders: false },
-  { feature: "One-click publish", pagecraft: true, code: false, builders: true },
-  { feature: "Own your markup", pagecraft: true, code: true, builders: false },
+  { feature: "No code required", pagistry: true, code: false, builders: true },
+  { feature: "Pixel-level control", pagistry: true, code: true, builders: false },
+  { feature: "Per-breakpoint design", pagistry: true, code: true, builders: false },
+  { feature: "Built-in CMS", pagistry: true, code: false, builders: false },
+  { feature: "One-click publish", pagistry: true, code: false, builders: true },
+  { feature: "Own your markup", pagistry: true, code: true, builders: false },
 ];
 
 export type Faq = { q: string; a: string };
 export const FAQ: Faq[] = [
   {
     q: "Do I need to know how to code?",
-    a: "No. Pagecraft is fully visual — but you still get clean, fast output and pixel-level control.",
+    a: "No. Pagistry is fully visual — but you still get clean, fast output and pixel-level control.",
   },
   {
     q: "Can I use my own domain?",
@@ -655,7 +655,7 @@ export const FAQ: Faq[] = [
   },
   {
     q: "Is there a free plan?",
-    a: "Yes — build and publish one site for free on a Pagecraft subdomain, forever.",
+    a: "Yes — build and publish one site for free on a Pagistry subdomain, forever.",
   },
   {
     q: "Can my whole team edit?",
@@ -779,7 +779,7 @@ export function Comparison() {
       <div className="mx-auto max-w-4xl px-6">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Why Pagecraft
+            Why Pagistry
           </h2>
         </div>
         <div className="mt-12 overflow-hidden rounded-2xl border border-gray-200 bg-white">
@@ -787,7 +787,7 @@ export function Comparison() {
             <thead>
               <tr className="border-b border-gray-200 text-gray-500">
                 <th className="p-4 text-left font-medium">Feature</th>
-                <th className="p-4 font-semibold text-brand-600">Pagecraft</th>
+                <th className="p-4 font-semibold text-brand-600">Pagistry</th>
                 <th className="p-4 font-medium">Hand-coding</th>
                 <th className="p-4 font-medium">Other builders</th>
               </tr>
@@ -796,7 +796,7 @@ export function Comparison() {
               {COMPARISON.map((r) => (
                 <tr key={r.feature} className="border-b border-gray-100 last:border-0">
                   <td className="p-4 font-medium text-gray-800">{r.feature}</td>
-                  <td className="p-4 text-center">{cell(r.pagecraft)}</td>
+                  <td className="p-4 text-center">{cell(r.pagistry)}</td>
                   <td className="p-4 text-center">{cell(r.code)}</td>
                   <td className="p-4 text-center">{cell(r.builders)}</td>
                 </tr>
@@ -887,7 +887,7 @@ export default function Home() {
 - [ ] **Step 5: Verify & commit**
 
 ```bash
-cd ~/Desktop/projects/pagecraft-site
+cd ~/Desktop/projects/pagistry-site
 npx tsc --noEmit && npm run build
 git add -A && git commit -m "feat(sections): bento Features, TemplateGallery, UseCases, Comparison, FAQ; recompose page"
 ```

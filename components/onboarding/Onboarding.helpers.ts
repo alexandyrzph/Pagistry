@@ -17,7 +17,7 @@ export const slide = {
 };
 
 export function buildSteps(name: string): Step[] {
-  const first = name ? `Welcome, ${name.split(" ")[0]}!` : "Welcome to Pagecraft!";
+  const first = name ? `Welcome, ${name.split(" ")[0]}!` : "Welcome to Pagistry!";
 
   return [
     {
@@ -26,7 +26,7 @@ export function buildSteps(name: string): Step[] {
       bg: "from-indigo-50 via-white to-violet-50",
       eyebrow: "Hello there",
       title: first,
-      body: "Pagecraft is your visual studio for building, publishing and shipping beautiful pages — no code required. Let's take a quick tour.",
+      body: "Pagistry is your visual studio for building, publishing and shipping beautiful pages — no code required. Let's take a quick tour.",
       chips: ["Drag & drop", "Responsive", "Publish anywhere"],
     },
     {

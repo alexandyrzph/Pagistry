@@ -19,7 +19,7 @@
 - **Gate (before every commit):** `npx tsc --noEmit` && `npx vitest run` && `npx eslint .` && `npx prettier --check .`. Not `next build` while `next dev` runs.
 - **Code style:** no `eslint-disable`, no `any`/`as any`/`!`, **no explanatory/justification comments**; match existing style (double quotes, semicolons, 2-space).
 - **Client HTTP** via `lib/api/client` (`api`) with paths from `lib/api/endpoints.ts`. (The ask-endpoint is called by Caddy server-to-server, not the axios client, but still registered.)
-- **New env:** `APP_PRIMARY_HOST` (the app's own host, e.g. `pagecraft.app`; defaults to `localhost` in dev), `PAGECRAFT_CNAME_TARGET` (the CNAME the customer points `www` at; defaults to `cname.pagecraft.app`). Commit `prisma/dev.db` is excluded from every commit (`git reset -q -- prisma/dev.db .idea`).
+- **New env:** `APP_PRIMARY_HOST` (the app's own host, e.g. `pagistry.com`; defaults to `localhost` in dev), `PAGISTRY_CNAME_TARGET` (the CNAME the customer points `www` at; defaults to `cname.pagistry.com`). Commit `prisma/dev.db` is excluded from every commit (`git reset -q -- prisma/dev.db .idea`).
 
 ---
 
@@ -149,11 +149,11 @@ describe("normalizeHost", () => {
 
 describe("isAppHost", () => {
   beforeEach(() => {
-    process.env.APP_PRIMARY_HOST = "pagecraft.app";
+    process.env.APP_PRIMARY_HOST = "pagistry.com";
   });
   it("treats the configured app host (and its www), localhost, and empty as app hosts", () => {
-    expect(isAppHost("pagecraft.app")).toBe(true);
-    expect(isAppHost("www.pagecraft.app")).toBe(true);
+    expect(isAppHost("pagistry.com")).toBe(true);
+    expect(isAppHost("www.pagistry.com")).toBe(true);
     expect(isAppHost("localhost:3000")).toBe(true);
     expect(isAppHost("127.0.0.1")).toBe(true);
     expect(isAppHost("")).toBe(true);
@@ -185,19 +185,19 @@ describe("customDomainRewrite", () => {
 
 describe("dnsInstructions", () => {
   beforeEach(() => {
-    process.env.PAGECRAFT_CNAME_TARGET = "cname.pagecraft.app";
+    process.env.PAGISTRY_CNAME_TARGET = "cname.pagistry.com";
   });
   it("builds the ownership TXT and a CNAME for a subdomain", () => {
     const i = dnsInstructions("www.acme.com", "tok123");
     expect(i.ownership).toEqual({
-      record: "_pagecraft-verify.www.acme.com",
+      record: "_pagistry-verify.www.acme.com",
       type: "TXT",
-      value: "pagecraft-domain-verification=tok123",
+      value: "pagistry-domain-verification=tok123",
     });
     expect(i.routing).toEqual({
       record: "www.acme.com",
       type: "CNAME",
-      value: "cname.pagecraft.app",
+      value: "cname.pagistry.com",
     });
   });
   it("uses an A record for an apex domain", () => {
@@ -248,18 +248,18 @@ export function customDomainRewrite(pathname: string): string | null {
 
 export function dnsInstructions(hostname: string, token: string) {
   const isApex = hostname.split(".").length <= 2;
-  const cnameTarget = process.env.PAGECRAFT_CNAME_TARGET || "cname.pagecraft.app";
+  const cnameTarget = process.env.PAGISTRY_CNAME_TARGET || "cname.pagistry.com";
   return {
     ownership: {
-      record: `_pagecraft-verify.${hostname}`,
+      record: `_pagistry-verify.${hostname}`,
       type: "TXT" as const,
-      value: `pagecraft-domain-verification=${token}`,
+      value: `pagistry-domain-verification=${token}`,
     },
     routing: isApex
       ? {
           record: hostname,
           type: "A" as const,
-          value: process.env.PAGECRAFT_SERVER_IP || "<server-ip>",
+          value: process.env.PAGISTRY_SERVER_IP || "<server-ip>",
         }
       : { record: hostname, type: "CNAME" as const, value: cnameTarget },
   };
@@ -301,7 +301,7 @@ import { validateHostname } from "@/lib/domains/validate";
 
 describe("validateHostname", () => {
   beforeEach(() => {
-    process.env.APP_PRIMARY_HOST = "pagecraft.app";
+    process.env.APP_PRIMARY_HOST = "pagistry.com";
   });
   it("accepts a normal domain and a subdomain (normalized)", () => {
     expect(validateHostname("Acme.com")).toEqual({ hostname: "acme.com" });
@@ -310,7 +310,7 @@ describe("validateHostname", () => {
   it("rejects empty, IPs, the app host, localhost, single-label, and malformed input", () => {
     expect("error" in validateHostname("")).toBe(true);
     expect("error" in validateHostname("127.0.0.1")).toBe(true);
-    expect("error" in validateHostname("pagecraft.app")).toBe(true);
+    expect("error" in validateHostname("pagistry.com")).toBe(true);
     expect("error" in validateHostname("localhost")).toBe(true);
     expect("error" in validateHostname("nodot")).toBe(true);
     expect("error" in validateHostname("bad host.com")).toBe(true);
@@ -383,12 +383,12 @@ import { verifyDns } from "@/lib/domains/verify";
 beforeEach(() => {
   resolveTxt.mockReset();
   resolveCname.mockReset();
-  process.env.PAGECRAFT_CNAME_TARGET = "cname.pagecraft.app";
+  process.env.PAGISTRY_CNAME_TARGET = "cname.pagistry.com";
 });
 
 describe("verifyDns", () => {
   it("ok when the TXT token matches (ownership) regardless of routing", async () => {
-    resolveTxt.mockResolvedValue([["pagecraft-domain-verification=tok"]]);
+    resolveTxt.mockResolvedValue([["pagistry-domain-verification=tok"]]);
     resolveCname.mockRejectedValue(new Error("ENODATA"));
     const r = await verifyDns("acme.com", "tok");
     expect(r.ok).toBe(true);
@@ -396,7 +396,7 @@ describe("verifyDns", () => {
     expect(r.error).toBeNull();
   });
   it("fails when the TXT token mismatches", async () => {
-    resolveTxt.mockResolvedValue([["pagecraft-domain-verification=other"]]);
+    resolveTxt.mockResolvedValue([["pagistry-domain-verification=other"]]);
     const r = await verifyDns("acme.com", "tok");
     expect(r.ok).toBe(false);
     expect(r.ownership).toBe(false);
@@ -409,8 +409,8 @@ describe("verifyDns", () => {
     expect(r.error).toMatch(/ownership/i);
   });
   it("reports routing true when CNAME points at the target", async () => {
-    resolveTxt.mockResolvedValue([["pagecraft-domain-verification=tok"]]);
-    resolveCname.mockResolvedValue(["cname.pagecraft.app"]);
+    resolveTxt.mockResolvedValue([["pagistry-domain-verification=tok"]]);
+    resolveCname.mockResolvedValue(["cname.pagistry.com"]);
     const r = await verifyDns("www.acme.com", "tok");
     expect(r.routing).toBe(true);
   });
@@ -430,10 +430,10 @@ export async function verifyDns(
   hostname: string,
   token: string,
 ): Promise<{ ok: boolean; ownership: boolean; routing: boolean; error: string | null }> {
-  const expected = `pagecraft-domain-verification=${token}`;
+  const expected = `pagistry-domain-verification=${token}`;
   let ownership = false;
   try {
-    const records = await resolveTxt(`_pagecraft-verify.${hostname}`);
+    const records = await resolveTxt(`_pagistry-verify.${hostname}`);
     ownership = records.some((parts) => parts.join("").includes(expected));
   } catch {
     ownership = false;
@@ -441,7 +441,7 @@ export async function verifyDns(
 
   let routing = false;
   try {
-    const target = (process.env.PAGECRAFT_CNAME_TARGET || "cname.pagecraft.app").toLowerCase();
+    const target = (process.env.PAGISTRY_CNAME_TARGET || "cname.pagistry.com").toLowerCase();
     const cnames = await resolveCname(hostname);
     routing = cnames.some((c) => c.toLowerCase().replace(/\.$/, "") === target);
   } catch {
@@ -965,7 +965,7 @@ export default async function PublicPage({ params }: { params: Promise<{ slug: s
 }
 ```
 
-(This drops the hardcoded `https://pagecraft.app` JSON-LD block — the canonical/OG-by-primary-domain work is explicitly P2. Removing the stale hardcoded URL now is correct; re-adding a host-correct one is the P2 task.)
+(This drops the hardcoded `https://pagistry.com` JSON-LD block — the canonical/OG-by-primary-domain work is explicitly P2. Removing the stale hardcoded URL now is correct; re-adding a host-correct one is the P2 task.)
 
 - [ ] **Step 3: Host-scope `app/c/[slug]/[item]/page.tsx`**
 
@@ -1030,7 +1030,7 @@ https:// {
 	}
 }
 
-pagecraft.app, www.pagecraft.app {
+pagistry.com, www.pagistry.com {
 	reverse_proxy 127.0.0.1:3000
 }
 ```
@@ -1063,7 +1063,7 @@ git commit -m "docs(domains): Caddy on-demand-TLS reverse-proxy config"
 ## Out of scope (follow-up plans)
 
 - **Domains settings UI (P1.5):** the per-site add/verify/remove/set-primary page (consumes `endpoints.domains.*`). Deferred so P1 stays backend + routing (fully unit-testable); domains are managed via the API until then.
-- **P2 — canonicalization & polish:** `isPrimary` + apex↔www `308` redirects, multiple domains per site, host-correct canonical/OG/JSON-LD (replacing the dropped hardcoded `pagecraft.app`), periodic re-verification cron, status-poll UI.
+- **P2 — canonicalization & polish:** `isPrimary` + apex↔www `308` redirects, multiple domains per site, host-correct canonical/OG/JSON-LD (replacing the dropped hardcoded `pagistry.com`), periodic re-verification cron, status-poll UI.
 - **P3:** wildcard/DNS-01 domains, per-domain analytics, billing limits.
 
 ---

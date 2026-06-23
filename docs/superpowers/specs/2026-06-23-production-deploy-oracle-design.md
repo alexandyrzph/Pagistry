@@ -76,7 +76,7 @@ Persistent volumes:
   - *runner* stage: copy standalone output + static + public; **install `playwright` and run `playwright install --with-deps chromium`** — Playwright is currently a **devDependency** but `lib/thumbnails/screenshot.ts` imports it at runtime, so the runner image must include it + Chromium + system libs. `--no-sandbox` is already passed in code.
   - Entrypoint runs `prisma migrate deploy` then starts the standalone server.
 - **B2. docker-compose.yml.** Services: `caddy`, `app`, `postgres`. Healthchecks (app → `/api/internal/health`, postgres → `pg_isready`), `restart: unless-stopped`, named volumes (`pg_data`, `uploads`, `caddy_data`), internal network, `depends_on` ordering.
-- **B3. Parameterize Caddyfile.** Replace hardcoded `pagecraft.app` with an env-driven domain (Caddy env-var substitution) so the same file works for any domain. Keep the existing `on_demand_tls` → `/api/domains/check` block for customer custom domains.
+- **B3. Parameterize Caddyfile.** Replace hardcoded `pagistry.com` with an env-driven domain (Caddy env-var substitution) so the same file works for any domain. Keep the existing `on_demand_tls` → `/api/domains/check` block for customer custom domains.
 
 ### C. Provisioning & go-live (runbook)
 

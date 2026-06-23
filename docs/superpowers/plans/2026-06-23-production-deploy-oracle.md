@@ -43,17 +43,17 @@ git checkout -b feat/production-deploy
 - [ ] **Step 2: Start a local Postgres for development**
 
 ```bash
-docker run -d --name pagecraft-pg -e POSTGRES_USER=pagecraft -e POSTGRES_PASSWORD=devpw -e POSTGRES_DB=pagecraft -p 5432:5432 postgres:16
+docker run -d --name pagistry-pg -e POSTGRES_USER=pagistry -e POSTGRES_PASSWORD=devpw -e POSTGRES_DB=pagistry -p 5432:5432 postgres:16
 ```
 
-Expected: prints a container id; `docker ps` shows `pagecraft-pg` up.
+Expected: prints a container id; `docker ps` shows `pagistry-pg` up.
 
 - [ ] **Step 3: Point local env at Postgres**
 
 In `.env`, replace the `DATABASE_URL=...` line with:
 
 ```
-DATABASE_URL="postgresql://pagecraft:devpw@localhost:5432/pagecraft"
+DATABASE_URL="postgresql://pagistry:devpw@localhost:5432/pagistry"
 ```
 
 - [ ] **Step 4: Flip the Prisma provider**
@@ -336,7 +336,7 @@ import { Resend } from "resend";
 import { passwordResetEmail, workspaceInviteEmail } from "@/lib/email/messages";
 import { logger } from "@/lib/observability";
 
-const FROM = process.env.EMAIL_FROM || "Pagecraft <onboarding@resend.dev>";
+const FROM = process.env.EMAIL_FROM || "Pagistry <onboarding@resend.dev>";
 
 function client(): Resend | null {
   const key = process.env.RESEND_API_KEY;
@@ -662,7 +662,7 @@ CMD ["./docker/entrypoint.sh"]
 
 - [ ] **Step 4: Build the image**
 
-Run: `docker build -t pagecraft-app .`
+Run: `docker build -t pagistry-app .`
 Expected: build completes; final stage logs Chromium install. (First build is slow — Chromium + deps.)
 
 - [ ] **Step 5: Commit**
@@ -702,7 +702,7 @@ METRICS_TOKEN=
 
 # Email (Resend) — from address must be on your verified domain.
 RESEND_API_KEY=
-EMAIL_FROM="Pagecraft <no-reply@example.com>"
+EMAIL_FROM="Pagistry <no-reply@example.com>"
 
 # AI (optional)
 ANTHROPIC_API_KEY=
@@ -723,13 +723,13 @@ services:
     image: postgres:16
     restart: unless-stopped
     environment:
-      POSTGRES_USER: pagecraft
+      POSTGRES_USER: pagistry
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: pagecraft
+      POSTGRES_DB: pagistry
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pagecraft"]
+      test: ["CMD-SHELL", "pg_isready -U pagistry"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -739,7 +739,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://pagecraft:${POSTGRES_PASSWORD}@postgres:5432/pagecraft
+      DATABASE_URL: postgresql://pagistry:${POSTGRES_PASSWORD}@postgres:5432/pagistry
     depends_on:
       postgres:
         condition: service_healthy
@@ -935,7 +935,7 @@ Expected: containers removed; named volumes persist. No commit (verification onl
 - [ ] **Step 1: Get the code onto the VM.**
 
   ```bash
-  git clone <your-repo-url> pagecraft && cd pagecraft
+  git clone <your-repo-url> pagistry && cd pagistry
   git checkout feat/production-deploy
   ```
 
@@ -1006,28 +1006,28 @@ Expected: containers removed; named volumes persist. No commit (verification onl
 #!/bin/sh
 set -e
 STAMP=$(date +%Y%m%d-%H%M%S)
-DEST=/home/ubuntu/pagecraft-backups
+DEST=/home/ubuntu/pagistry-backups
 mkdir -p "$DEST"
-docker compose -f /home/ubuntu/pagecraft/docker-compose.yml exec -T postgres \
-  pg_dump -U pagecraft pagecraft | gzip > "$DEST/pagecraft-$STAMP.sql.gz"
+docker compose -f /home/ubuntu/pagistry/docker-compose.yml exec -T postgres \
+  pg_dump -U pagistry pagistry | gzip > "$DEST/pagistry-$STAMP.sql.gz"
 # Keep the 14 most recent.
-ls -1t "$DEST"/pagecraft-*.sql.gz | tail -n +15 | xargs -r rm --
+ls -1t "$DEST"/pagistry-*.sql.gz | tail -n +15 | xargs -r rm --
 ```
 
 - [ ] **Step 2: Make it executable and schedule it (on the VM)**
 
 ```bash
 chmod +x ops/backup.sh
-( crontab -l 2>/dev/null; echo "30 3 * * * /home/ubuntu/pagecraft/ops/backup.sh >> /home/ubuntu/backup.log 2>&1" ) | crontab -
+( crontab -l 2>/dev/null; echo "30 3 * * * /home/ubuntu/pagistry/ops/backup.sh >> /home/ubuntu/backup.log 2>&1" ) | crontab -
 ```
 
 - [ ] **Step 3: Verify a backup runs and is non-empty**
 
 ```bash
-/home/ubuntu/pagecraft/ops/backup.sh && ls -lh /home/ubuntu/pagecraft-backups
+/home/ubuntu/pagistry/ops/backup.sh && ls -lh /home/ubuntu/pagistry-backups
 ```
 
-Expected: a `pagecraft-<stamp>.sql.gz` file with non-zero size.
+Expected: a `pagistry-<stamp>.sql.gz` file with non-zero size.
 
 - [ ] **Step 4: Commit the script**
 

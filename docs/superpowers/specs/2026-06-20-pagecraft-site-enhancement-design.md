@@ -1,8 +1,8 @@
-# Design: Pagecraft marketing site — "make it feel alive" enhancement
+# Design: Pagistry marketing site — "make it feel alive" enhancement
 
 **Date:** 2026-06-20
 **Status:** Approved (design) — pending implementation plan
-**Scope:** Enhance the existing standalone Pagecraft marketing site at **`~/Desktop/projects/pagecraft-site`** with cinematic scroll interactions, WebGL, richer motion, and new product-focused content sections. Planning artifacts live in the dnd-pagebuilder repo's `docs/superpowers/`; all code changes happen in the external `pagecraft-site` repo.
+**Scope:** Enhance the existing standalone Pagistry marketing site at **`~/Desktop/projects/pagistry-site`** with cinematic scroll interactions, WebGL, richer motion, and new product-focused content sections. Planning artifacts live in the dnd-pagebuilder repo's `docs/superpowers/`; all code changes happen in the external `pagistry-site` repo.
 
 ## Goal
 
@@ -24,12 +24,12 @@ Take the existing, already-shipped landing page from "clean but generic" to a di
 
 ## Non-goals (YAGNI)
 
-- No backend/CMS/auth (unchanged from the base site). CTAs keep linking to `app.pagecraft.dev/*` placeholders.
+- No backend/CMS/auth (unchanged from the base site). CTAs keep linking to `app.pagistry.dev/*` placeholders.
 - No multi-page expansion (still a single `/`).
 - No tests for sections.
 - No real template/screenshot assets required — template gallery uses stylized CSS/placeholder thumbnails (consistent with the bespoke editor mock).
 
-## Architecture (in `~/Desktop/projects/pagecraft-site`, `src/`-based, `@/` → `./src`)
+## Architecture (in `~/Desktop/projects/pagistry-site`, `src/`-based, `@/` → `./src`)
 
 ### Motion foundation
 
@@ -53,11 +53,11 @@ Take the existing, already-shipped landing page from "clean but generic" to a di
 
 | Section                              | What it is                                                                                                                                                              |
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ProductShowcase` (new, centerpiece) | Pinned, scroll-scrubbed walkthrough of how Pagecraft is different (visual builder vs code → per-breakpoint → CMS binding → one-click publish), pinning the editor mock. |
+| `ProductShowcase` (new, centerpiece) | Pinned, scroll-scrubbed walkthrough of how Pagistry is different (visual builder vs code → per-breakpoint → CMS binding → one-click publish), pinning the editor mock. |
 | `Features` (rework → bento)          | Asymmetric **bento grid** of varied tile sizes; one tile holds a mini live demo (small animated block/cursor). Replaces the uniform 3-col grid.                         |
 | `TemplateGallery` (new)              | Two horizontal rows of stylized template thumbnails scrolling in opposite directions on scroll (parallax marquee).                                                      |
 | `UseCases` (new)                     | Persona/outcome cards or tabs: Landing pages · Portfolios · SaaS sites · Blogs.                                                                                         |
-| `Comparison` (new)                   | A clean check-grid: Pagecraft vs hand-coding vs other builders — decision-grade differentiation.                                                                        |
+| `Comparison` (new)                   | A clean check-grid: Pagistry vs hand-coding vs other builders — decision-grade differentiation.                                                                        |
 | `FAQ` (new)                          | Accordion built on the UU/react-aria Disclosure pattern.                                                                                                                |
 | Hero (enhance)                       | WebGL backdrop (`HeroScene`) + 3D-tilt product card + parallax.                                                                                                         |
 | Stats, Testimonials (enhance)        | Parallax + scrub-reveal. LogoCloud, Pricing, FinalCTA, Footer kept (light parallax where tasteful).                                                                     |

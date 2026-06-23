@@ -40,7 +40,7 @@ export function SeoPanel() {
             </div>
           )}
           <div className="space-y-1 border-t border-zinc-100 bg-white px-3 py-2.5">
-            <p className="text-[10px] uppercase tracking-wide text-zinc-400">pagecraft.app</p>
+            <p className="text-[10px] uppercase tracking-wide text-zinc-400">pagistry.com</p>
             <p className="truncate text-sm font-semibold text-zinc-800">{seo.metaTitle || title}</p>
             <p className="line-clamp-2 text-xs text-zinc-500">
               {seo.metaDescription ||

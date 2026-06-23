@@ -11,11 +11,11 @@ describe("normalizeHost", () => {
 
 describe("isAppHost", () => {
   beforeEach(() => {
-    process.env.APP_PRIMARY_HOST = "pagecraft.app";
+    process.env.APP_PRIMARY_HOST = "pagistry.com";
   });
   it("treats the configured app host (and its www), localhost, and empty as app hosts", () => {
-    expect(isAppHost("pagecraft.app")).toBe(true);
-    expect(isAppHost("www.pagecraft.app")).toBe(true);
+    expect(isAppHost("pagistry.com")).toBe(true);
+    expect(isAppHost("www.pagistry.com")).toBe(true);
     expect(isAppHost("localhost:3000")).toBe(true);
     expect(isAppHost("127.0.0.1")).toBe(true);
     expect(isAppHost("")).toBe(true);
@@ -53,19 +53,19 @@ describe("customDomainRewrite", () => {
 
 describe("dnsInstructions", () => {
   beforeEach(() => {
-    process.env.PAGECRAFT_CNAME_TARGET = "cname.pagecraft.app";
+    process.env.PAGISTRY_CNAME_TARGET = "cname.pagistry.com";
   });
   it("builds the ownership TXT and a CNAME for a subdomain", () => {
     const i = dnsInstructions("www.acme.com", "tok123");
     expect(i.ownership).toEqual({
-      record: "_pagecraft-verify.www.acme.com",
+      record: "_pagistry-verify.www.acme.com",
       type: "TXT",
-      value: "pagecraft-domain-verification=tok123",
+      value: "pagistry-domain-verification=tok123",
     });
     expect(i.routing).toEqual({
       record: "www.acme.com",
       type: "CNAME",
-      value: "cname.pagecraft.app",
+      value: "cname.pagistry.com",
     });
   });
   it("uses an A record for an apex domain", () => {

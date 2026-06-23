@@ -244,7 +244,7 @@ export function AuthFooter({ mode }: { mode: Mode }) {
     <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
       {mode === "login" && (
         <>
-          New to Pagecraft?{" "}
+          New to Pagistry?{" "}
           <Link
             href="/signup"
             className="font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"

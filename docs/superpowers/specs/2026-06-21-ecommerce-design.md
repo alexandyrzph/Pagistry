@@ -1,4 +1,4 @@
-# Design: E-commerce (Stripe-native commerce on the Pagecraft page builder)
+# Design: E-commerce (Stripe-native commerce on the Pagistry page builder)
 
 **Date:** 2026-06-21
 **Status:** Draft (design) — pending implementation plans (this spec spawns several)
@@ -12,7 +12,7 @@ This is a LARGE feature. The spec defines the target architecture and data model
 
 ### Goal
 
-Let a workspace turn one of its Pagecraft **sites** into a real storefront: enable commerce on a `Site`, define a product catalog (with variants, images, inventory), drop product/grid/cart/checkout blocks onto that site's pages the same way the `collection` block works today, and take real payments through Stripe — with tax, shipping, discounts, and multi-currency handled correctly. Orders, inventory, and catalog are mirrored locally and scoped to the store-site; Stripe owns money and tax.
+Let a workspace turn one of its Pagistry **sites** into a real storefront: enable commerce on a `Site`, define a product catalog (with variants, images, inventory), drop product/grid/cart/checkout blocks onto that site's pages the same way the `collection` block works today, and take real payments through Stripe — with tax, shipping, discounts, and multi-currency handled correctly. Orders, inventory, and catalog are mirrored locally and scoped to the store-site; Stripe owns money and tax.
 
 ### What each phase includes (summary; full detail in §9)
 
@@ -54,14 +54,14 @@ We mirror just enough catalog (`Product`/`ProductVariant`) into Stripe (`Product
 
 ### Per-store-site Stripe Connect (LOCKED)
 
-Each store-`Site` connects **its own** Stripe account via **Stripe Connect (Standard or Express)**. Funds settle to the merchant's account; the platform (Pagecraft) is the application. Because commerce is per-site, a workspace with two store-sites has two connected accounts — one per `Store`. Concretely:
+Each store-`Site` connects **its own** Stripe account via **Stripe Connect (Standard or Express)**. Funds settle to the merchant's account; the platform (Pagistry) is the application. Because commerce is per-site, a workspace with two store-sites has two connected accounts — one per `Store`. Concretely:
 
 - Store a `stripeAccountId` (the connected account, `acct_…`) on the store-site's `Store` row (`Store.siteId @unique`).
 - All Stripe API calls for that store run **on behalf of the connected account** — via the `Stripe-Account` header (`stripeAccount` request option) for Standard, so products, prices, checkout sessions, and webhooks all belong to the merchant.
-- Use **direct charges** on the connected account (simplest for Standard; the merchant is the merchant of record). An `application_fee_percent`/`application_fee_amount` can be attached if Pagecraft ever monetizes transactions; default 0 for P1–P4.
+- Use **direct charges** on the connected account (simplest for Standard; the merchant is the merchant of record). An `application_fee_percent`/`application_fee_amount` can be attached if Pagistry ever monetizes transactions; default 0 for P1–P4.
 - Onboarding uses **Account Links** (hosted onboarding) to collect KYC; we never see banking details.
 
-**Standard vs Express:** Standard is the default — the merchant owns a full Stripe dashboard, handles their own disputes/payouts, and Pagecraft stays thin. Express is the fallback if we later want to embed payouts/dashboards inside Pagecraft. The data model is identical (`stripeAccountId`); only the onboarding flow and dashboard ownership differ. Start with Standard.
+**Standard vs Express:** Standard is the default — the merchant owns a full Stripe dashboard, handles their own disputes/payouts, and Pagistry stays thin. Express is the fallback if we later want to embed payouts/dashboards inside Pagistry. The data model is identical (`stripeAccountId`); only the onboarding flow and dashboard ownership differ. Start with Standard.
 
 ### Alternative considered: Medusa v2 (DEFERRED)
 
@@ -171,7 +171,7 @@ model ProductImage {
 }
 ```
 
-Reuses the existing `Asset` model + `/api/upload` + `AssetPicker`. `url` is denormalized so the storefront renders without a join (same trade Pagecraft already makes elsewhere). Images can be pushed to the Stripe Product `images[]` so Checkout shows them.
+Reuses the existing `Asset` model + `/api/upload` + `AssetPicker`. `url` is denormalized so the storefront renders without a join (same trade Pagistry already makes elsewhere). Images can be pushed to the Stripe Product `images[]` so Checkout shows them.
 
 ### Cart + CartItem
 
@@ -324,7 +324,7 @@ The `collection` block reads its data from a React context (`useCollections()` /
 
 4. **Cart** — renders the current cart (line items, quantities, editable qty, remove, subtotal). A drawer variant and a full-page variant. Reads cart context; mutations hit `/api/cart/*`. Shows a "Checkout" CTA.
 
-5. **Checkout** — not a custom payment form. It's a button/section that calls `POST /api/checkout` to create a **Stripe Checkout Session** for the current cart and **redirects** the browser to `session.url`. All card entry, tax, shipping selection, and promo entry happen on Stripe's hosted page. After payment Stripe redirects back to a configurable success/cancel URL (a Pagecraft page).
+5. **Checkout** — not a custom payment form. It's a button/section that calls `POST /api/checkout` to create a **Stripe Checkout Session** for the current cart and **redirects** the browser to `session.url`. All card entry, tax, shipping selection, and promo entry happen on Stripe's hosted page. After payment Stripe redirects back to a configurable success/cancel URL (a Pagistry page).
 
 ### Product detail pages (reuse `app/c/[slug]/[item]`)
 
@@ -372,7 +372,7 @@ A **storefront index** at `app/store/page.tsx` (or any normal page on the store-
 
 ### 5.4 Checkout → Stripe → webhook → Order
 
-1. Buyer clicks Checkout. `POST /api/checkout` loads the server cart, **re-reads each variant** for current price/stock (authority), and builds a **Stripe Checkout Session** on the store-site's connected account with: `line_items` referencing `stripePriceId` × quantity, `mode: "payment"`, `automatic_tax: { enabled: store.taxEnabled }`, `shipping_options` (§6), `allow_promotion_codes: true`, `success_url`/`cancel_url` (Pagecraft pages on the store-site), `customer_creation`, and `metadata: { cartId, siteId }`. Store `cart.stripeCheckoutSessionId`. Return `session.url`; the Checkout block redirects there.
+1. Buyer clicks Checkout. `POST /api/checkout` loads the server cart, **re-reads each variant** for current price/stock (authority), and builds a **Stripe Checkout Session** on the store-site's connected account with: `line_items` referencing `stripePriceId` × quantity, `mode: "payment"`, `automatic_tax: { enabled: store.taxEnabled }`, `shipping_options` (§6), `allow_promotion_codes: true`, `success_url`/`cancel_url` (Pagistry pages on the store-site), `customer_creation`, and `metadata: { cartId, siteId }`. Store `cart.stripeCheckoutSessionId`. Return `session.url`; the Checkout block redirects there.
 2. Buyer completes payment on Stripe's hosted page (tax, shipping, promo all handled there).
 3. Stripe fires **`checkout.session.completed`** to `POST /api/webhooks/stripe`. The handler **verifies the signature** (§8), looks up the cart via `metadata.cartId` (and the session id), and **idempotently** creates an `Order` + `OrderItem`s from the session's line items and computed totals (`amount_subtotal`, `total_details.amount_tax`, `amount_shipping`, `total_details.amount_discount`, `amount_total`), copies the shipping address and `stripePaymentIntentId`/`stripeCustomerId`, assigns the next per-store-site `number`, marks the cart `converted`, and **decrements inventory** for each line (transactional; §8). Send a confirmation (reuse any existing mail path, or rely on Stripe receipt emails in P2).
 4. Buyer is redirected to `success_url`; that page reads the order by session id and shows confirmation. (The order may settle a beat after redirect — the success page tolerates "processing".)
@@ -482,7 +482,7 @@ Framework-free logic gets unit tests, the way `lib/cms/cms.ts` is tested in isol
 - **SQLite under store load.** SQLite serializes writes; high-frequency webhook settlement + inventory decrements could contend. Fine for typical small-store volume; a busy store is another reason to graduate (Postgres, or Medusa per §2). **Watch.**
 - **Stripe Tax registration burden.** Stripe computes tax but the merchant must register in jurisdictions. We surface status; we can't do it for them. **Document for merchants.**
 - **Adaptive Pricing availability/fees.** Presentment-currency conversion has FX fees and isn't enabled everywhere; P5 must confirm per-account eligibility and possibly fall back to explicit per-currency prices. **Open.**
-- **Connect charge type & application fees.** Defaulting to direct charges, Standard, zero platform fee. If Pagecraft later monetizes per-transaction, revisit charge type (destination vs direct) and `application_fee`. **Decision deferred.**
+- **Connect charge type & application fees.** Defaulting to direct charges, Standard, zero platform fee. If Pagistry later monetizes per-transaction, revisit charge type (destination vs direct) and `application_fee`. **Decision deferred.**
 - **Refund → inventory restock policy.** Always restock, or merchant-configurable? Defaulting to optional/manual restock to avoid restocking damaged returns automatically. **Open.**
 
 ### Related specs

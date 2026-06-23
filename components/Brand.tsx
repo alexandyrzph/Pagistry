@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Pagecraft brand identity.
+// Pagistry brand identity.
 // The mark is a layout/blocks motif (a left rail + content blocks) — it reads
 // as "page builder" and works on any background.
 // ---------------------------------------------------------------------------

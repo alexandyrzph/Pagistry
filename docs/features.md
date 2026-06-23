@@ -1,6 +1,6 @@
-# Pagecraft — Features
+# Pagistry — Features
 
-Pagecraft is a full-stack, Divi/Webflow-style **visual page builder**. Build
+Pagistry is a full-stack, Divi/Webflow-style **visual page builder**. Build
 responsive pages from a rich block library, manage content with a built-in CMS,
 collaborate across workspaces, then **publish to a public URL** or **export
 standalone HTML**.

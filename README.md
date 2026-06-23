@@ -1,4 +1,4 @@
-# Pagecraft — Visual Page Builder
+# Pagistry — Visual Page Builder
 
 A clean, full-stack drag-and-drop page builder (Divi-style) built with **Next.js
 16, React 19, TypeScript, Tailwind CSS v4, Prisma + SQLite, dnd-kit and Zustand**.

@@ -4,10 +4,10 @@ export async function verifyDns(
   hostname: string,
   token: string,
 ): Promise<{ ok: boolean; ownership: boolean; routing: boolean; error: string | null }> {
-  const expected = `pagecraft-domain-verification=${token}`;
+  const expected = `pagistry-domain-verification=${token}`;
   let ownership = false;
   try {
-    const records = await resolveTxt(`_pagecraft-verify.${hostname}`);
+    const records = await resolveTxt(`_pagistry-verify.${hostname}`);
     ownership = records.some((parts) => parts.join("").trim() === expected);
   } catch {
     ownership = false;
@@ -15,7 +15,7 @@ export async function verifyDns(
 
   let routing = false;
   try {
-    const target = (process.env.PAGECRAFT_CNAME_TARGET || "cname.pagecraft.app").toLowerCase();
+    const target = (process.env.PAGISTRY_CNAME_TARGET || "cname.pagistry.com").toLowerCase();
     const cnames = await resolveCname(hostname);
     routing = cnames.some((c) => c.toLowerCase().replace(/\.$/, "") === target);
   } catch {

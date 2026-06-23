@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 // fallow-ignore-next-line unused-export
 export const dynamic = "force-dynamic";
 
-const BASE = "https://pagecraft.app";
+const BASE = "https://pagistry.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages = await prisma.page.findMany({

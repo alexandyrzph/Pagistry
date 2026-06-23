@@ -1,4 +1,4 @@
-# Pagecraft — Architecture Diagrams
+# Pagistry — Architecture Diagrams
 
 Visual companion to the [Architecture Decision Records](./adr/README.md). All
 diagrams are [Mermaid](https://mermaid.js.org) so they render on GitHub and in
@@ -18,7 +18,7 @@ graph TB
     visitor["Public visitor<br/>(anonymous)"]
     admin["Workspace owner/admin"]
 
-    subgraph pagecraft["Pagecraft (Next.js 16 app)"]
+    subgraph pagistry["Pagistry (Next.js 16 app)"]
         editor["Editor SPA"]
         public["Public page renderer<br/>/p, /c"]
         api["API route handlers<br/>/api/*"]
@@ -245,7 +245,7 @@ What the app emits and where it goes
 
 ```mermaid
 flowchart LR
-    subgraph app["Pagecraft process"]
+    subgraph app["Pagistry process"]
         code["Route handlers + domain"]
         log["logger<br/>structured JSON"]
         met["metrics registry<br/>counters + histograms"]

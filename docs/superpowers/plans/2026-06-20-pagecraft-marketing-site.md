@@ -1,18 +1,18 @@
-# Pagecraft Marketing Site Implementation Plan
+# Pagistry Marketing Site Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > **VISUAL CRAFT NOTE:** This is a marketing site — the presentational sections (Hero, Features, HowItWorks, Testimonials, FinalCTA, Footer, LogoCloud) are where design quality lives. For those tasks, the implementing subagent SHOULD invoke the **frontend-design** skill to elevate the visual polish beyond the compiling skeletons given here. This plan fixes the _contracts, structure, content wiring, and tests_; it deliberately does not freeze pixel-final JSX for every section. Logic-bearing units (motion helpers, EditorMock animation, Pricing toggle, Nav scroll, CountUp) ARE fully specified and TDD'd.
 
-**Goal:** A standalone, highly-interactive, Untitled-UI-based marketing landing page for Pagecraft, with a bespoke animated mock of the Pagecraft editor as the hero centerpiece.
+**Goal:** A standalone, highly-interactive, Untitled-UI-based marketing landing page for Pagistry, with a bespoke animated mock of the Pagistry editor as the hero centerpiece.
 
-**Architecture:** A fresh Next.js (App Router) + Tailwind v4 project scaffolded by the Untitled UI React CLI at `~/Desktop/projects/pagecraft-site`. One route `/` composed of focused section components. All copy/data lives in `lib/content.ts`. Animation lives in three reusable `components/motion/` helpers (built on framer-motion) plus the `EditorMock`. Every animation respects `prefers-reduced-motion`.
+**Architecture:** A fresh Next.js (App Router) + Tailwind v4 project scaffolded by the Untitled UI React CLI at `~/Desktop/projects/pagistry-site`. One route `/` composed of focused section components. All copy/data lives in `lib/content.ts`. Animation lives in three reusable `components/motion/` helpers (built on framer-motion) plus the `EditorMock`. Every animation respects `prefers-reduced-motion`.
 
 **Tech Stack:** Next.js App Router, React 19.2, TypeScript, Tailwind v4.2, Untitled UI React (react-aria-components base), `@untitledui/icons`, framer-motion, vitest + @testing-library/react (jsdom).
 
-**Spec:** `docs/superpowers/specs/2026-06-20-pagecraft-marketing-site-design.md` (in the dnd-pagebuilder repo).
+**Spec:** `docs/superpowers/specs/2026-06-20-pagistry-marketing-site-design.md` (in the dnd-pagebuilder repo).
 
-**IMPORTANT — this builds in a SEPARATE repo.** All `npm`/`git` commands run inside `~/Desktop/projects/pagecraft-site`, NOT the dnd-pagebuilder repo. The Untitled UI scaffold runs its own `git init`; commits below are commits _in the new project_.
+**IMPORTANT — this builds in a SEPARATE repo.** All `npm`/`git` commands run inside `~/Desktop/projects/pagistry-site`, NOT the dnd-pagebuilder repo. The Untitled UI scaffold runs its own `git init`; commits below are commits _in the new project_.
 
 **Gate (after each task):** `npx tsc --noEmit` and `npm test` (vitest). The full build gate `npm run build` runs in Task 11. (No live-dev-server clobbering concern — this is a separate repo.)
 
@@ -20,7 +20,7 @@
 
 ---
 
-## File Structure (in `~/Desktop/projects/pagecraft-site`)
+## File Structure (in `~/Desktop/projects/pagistry-site`)
 
 **Created by the UU scaffold (Task 1):** `app/layout.tsx`, `app/page.tsx`, `app/globals.css`, `styles/theme.css`, `utils/cx.ts`, `tsconfig.json`, `package.json`, etc.
 
@@ -28,7 +28,7 @@
 
 - `lib/content.ts` — all copy + data (typed).
 - `components/motion/Reveal.tsx`, `CountUp.tsx`, `Tilt.tsx` — reusable animation helpers.
-- `components/product-mock/EditorMock.tsx` — animated Pagecraft-editor centerpiece.
+- `components/product-mock/EditorMock.tsx` — animated Pagistry-editor centerpiece.
 - `components/sections/Nav.tsx`, `Hero.tsx`, `LogoCloud.tsx`, `Features.tsx`, `HowItWorks.tsx`, `Stats.tsx`, `Testimonials.tsx`, `Pricing.tsx`, `FinalCTA.tsx`, `Footer.tsx`.
 - `app/sitemap.ts`, `app/robots.ts`, `app/opengraph-image.tsx`.
 - `vitest.config.ts`, `vitest.setup.ts`, and colocated tests under `components/**/__tests__/` + `lib/__tests__/`.
@@ -45,15 +45,15 @@ Run from the projects directory so the new folder lands as a sibling:
 
 ```bash
 cd ~/Desktop/projects
-npx untitledui@latest init pagecraft-site --nextjs -y -c indigo
+npx untitledui@latest init pagistry-site --nextjs -y -c indigo
 ```
 
-Expected: creates `~/Desktop/projects/pagecraft-site/` with a Next.js App Router project, Tailwind v4.2, react-aria-components, `@untitledui/icons`, `utils/cx.ts`, `styles/theme.css`, and runs `git init`. If `-c indigo` is rejected, run `npx untitledui@latest init --colors-list` to list valid color names and pick the closest to Pagecraft's indigo (#4f46e5) — e.g. `violet` or `brand`. If the CLI still prompts interactively, answer: project name `pagecraft-site`, framework Next.js, the chosen brand color.
+Expected: creates `~/Desktop/projects/pagistry-site/` with a Next.js App Router project, Tailwind v4.2, react-aria-components, `@untitledui/icons`, `utils/cx.ts`, `styles/theme.css`, and runs `git init`. If `-c indigo` is rejected, run `npx untitledui@latest init --colors-list` to list valid color names and pick the closest to Pagistry's indigo (#4f46e5) — e.g. `violet` or `brand`. If the CLI still prompts interactively, answer: project name `pagistry-site`, framework Next.js, the chosen brand color.
 
 - [ ] **Step 2: Confirm the scaffold + path alias**
 
 ```bash
-cd ~/Desktop/projects/pagecraft-site
+cd ~/Desktop/projects/pagistry-site
 cat tsconfig.json | grep -A3 '"paths"'
 ls app utils styles
 ```
@@ -175,7 +175,7 @@ Expected: the smoke test passes; tsc clean. If the Button import path is wrong, 
 
 ```bash
 git add -A
-git commit -m "chore: scaffold pagecraft-site (Untitled UI + Next + Tailwind v4) with vitest harness"
+git commit -m "chore: scaffold pagistry-site (Untitled UI + Next + Tailwind v4) with vitest harness"
 ```
 
 ---
@@ -231,8 +231,8 @@ export const HERO = {
   eyebrow: "New · v2 — see what's new",
   headline: "Build sites your way — drag, drop, publish.",
   subtitle:
-    "Pagecraft is the visual website builder for teams who want pixel control without the code. Design responsive pages, manage content, and ship in one click.",
-  primaryCta: { label: "Start building", href: "https://app.pagecraft.dev/signup" },
+    "Pagistry is the visual website builder for teams who want pixel control without the code. Design responsive pages, manage content, and ship in one click.",
+  primaryCta: { label: "Start building", href: "https://app.pagistry.dev/signup" },
   secondaryCta: { label: "Watch demo", href: "#demo" },
 } as const;
 
@@ -300,7 +300,7 @@ export const STATS: Stat[] = [
 export type Testimonial = { quote: string; name: string; role: string; initials: string };
 export const TESTIMONIALS: Testimonial[] = [
   {
-    quote: "We replaced three tools with Pagecraft and ship landing pages in an afternoon.",
+    quote: "We replaced three tools with Pagistry and ship landing pages in an afternoon.",
     name: "Maya Chen",
     role: "Head of Growth, Northwind",
     initials: "MC",
@@ -336,7 +336,7 @@ export const PRICING_TIERS: Tier[] = [
     yearly: 0,
     blurb: "For trying things out.",
     cta: "Start free",
-    features: ["1 site", "Pagecraft subdomain", "Core blocks", "Community support"],
+    features: ["1 site", "Pagistry subdomain", "Core blocks", "Community support"],
   },
   {
     name: "Pro",
@@ -609,7 +609,7 @@ import { Nav } from "@/components/sections/Nav";
 describe("Nav", () => {
   it("renders the brand, anchor links, and auth CTAs", () => {
     render(<Nav />);
-    expect(screen.getByText("Pagecraft")).toBeInTheDocument();
+    expect(screen.getByText("Pagistry")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Pricing" })).toHaveAttribute("href", "#pricing");
     expect(screen.getByRole("link", { name: /log in/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /sign up/i })).toBeInTheDocument();
@@ -649,7 +649,7 @@ export function Nav() {
           className="flex items-center gap-2 font-semibold tracking-tight text-gray-900"
         >
           <span className="size-7 rounded-lg bg-brand-600" aria-hidden />
-          <span>Pagecraft</span>
+          <span>Pagistry</span>
         </a>
         <div className="hidden items-center gap-8 md:flex">
           {NAV_LINKS.map((l) => (
@@ -664,13 +664,13 @@ export function Nav() {
         </div>
         <div className="flex items-center gap-3">
           <a
-            href="https://app.pagecraft.dev/login"
+            href="https://app.pagistry.dev/login"
             className="text-sm font-semibold text-gray-700 hover:text-gray-900"
           >
             Log in
           </a>
           <a
-            href="https://app.pagecraft.dev/signup"
+            href="https://app.pagistry.dev/signup"
             className="rounded-lg bg-brand-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
             Sign up
@@ -801,7 +801,7 @@ describe("EditorMock", () => {
   it("mounts and shows the editor chrome (sidebar blocks + canvas)", () => {
     render(<EditorMock />);
     expect(screen.getByText("Hero")).toBeInTheDocument(); // a sidebar block chip
-    expect(screen.getByText(/pagecraft\.app/i)).toBeInTheDocument(); // faux URL bar
+    expect(screen.getByText(/pagistry\.app/i)).toBeInTheDocument(); // faux URL bar
   });
 });
 ```
@@ -827,7 +827,7 @@ export function EditorMock() {
         <span className="size-3 rounded-full bg-amber-400" />
         <span className="size-3 rounded-full bg-green-400" />
         <span className="ml-3 rounded-md bg-gray-100 px-3 py-1 text-xs text-gray-500">
-          pagecraft.app/editor
+          pagistry.com/editor
         </span>
       </div>
       <div className="grid grid-cols-[180px_1fr]">
@@ -1206,7 +1206,7 @@ export function Pricing() {
                 <span className="text-base font-normal text-gray-500">/mo</span>
               </p>
               <a
-                href="https://app.pagecraft.dev/signup"
+                href="https://app.pagistry.dev/signup"
                 className={cx(
                   "mt-5 block rounded-lg px-4 py-2.5 text-center text-sm font-semibold",
                   t.featured
@@ -1260,7 +1260,7 @@ export function FinalCTA() {
           No code. No limits. Publish your first page in minutes.
         </p>
         <a
-          href="https://app.pagecraft.dev/signup"
+          href="https://app.pagistry.dev/signup"
           className="mt-8 inline-block rounded-lg bg-brand-600 px-5 py-3 text-sm font-semibold text-white hover:bg-brand-700"
         >
           Start building free
@@ -1287,7 +1287,7 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
         <div>
           <div className="flex items-center gap-2 font-semibold text-gray-900">
-            <span className="size-7 rounded-lg bg-brand-600" aria-hidden /> Pagecraft
+            <span className="size-7 rounded-lg bg-brand-600" aria-hidden /> Pagistry
           </div>
           <p className="mt-3 max-w-xs text-sm text-gray-500">
             The visual website builder for teams.
@@ -1309,7 +1309,7 @@ export function Footer() {
         ))}
       </div>
       <div className="border-t border-gray-100 py-6 text-center text-xs text-gray-400">
-        © 2026 Pagecraft. All rights reserved.
+        © 2026 Pagistry. All rights reserved.
       </div>
     </footer>
   );
@@ -1367,20 +1367,20 @@ git commit -m "feat: FinalCTA, Footer, and full page composition"
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://pagecraft.dev"),
-  title: "Pagecraft — Build sites your way",
+  metadataBase: new URL("https://pagistry.dev"),
+  title: "Pagistry — Build sites your way",
   description:
     "The visual website builder for teams. Design responsive pages, manage content, and publish in one click.",
   openGraph: {
-    title: "Pagecraft — Build sites your way",
+    title: "Pagistry — Build sites your way",
     description: "Design responsive pages, manage content, and publish in one click.",
-    url: "https://pagecraft.dev",
-    siteName: "Pagecraft",
+    url: "https://pagistry.dev",
+    siteName: "Pagistry",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pagecraft",
+    title: "Pagistry",
     description: "Build sites your way — drag, drop, publish.",
   },
 };
@@ -1393,7 +1393,7 @@ export const metadata: Metadata = {
 ```ts
 import type { MetadataRoute } from "next";
 export default function robots(): MetadataRoute.Robots {
-  return { rules: { userAgent: "*", allow: "/" }, sitemap: "https://pagecraft.dev/sitemap.xml" };
+  return { rules: { userAgent: "*", allow: "/" }, sitemap: "https://pagistry.dev/sitemap.xml" };
 }
 ```
 
@@ -1402,7 +1402,7 @@ export default function robots(): MetadataRoute.Robots {
 ```ts
 import type { MetadataRoute } from "next";
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [{ url: "https://pagecraft.dev", changeFrequency: "weekly", priority: 1 }];
+  return [{ url: "https://pagistry.dev", changeFrequency: "weekly", priority: 1 }];
 }
 ```
 
@@ -1429,7 +1429,7 @@ export default function OG() {
         fontWeight: 700,
       }}
     >
-      <div>Pagecraft</div>
+      <div>Pagistry</div>
       <div style={{ fontSize: 32, fontWeight: 400, marginTop: 16, color: "#a3a3a3" }}>
         Build sites your way — drag, drop, publish.
       </div>
@@ -1475,7 +1475,7 @@ git commit -m "feat: SEO metadata, sitemap, robots, OG image, reduced-motion gua
 
 **Spec coverage:**
 
-- Standalone Next.js + Tailwind v4 at `~/Desktop/projects/pagecraft-site` → Task 1 ✓
+- Standalone Next.js + Tailwind v4 at `~/Desktop/projects/pagistry-site` → Task 1 ✓
 - Real Untitled UI React (CLI init + `add` base components) → Task 1 ✓
 - framer-motion interactions → Task 3 (helpers) + used throughout ✓
 - Single landing page with all 10 sections → Tasks 4–10 ✓

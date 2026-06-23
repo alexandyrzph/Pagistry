@@ -1,9 +1,9 @@
-# Pagecraft — Performance Post-Mortem & Load-Test Report
+# Pagistry — Performance Post-Mortem & Load-Test Report
 
 **Status:** Living document · **Owner:** Platform · **Scope:** editor autosave,
 dashboard, public render, AI generation
 
-This is the engineering write-up of where Pagecraft hurt under load, how the
+This is the engineering write-up of where Pagistry hurt under load, how the
 [observability stack](./observability.md) let us find each bottleneck, and what
 we changed. It doubles as a load-testing runbook.
 

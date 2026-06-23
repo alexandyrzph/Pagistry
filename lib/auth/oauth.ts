@@ -101,7 +101,7 @@ export function normalizeGithubProfile(
   };
 }
 
-// --- network helpers (not unit-tested; exercised in the manual checklist) ---
+// --- network helpers ---
 
 export async function exchangeCode(provider: Provider, code: string): Promise<string> {
   const cfg = CONFIG[provider];
@@ -135,7 +135,7 @@ export async function fetchProfile(provider: Provider, accessToken: string): Pro
   const headers = {
     authorization: `Bearer ${accessToken}`,
     accept: "application/json",
-    "user-agent": "pagecraft",
+    "user-agent": "pagistry",
   };
   if (provider === "google") {
     try {

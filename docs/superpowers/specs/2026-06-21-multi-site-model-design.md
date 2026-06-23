@@ -201,7 +201,7 @@ dry-run mode + a fixture DB test.
   default redirect target.
 - **Per-site assets/components** mean no cross-site reuse — if "share a logo/component across sites"
   becomes a need, add a workspace-level shared library later (additive).
-- **Existing hardcoded `pagecraft.app` canonical URL** in `app/p/[slug]` must become host-aware
+- **Existing hardcoded `pagistry.com` canonical URL** in `app/p/[slug]` must become host-aware
   (also flagged by the custom-domains spec).
 
 ---

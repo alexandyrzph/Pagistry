@@ -61,7 +61,7 @@ export function OnboardingTopBar({ last, onSkip }: { last: boolean; onSkip: () =
   return (
     <div className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
       <div className="flex items-center gap-2 text-sm font-semibold tracking-tight text-zinc-800">
-        <Sparkles size={16} className="text-indigo-500" /> Pagecraft
+        <Sparkles size={16} className="text-indigo-500" /> Pagistry
       </div>
       {!last && (
         <button

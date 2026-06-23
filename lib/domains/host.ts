@@ -33,18 +33,18 @@ export function customDomainRewrite(pathname: string): string | null {
 
 export function dnsInstructions(hostname: string, token: string) {
   const isApex = hostname.split(".").length <= 2;
-  const cnameTarget = process.env.PAGECRAFT_CNAME_TARGET || "cname.pagecraft.app";
+  const cnameTarget = process.env.PAGISTRY_CNAME_TARGET || "cname.pagistry.com";
   return {
     ownership: {
-      record: `_pagecraft-verify.${hostname}`,
+      record: `_pagistry-verify.${hostname}`,
       type: "TXT" as const,
-      value: `pagecraft-domain-verification=${token}`,
+      value: `pagistry-domain-verification=${token}`,
     },
     routing: isApex
       ? {
           record: hostname,
           type: "A" as const,
-          value: process.env.PAGECRAFT_SERVER_IP || "<server-ip>",
+          value: process.env.PAGISTRY_SERVER_IP || "<server-ip>",
         }
       : { record: hostname, type: "CNAME" as const, value: cnameTarget },
   };

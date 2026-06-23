@@ -36,7 +36,7 @@ export function DeviceFrame({
           </span>
           <div className="mx-auto flex w-1/2 max-w-sm items-center justify-center gap-1.5 truncate rounded-md bg-white px-3 py-1 text-xs text-zinc-400 ring-1 ring-zinc-200">
             <Lock size={10} className="shrink-0" />
-            <span className="truncate">pagecraft.app/p/{slug || "page"}</span>
+            <span className="truncate">pagistry.com/p/{slug || "page"}</span>
           </div>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>

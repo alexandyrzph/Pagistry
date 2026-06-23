@@ -50,8 +50,8 @@ Rebuild `AuthScreen.tsx` as a full-screen background with a centered card:
   noise layer so the card and any text always read. No `next/image` (CSS background).
 - **Card:** centered, ~max-w-md, frosted (`bg-white/95` or solid white with ring + shadow),
   rounded-2xl, generous padding. Contents top→bottom:
-  1. Pagecraft logo mark + wordmark.
-  2. Heading + subtext per mode (login: "Welcome back" / "Sign in to your Pagecraft
+  1. Pagistry logo mark + wordmark.
+  2. Heading + subtext per mode (login: "Welcome back" / "Sign in to your Pagistry
      workspace."; signup: "Create your account" / short subtext; forgot/reset: existing copy).
   3. **OAuth button row** (only on login + signup; rendered only for configured providers):
      "Continue with Google", "Continue with GitHub" — white buttons, provider glyph, hairline

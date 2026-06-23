@@ -395,7 +395,7 @@ export async function fetchProfile(provider: Provider, accessToken: string): Pro
   const headers = {
     authorization: `Bearer ${accessToken}`,
     accept: "application/json",
-    "user-agent": "pagecraft",
+    "user-agent": "pagistry",
   };
   if (provider === "google") {
     const res = await fetch("https://openidconnect.googleapis.com/v1/userinfo", { headers });
@@ -471,7 +471,7 @@ export async function linkOrCreateUser(provider: Provider, profile: OAuthProfile
   }
 
   const finalEmail =
-    email || `${provider}-${profile.providerAccountId}@users.noreply.pagecraft.local`;
+    email || `${provider}-${profile.providerAccountId}@users.noreply.pagistry.local`;
   const user = await prisma.user.create({
     data: { email: finalEmail, name: profile.name || "", passwordHash: null },
   });
@@ -779,7 +779,7 @@ import { OAuthButtons } from "@/components/auth/OAuthButtons";
 type Mode = "login" | "signup" | "forgot" | "reset";
 
 const COPY: Record<Mode, { title: string; sub: string; cta: string }> = {
-  login: { title: "Welcome back", sub: "Sign in to your Pagecraft workspace.", cta: "Sign in" },
+  login: { title: "Welcome back", sub: "Sign in to your Pagistry workspace.", cta: "Sign in" },
   signup: {
     title: "Create your account",
     sub: "Start building beautiful pages in minutes.",
@@ -883,7 +883,7 @@ export function AuthScreen({
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white">
             <Layout size={18} />
           </span>
-          <span className="text-lg font-semibold tracking-tight text-zinc-900">Pagecraft</span>
+          <span className="text-lg font-semibold tracking-tight text-zinc-900">Pagistry</span>
         </div>
 
         <div className="mb-6">
@@ -1028,7 +1028,7 @@ export function AuthScreen({
         <p className="mt-6 text-center text-sm text-zinc-500">
           {mode === "login" && (
             <>
-              New to Pagecraft?{" "}
+              New to Pagistry?{" "}
               <Link href="/signup" className="font-semibold text-indigo-600 hover:text-indigo-700">
                 Create an account
               </Link>

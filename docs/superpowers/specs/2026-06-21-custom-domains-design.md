@@ -3,7 +3,7 @@
 - **Date:** 2026-06-21
 - **Status:** Draft (design) — ready for implementation plan
 - **Owner:** Alexander
-- **Product:** Pagecraft (Next.js 16 · React 19 · Prisma 6 + SQLite · multi-workspace page builder)
+- **Product:** Pagistry (Next.js 16 · React 19 · Prisma 6 + SQLite · multi-workspace page builder)
 
 ---
 
@@ -12,7 +12,7 @@
 Let a site attach its own domain (e.g. `acme.com`, `www.acme.com`) so that its **published**
 content serves there. A visitor hitting `acme.com/` sees that site's home page; `acme.com/about`
 serves its `about` page; `acme.com/c/blog/<item>` serves a CMS detail page — all without the
-`pagecraft.app/p/<slug>` URL ever appearing.
+`pagistry.com/p/<slug>` URL ever appearing.
 
 **Depends on the multi-site-model foundation spec** (`2026-06-21-multi-site-model-design.md`),
 which promotes `Site` to a first-class entity: a workspace owns many sites, content
@@ -83,7 +83,7 @@ model Domain {
   site              Site         @relation(fields: [siteId], references: [id], onDelete: Cascade)
   hostname          String       @unique // normalized: lowercase, no scheme/port, no trailing dot
   status            DomainStatus @default(PENDING)
-  verificationToken String       @default(cuid()) // value placed in the _pagecraft-verify TXT record
+  verificationToken String       @default(cuid()) // value placed in the _pagistry-verify TXT record
   verifiedAt        DateTime?
   isPrimary         Boolean      @default(false)   // canonical host for this site (app-enforced: ≤1 true)
   redirectToPrimary Boolean      @default(true)    // non-primary hosts 308 → the primary (apex/www, §9)
@@ -142,16 +142,16 @@ cert. All DNS work runs in a **Node-runtime route handler** (`dns/promises`); ne
 
 | Record    | Purpose              | Apex (`acme.com`)                                                          | Subdomain (`www.acme.com`)                         |
 | --------- | -------------------- | -------------------------------------------------------------------------- | -------------------------------------------------- |
-| Ownership | proves control       | `TXT _pagecraft-verify.acme.com = "pagecraft-domain-verification=<token>"` | `TXT _pagecraft-verify.www.acme.com = "…=<token>"` |
-| Routing   | points traffic at us | `A acme.com → <server IP>` (or `ALIAS/ANAME` if the provider supports it)  | `CNAME www.acme.com → cname.pagecraft.app`         |
+| Ownership | proves control       | `TXT _pagistry-verify.acme.com = "pagistry-domain-verification=<token>"` | `TXT _pagistry-verify.www.acme.com = "…=<token>"` |
+| Routing   | points traffic at us | `A acme.com → <server IP>` (or `ALIAS/ANAME` if the provider supports it)  | `CNAME www.acme.com → cname.pagistry.com`         |
 
-(Apex cannot use a CNAME per DNS rules; we instruct an `A`/`ALIAS`. `cname.pagecraft.app` is a stable
+(Apex cannot use a CNAME per DNS rules; we instruct an `A`/`ALIAS`. `cname.pagistry.com` is a stable
 DNS name that resolves to the Caddy front-door, so the server IP can change without customer action.)
 
 **Verify** (`POST /api/domains/:id/verify`, ADMIN+ — also runnable by a background re-check):
 
 1. `status → VERIFYING`, `lastCheckedAt = now()`.
-2. `dns.promises.resolveTxt("_pagecraft-verify.<host>")` → must contain `…=<token>` (ownership).
+2. `dns.promises.resolveTxt("_pagistry-verify.<host>")` → must contain `…=<token>` (ownership).
 3. `dns.promises.resolveCname`/`resolve4` on the host → must point at our CNAME target / server IP
    (routing). A mismatch here is a soft warning, not a hard fail, because some providers flatten/proxy
    records; ownership is the authoritative gate.
@@ -174,7 +174,7 @@ Prisma in the proxy. The lookup chain is **Host → `Domain.hostname` → `siteI
 
 **`proxy.ts` does no DB work.** Its only new job is a pure string test: _is this request's host the
 app's own host, or a custom domain?_ It compares `Host` against `APP_PRIMARY_HOST`
-(e.g. `pagecraft.app`, plus `localhost`/preview hosts). It does **not** need a host → site map at
+(e.g. `pagistry.com`, plus `localhost`/preview hosts). It does **not** need a host → site map at
 all, because Caddy has already refused the TLS handshake for any host that isn't an `ACTIVE` domain
 (§6) — so by the time a custom-domain request reaches Next, the host is known-good. (Defense in depth:
 the render layer re-validates against the DB and 404s an unknown host.)
@@ -269,7 +269,7 @@ https:// {
 }
 
 # The app's own host keeps a normal managed cert (not on-demand).
-pagecraft.app, www.pagecraft.app {
+pagistry.com, www.pagistry.com {
   reverse_proxy 127.0.0.1:3000
 }
 ```
@@ -328,7 +328,7 @@ domains: {
 
 ## 8. Security & abuse
 
-- **Ownership proof.** A domain cannot reach `ACTIVE` without the `_pagecraft-verify` TXT token (§4).
+- **Ownership proof.** A domain cannot reach `ACTIVE` without the `_pagistry-verify` TXT token (§4).
   Only `ACTIVE` domains route traffic or get certs.
 - **One hostname ↔ one site.** `hostname @unique` makes claims globally exclusive; a second site (in
   any workspace) adding the same host gets `409`. No cross-site/cross-workspace takeover.
@@ -351,7 +351,7 @@ domains: {
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **apex + www**                       | Two `Domain` rows; one `isPrimary`. The non-primary (with `redirectToPrimary`) issues a `308` to the primary host, preserving path + query. Redirect applied in the home/`[slug]` render layer (host-aware) or by a Caddy redirect block.                          |
 | **Domain already taken**             | `hostname @unique` → `409` at add-time (against any site); no silent reassignment.                                                                                                                                                                                 |
-| **Local dev / preview**              | `APP_PRIMARY_HOST` includes `localhost:3000` and preview hosts; the proxy's custom-domain branch is skipped for them, so dev keeps using `pagecraft.app/p/<slug>`. Testing a real custom domain locally needs a hosts-file entry + the ask endpoint returning 200. |
+| **Local dev / preview**              | `APP_PRIMARY_HOST` includes `localhost:3000` and preview hosts; the proxy's custom-domain branch is skipped for them, so dev keeps using `pagistry.com/p/<slug>`. Testing a real custom domain locally needs a hosts-file entry + the ask endpoint returning 200. |
 | **Removing an ACTIVE domain**        | Row deleted → ask endpoint now `403`s that host → new handshakes fail and the render layer 404s it. Optionally purge the cached cert via Caddy's admin API; otherwise it simply expires.                                                                           |
 | **DNS points at us but unverified**  | Caddy refuses the cert (ask `403`) until `ACTIVE`; user sees a TLS error until verification completes — surfaced as a clear "verify your domain" state in the UI.                                                                                                  |
 | **Wildcard / `*.acme.com`**          | Out of scope: on-demand HTTP issuance can't do wildcards (needs DNS-01). Deferred (§12).                                                                                                                                                                           |
@@ -375,7 +375,7 @@ site works end-to-end.
 **P2 — polish & canonicalization.**
 `isPrimary` + apex↔www `308` redirects · multiple domains per site · status-polling UI +
 `lastError` surfacing · periodic re-verification (cron) · canonical-URL/OG/JSON-LD generation switched
-from the hardcoded `https://pagecraft.app` (in `app/p/[slug]`) to the host's primary domain.
+from the hardcoded `https://pagistry.com` (in `app/p/[slug]`) to the host's primary domain.
 
 **P3 — future.** Wildcard/DNS-01 domains · per-domain analytics · billing limits on domain count.
 

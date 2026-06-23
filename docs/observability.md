@@ -2,7 +2,7 @@
 
 > "Code isn't done until it can be monitored in production."
 
-Pagecraft emits the three pillars — **logs, metrics, and traces** — from a small,
+Pagistry emits the three pillars — **logs, metrics, and traces** — from a small,
 dependency-free toolkit in [`lib/observability/`](../lib/observability). The
 shapes deliberately match industry standards (JSON logs, Prometheus exposition,
 W3C trace ids / OTLP-style spans) so each pillar can be pointed at a real backend
@@ -97,7 +97,7 @@ Example Prometheus scrape config:
 
 ```yaml
 scrape_configs:
-  - job_name: pagecraft
+  - job_name: pagistry
     metrics_path: /api/internal/metrics
     authorization:
       credentials: ${METRICS_TOKEN}

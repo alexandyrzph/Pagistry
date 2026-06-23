@@ -20,7 +20,7 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Pagecraft Studio — Visual Page Builder",
+  title: "Pagistry Studio — Visual Page Builder",
   description:
     "The enterprise visual page builder. Design, publish and export beautiful pages with drag and drop.",
 };

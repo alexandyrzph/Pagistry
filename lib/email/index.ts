@@ -2,7 +2,7 @@ import { Resend } from "resend";
 import { passwordResetEmail, workspaceInviteEmail } from "@/lib/email/messages";
 import { logger } from "@/lib/observability";
 
-const FROM = process.env.EMAIL_FROM || "Pagecraft <onboarding@resend.dev>";
+const FROM = process.env.EMAIL_FROM || "Pagistry <onboarding@resend.dev>";
 
 function client(): Resend | null {
   const key = process.env.RESEND_API_KEY;

@@ -19,7 +19,7 @@ import {
 } from "@/components/auth/AuthScreen.helpers";
 
 const COPY: Record<Mode, { title: string; sub: string; cta: string }> = {
-  login: { title: "Welcome back", sub: "Sign in to your Pagecraft workspace.", cta: "Sign in" },
+  login: { title: "Welcome back", sub: "Sign in to your Pagistry workspace.", cta: "Sign in" },
   signup: {
     title: "Create your account",
     sub: "Start building beautiful pages in minutes.",
@@ -95,7 +95,7 @@ export function AuthScreen({
             <Blocks size={18} />
           </span>
           <span className="font-display text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            Pagecraft
+            Pagistry
           </span>
         </div>
 

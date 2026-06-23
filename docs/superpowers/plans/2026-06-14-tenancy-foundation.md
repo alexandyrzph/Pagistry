@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Convert Pagecraft from a single shared workspace into real per-team tenancy — `Workspace` / `Membership` (roles) / `Invite`, all content scoped to a workspace, role-enforced APIs, and workspace/member/invite/account endpoints — without changing the UI shell (that's Plan 1B).
+**Goal:** Convert Pagistry from a single shared workspace into real per-team tenancy — `Workspace` / `Membership` (roles) / `Invite`, all content scoped to a workspace, role-enforced APIs, and workspace/member/invite/account endpoints — without changing the UI shell (that's Plan 1B).
 
 **Architecture:** Add four Prisma models + a nullable `workspaceId` scalar column on every content model. A new `lib/workspace.ts` resolves the active workspace from a membership-validated `pc_ws` cookie and exposes role-gated guards (`requireApiWorkspace`, `requireApiRole`) that compose with the existing `requireApiUser`. Every existing builder query gains a `where: { workspaceId }` filter; every mutation gains a role check. A one-time migration moves existing data into a seeded default workspace.
 

@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory records the significant architectural decisions behind **Pagecraft**
+This directory records the significant architectural decisions behind **Pagistry**
 (`dnd-pagebuilder`). Each record captures the context at the time, the decision
 taken, and the consequences — so future contributors understand _why_ the system
 looks the way it does, not just _what_ it does.

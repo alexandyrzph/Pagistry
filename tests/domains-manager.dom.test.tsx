@@ -38,7 +38,7 @@ function domain(over: Partial<Domain> = {}): Domain {
     lastError: null,
     dns: {
       ownership: { record: "_pc.store", type: "TXT", value: "pc-verify=abc" },
-      routing: { record: "store", type: "CNAME", value: "edge.pagecraft.app" },
+      routing: { record: "store", type: "CNAME", value: "edge.pagistry.com" },
     },
     ...over,
   };
@@ -184,7 +184,7 @@ describe("DomainCard", () => {
     expect(screen.getByText("store.example.com")).toBeInTheDocument();
     expect(screen.getByText("Pending")).toBeInTheDocument();
     expect(screen.getByText("pc-verify=abc")).toBeInTheDocument();
-    expect(screen.getByText("edge.pagecraft.app")).toBeInTheDocument();
+    expect(screen.getByText("edge.pagistry.com")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Verify" }));
     expect(onVerify).toHaveBeenCalledWith(d);
     fireEvent.click(screen.getByRole("button", { name: "Remove store.example.com" }));

@@ -3,13 +3,13 @@ services:
     image: postgres:16
     restart: unless-stopped
     environment:
-      POSTGRES_USER: pagecraft
+      POSTGRES_USER: pagistry
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: pagecraft
+      POSTGRES_DB: pagistry
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pagecraft"]
+      test: ["CMD-SHELL", "pg_isready -U pagistry"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://pagecraft:${POSTGRES_PASSWORD}@postgres:5432/pagecraft
+      DATABASE_URL: postgresql://pagistry:${POSTGRES_PASSWORD}@postgres:5432/pagistry
     depends_on:
       postgres:
         condition: service_healthy

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE = "https://pagecraft.app";
+const BASE = "https://pagistry.com";
 
 export default function robots(): MetadataRoute.Robots {
   return {

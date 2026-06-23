@@ -215,7 +215,7 @@ describe("AuthFormFields", () => {
 
 describe("AuthFooter", () => {
   const cases: Array<[Mode, RegExp, string | null]> = [
-    ["login", /New to Pagecraft/, "/signup"],
+    ["login", /New to Pagistry/, "/signup"],
     ["signup", /Already have an account/, "/login"],
     ["forgot", /Back to sign in/, "/login"],
     ["reset", /Back to sign in/, "/login"],
