@@ -28,8 +28,9 @@ export function enforce(
   name: string,
   limit: number,
   windowMs: number,
+  now = Date.now(),
 ): Response | null {
-  if (hit(`${name}:${clientIp(req)}`, limit, windowMs, Date.now())) return null;
+  if (hit(`${name}:${clientIp(req)}`, limit, windowMs, now)) return null;
   return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
     status: 429,
     headers: {
