@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+coverage
+docs
+tests
+*.tsbuildinfo
+prisma/dev.db
+.env
+.env.*
+.DS_Store
+.idea
