@@ -600,7 +600,7 @@ git commit -m "feat(security): email reset/invite links + rate-limit auth, AI, a
 
 ## Phase B — Containerization
 
-### Task B1: Dockerfile + entrypoint (ARM64, Playwright/Chromium, migrate-on-boot)
+### Task B1: Dockerfile + entrypoint (ARM64, migrate-on-boot)
 
 **Files:**
 
@@ -610,9 +610,9 @@ git commit -m "feat(security): email reset/invite links + rate-limit auth, AI, a
 
 **Interfaces:**
 
-- Produces: a runnable image whose container runs `prisma migrate deploy` then `next start` on port 3000. Playwright Chromium is installed so thumbnail rendering works at runtime.
+- Produces: a runnable image whose container runs `prisma migrate deploy` then `next start` on port 3000. No browser is required in the image — thumbnails are captured client-side via modern-screenshot.
 
-**Note on approach:** We copy the whole built app (not Next `standalone`) into the runner. Standalone does not reliably trace the runtime `import "playwright"` in `lib/thumbnails/screenshot.ts`; the full copy guarantees `playwright` resolves. Image size is irrelevant on the Oracle disk. Optimize to standalone later if desired.
+**Note on approach:** We copy the whole built app (not Next `standalone`) into the runner. The Docker image does not need Playwright or Chromium; thumbnail generation runs in the user's browser. Image size is irrelevant on the Oracle disk. Optimize to standalone later if desired.
 
 - [ ] **Step 1: Create `.dockerignore`**
 
@@ -660,10 +660,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV NEXT_TELEMETRY_DISABLED=1
-# Copy the fully built app (node_modules incl. playwright, .next, prisma, public).
+# Copy the fully built app (.next, node_modules, prisma, public).
 COPY --from=build /app ./
-# Install the Chromium browser + its system libraries for runtime thumbnails.
-RUN npx playwright install --with-deps chromium
+# No browser installation needed — thumbnails are captured client-side.
 COPY docker/entrypoint.sh ./docker/entrypoint.sh
 RUN chmod +x ./docker/entrypoint.sh
 EXPOSE 3000
@@ -673,13 +672,13 @@ CMD ["./docker/entrypoint.sh"]
 - [ ] **Step 4: Build the image**
 
 Run: `docker build -t pagistry-app .`
-Expected: build completes; final stage logs Chromium install. (First build is slow — Chromium + deps.)
+Expected: build completes. (No Chromium install; first build is faster.)
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add Dockerfile docker/entrypoint.sh .dockerignore
-git commit -m "build: add Dockerfile (next start + prisma migrate deploy + playwright chromium)"
+git commit -m "build: add Dockerfile (next start + prisma migrate deploy)"
 ```
 
 ---
@@ -990,15 +989,9 @@ Expected: containers removed; named volumes persist. No commit (verification onl
 
   Expected: JSON `status:"ok"`, `database.ok:true`, HTTP 200. Then in a browser: sign up → log in → create a site → add a page → publish → open the published page. Trigger a password reset and confirm the email arrives (no link in the HTTP response).
 
-- [ ] **Step 7: Run the scripted GUI smoke test against production.**
+- [ ] **Step 7: Verify thumbnails in production.**
 
-  From your local machine (Playwright installed):
-
-  ```bash
-  APP_URL=https://<domain> node scripts/verify.mjs
-  ```
-
-  Expected: the script's checks pass against the live URL.
+  Open the editor for a page and confirm a thumbnail appears on the dashboard after saving. Thumbnail capture runs client-side via modern-screenshot — no server-side script is needed.
 
 - [ ] **Step 8: Merge the branch.** Once the live smoke passes, open a PR (run the fallow gate first) and merge `feat/production-deploy` to `main`.
 

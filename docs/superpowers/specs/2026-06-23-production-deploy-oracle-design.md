@@ -73,7 +73,7 @@ Persistent volumes:
 
 - **B1. Multi-stage ARM64 Dockerfile.**
   - _deps/builder_ stage: install all deps, `prisma generate`, `next build` (standalone).
-  - _runner_ stage: copy standalone output + static + public; **install `playwright` and run `playwright install --with-deps chromium`** — Playwright is currently a **devDependency** but `lib/thumbnails/screenshot.ts` imports it at runtime, so the runner image must include it + Chromium + system libs. `--no-sandbox` is already passed in code.
+  - _runner_ stage: copy standalone output + static + public. No browser required — thumbnails are captured client-side via modern-screenshot, so Playwright and Chromium are not installed in the image.
   - Entrypoint runs `prisma migrate deploy` then starts the standalone server.
 - **B2. docker-compose.yml.** Services: `caddy`, `app`, `postgres`. Healthchecks (app → `/api/internal/health`, postgres → `pg_isready`), `restart: unless-stopped`, named volumes (`pg_data`, `uploads`, `caddy_data`), internal network, `depends_on` ordering.
 - **B3. Parameterize Caddyfile.** Replace hardcoded `pagistry.com` with an env-driven domain (Caddy env-var substitution) so the same file works for any domain. Keep the existing `on_demand_tls` → `/api/domains/check` block for customer custom domains.
@@ -104,8 +104,8 @@ Persistent volumes:
 | ---------------------------------------------- | ------------------------------------------------------------------------------ |
 | Oracle A1 "out of capacity" in popular regions | Retry, or choose a less-busy home region; A1 is the constrained shape          |
 | Oracle reclaims idle Always-Free VM            | Upgrade account to Pay-As-You-Go (stays $0 under limits)                       |
-| ARM64 build issues (Playwright/Chromium)       | Pin an ARM64-compatible base; Playwright ships ARM Chromium; verify in build   |
-| Playwright missing in prod image               | Explicitly install it + Chromium in the runner stage (see B1)                  |
+| ARM64 build issues                             | Pin an ARM64-compatible base image; verify in build                            |
+| No browser in prod image                       | Not needed — thumbnails are client-side; no Playwright/Chromium required       |
 | Single VM = no HA                              | Acceptable at launch; nightly backups (D1) mitigate data loss                  |
 | Published-page CSP vs user embeds              | Strict CSP on editor; looser/sandboxed for rendered pages; iterate post-launch |
 
@@ -121,7 +121,7 @@ Persistent volumes:
 1. App reachable at `https://<domain>` with a valid auto-issued TLS cert.
 2. Signup → login → create site → add page → publish → view published page all work end-to-end.
 3. Password reset sends a real email (no link leaked in the response).
-4. Thumbnail generation works (Playwright/Chromium in the image).
-5. `scripts/verify.mjs` smoke test passes against the live URL.
+4. Thumbnail generation works (client-side capture via modern-screenshot; no server browser needed).
+5. Thumbnails appear on the dashboard after opening and saving a page in the editor.
 6. A custom domain added through the UI gets on-demand TLS via Caddy.
 7. Nightly DB backup produces a restorable dump.

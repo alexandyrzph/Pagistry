@@ -15,7 +15,6 @@ export type DashboardPage = {
   submissions: number;
   thumbnailUrl: string | null;
   thumbnailVersion: number | null;
-  thumbnailStale: boolean;
 };
 
 function timeAgo(iso: string): string {

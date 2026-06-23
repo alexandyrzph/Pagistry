@@ -47,4 +47,14 @@ describe("requestThumbnailCapture", () => {
     });
     expect(await requestThumbnailCapture({ force: true })).toBeNull();
   });
+
+  it("clears in-flight state when the capturer is unregistered (no permanent wedge)", async () => {
+    registerThumbnailCapturer(() => new Promise(() => {}));
+    void requestThumbnailCapture({ force: true });
+    registerThumbnailCapturer(null);
+    const fresh = vi.fn(async () => ({ url: "/u2.png", version: 2 }));
+    registerThumbnailCapturer(fresh);
+    expect(await requestThumbnailCapture({ force: true })).toEqual({ url: "/u2.png", version: 2 });
+    expect(fresh).toHaveBeenCalledTimes(1);
+  });
 });

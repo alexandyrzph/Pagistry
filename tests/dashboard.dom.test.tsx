@@ -45,7 +45,6 @@ function page(over: Partial<DashboardPage> = {}): DashboardPage {
     submissions: 0,
     thumbnailUrl: null,
     thumbnailVersion: null,
-    thumbnailStale: false,
     ...over,
   };
 }

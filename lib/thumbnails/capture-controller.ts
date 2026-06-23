@@ -9,6 +9,7 @@ let lastRun = 0;
 
 export function registerThumbnailCapturer(fn: Capturer | null): void {
   capturer = fn;
+  if (!fn) inFlight = null;
 }
 
 export function requestThumbnailCapture(

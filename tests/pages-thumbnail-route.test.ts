@@ -64,6 +64,20 @@ describe("POST /api/pages/[id]/thumbnail", () => {
     expect(res.status).toBe(400);
   });
 
+  it("413 when the file exceeds the size limit", async () => {
+    state.page = { id: "p1", updatedAt: new Date(1000) };
+    const oversizeFile = {
+      size: 8 * 1024 * 1024 + 1,
+      type: "image/png",
+      arrayBuffer: async () => new ArrayBuffer(0),
+    };
+    const stubFd = { get: () => oversizeFile } as unknown as FormData;
+    const req = new Request("http://localhost/api/pages/p1/thumbnail", { method: "POST" });
+    req.formData = async () => stubFd;
+    const res = await POST(req, ctx("p1"));
+    expect(res.status).toBe(413);
+  });
+
   it("writes the PNG, upserts, and returns { url, version }", async () => {
     state.page = { id: "p1", updatedAt: new Date(1000) };
     const res = await POST(reqWithFile(), ctx("p1"));

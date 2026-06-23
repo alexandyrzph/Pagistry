@@ -36,7 +36,6 @@ function page(over: Partial<PageItem> = {}): PageItem {
     submissions: 0,
     thumbnailUrl: null,
     thumbnailVersion: null,
-    thumbnailStale: false,
     ...over,
   };
 }

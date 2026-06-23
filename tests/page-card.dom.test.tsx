@@ -15,7 +15,6 @@ const base: DashboardPage = {
   submissions: 0,
   thumbnailUrl: "/uploads/thumbnails/p1.png",
   thumbnailVersion: 1,
-  thumbnailStale: false,
 };
 
 describe("PageCard", () => {
