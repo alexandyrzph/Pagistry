@@ -1,15 +1,13 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Database, LayoutGrid } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { getActiveSite } from "@/lib/auth/site";
+import { requireSite } from "@/lib/auth/site";
 import { NewCollectionButton } from "@/components/app-shell/cms/NewCollectionButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function CmsPage() {
-  const ctx = await getActiveSite();
-  if (!ctx) redirect("/onboarding");
+  const ctx = await requireSite();
   const collections = await prisma.collection.findMany({
     where: { siteId: ctx.site.id },
     orderBy: { updatedAt: "desc" },

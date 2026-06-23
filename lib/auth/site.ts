@@ -1,7 +1,8 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth/auth";
+import { getCurrentUser, requireUser } from "@/lib/auth/auth";
 import { getActiveWorkspace, hasRole, type Role, type WorkspaceCtx } from "@/lib/auth/workspace";
 
 const SITE_COOKIE = "pc_site";
@@ -37,6 +38,16 @@ export const getActiveSite = cache(async (): Promise<SiteCtx | null> => {
     site: { id: site.id, name: site.name, handle: site.handle, homePageId: site.homePageId },
   };
 });
+
+/** Server pages: resolve the active site (membership + cookie validated). Mirrors
+ *  requireWorkspace — requireUser() runs first so signed-out users go to /login,
+ *  and a signed-in user with no resolvable site falls back to /onboarding. */
+export async function requireSite(): Promise<SiteCtx> {
+  await requireUser();
+  const ctx = await getActiveSite();
+  if (!ctx) redirect("/onboarding");
+  return ctx;
+}
 
 export async function requireApiSite(): Promise<SiteCtx | { response: Response }> {
   const user = await getCurrentUser();

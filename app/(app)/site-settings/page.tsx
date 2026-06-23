@@ -1,13 +1,11 @@
-import { redirect } from "next/navigation";
-import { getActiveSite } from "@/lib/auth/site";
+import { requireSite } from "@/lib/auth/site";
 import { hasRole } from "@/lib/auth/workspace";
 import { SiteSettingsClient } from "@/components/app-shell/site/SiteSettingsClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function SiteSettingsPage() {
-  const ctx = await getActiveSite();
-  if (!ctx) redirect("/onboarding");
+  const ctx = await requireSite();
   const canManage = hasRole(ctx.role, "ADMIN");
   return (
     <div className="mx-auto max-w-[1320px] px-6 py-10 lg:px-12">

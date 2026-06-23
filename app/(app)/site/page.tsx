@@ -1,15 +1,13 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { PanelTop, PanelBottom, ArrowRight } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { getActiveSite } from "@/lib/auth/site";
+import { requireSite } from "@/lib/auth/site";
 import { parseContent } from "@/lib/page-service";
 
 export const dynamic = "force-dynamic";
 
 export default async function SitePage() {
-  const ctx = await getActiveSite();
-  if (!ctx) redirect("/onboarding");
+  const ctx = await requireSite();
   const site = await prisma.site.findFirst({ where: { id: ctx.site.id } });
 
   const headerCount = parseContent(site?.header ?? "[]").length;

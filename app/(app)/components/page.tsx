@@ -1,14 +1,12 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Component } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { getActiveSite } from "@/lib/auth/site";
+import { requireSite } from "@/lib/auth/site";
 
 export const dynamic = "force-dynamic";
 
 export default async function ComponentsPage() {
-  const ctx = await getActiveSite();
-  if (!ctx) redirect("/onboarding");
+  const ctx = await requireSite();
   const components = await prisma.component.findMany({
     where: { siteId: ctx.site.id },
     orderBy: { updatedAt: "desc" },
