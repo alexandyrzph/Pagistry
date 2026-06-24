@@ -1,18 +1,16 @@
 import { prisma } from "@/lib/prisma";
-import { createWorkspace } from "@/lib/auth/workspace";
 import type { OAuthProfile, Provider } from "@/lib/auth/oauth";
 import {
   fallbackEmail,
   normalizeOAuthEmail,
   oauthDisplayName,
-  oauthWorkspaceName,
 } from "@/lib/auth/oauth-account.helpers";
 
 /**
  * Resolve an OAuth identity to a user id:
  *  1. existing linked account → that user
  *  2. verified email matching an existing user → link + return
- *  3. otherwise create a new user (null password) + auto-create their workspace
+ *  3. otherwise create a new user (null password)
  * Throws "email_in_use" if the (unverified) email already belongs to an account.
  */
 export async function linkOrCreateUser(provider: Provider, profile: OAuthProfile): Promise<string> {
@@ -47,6 +45,5 @@ export async function linkOrCreateUser(provider: Provider, profile: OAuthProfile
   await prisma.oAuthAccount.create({
     data: { provider, providerAccountId: profile.providerAccountId, userId: user.id },
   });
-  await createWorkspace(user.id, oauthWorkspaceName(profile));
   return user.id;
 }

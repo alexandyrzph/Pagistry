@@ -24,9 +24,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   return withRole("OWNER", async (ws) => {
     const { id } = await params;
     if (ws.workspace.id !== id) return forbidden();
-    // refuse to delete the user's only workspace
-    const count = await prisma.membership.count({ where: { userId: ws.user.id } });
-    if (count <= 1) return badRequest("Cannot delete your only workspace");
     await prisma.workspace.delete({ where: { id } });
     return json({ ok: true });
   });

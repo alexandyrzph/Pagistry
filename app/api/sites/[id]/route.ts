@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { withRole } from "@/lib/api/api-handler";
-import { json, badRequest, notFound } from "@/lib/api/api-response";
+import { json, notFound } from "@/lib/api/api-response";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +21,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return withRole("ADMIN", async (ws) => {
-    const count = await prisma.site.count({ where: { workspaceId: ws.workspace.id } });
-    if (count <= 1) return badRequest("A workspace must keep at least one site");
     const site = await prisma.site.findFirst({ where: { id, workspaceId: ws.workspace.id } });
     if (!site) return notFound();
     await prisma.site.delete({ where: { id } });

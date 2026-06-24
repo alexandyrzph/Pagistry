@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, createSession } from "@/lib/auth/auth";
-import { createWorkspace } from "@/lib/auth/workspace";
 import { enforce } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +34,5 @@ export async function POST(req: Request) {
     data: { email, name, passwordHash: await hashPassword(password) },
   });
   await createSession(user.id);
-  // Give every new user their own workspace (per-team tenancy backbone).
-  await createWorkspace(user.id, `${(name || "My").trim() || "My"}'s Workspace`);
   return NextResponse.json({ ok: true, onboarded: false });
 }
