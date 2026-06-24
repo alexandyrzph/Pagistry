@@ -26,7 +26,13 @@ export async function createSite(
   const cleanName = (name || "Untitled site").trim().slice(0, 80) || "Untitled site";
   const handle = await uniqueHandle(workspaceId, cleanName, db);
   const site = await db.site.create({
-    data: { workspaceId, name: cleanName, handle, logoUrl: logoUrl ?? null, faviconUrl: faviconUrl ?? null },
+    data: {
+      workspaceId,
+      name: cleanName,
+      handle,
+      logoUrl: logoUrl ?? null,
+      faviconUrl: faviconUrl ?? null,
+    },
   });
   const home = await db.page.create({
     data: { title: "Home", slug: "home", siteId: site.id, published: false },

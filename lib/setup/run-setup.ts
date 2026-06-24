@@ -13,7 +13,10 @@ export async function runSetup(
 ): Promise<{ workspaceId: string; siteId: string }> {
   let workspaceId = "";
   if (!input.workspace) {
-    const m = await prisma.membership.findFirst({ where: { userId }, orderBy: { createdAt: "asc" } });
+    const m = await prisma.membership.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "asc" },
+    });
     if (!m) throw new Error("no_workspace");
     workspaceId = m.workspaceId;
   }

@@ -10,9 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function SetupPage() {
   const user = await requireUser();
   const ctx = await getActiveWorkspace();
-  const siteCount = ctx
-    ? await prisma.site.count({ where: { workspaceId: ctx.workspace.id } })
-    : 0;
+  const siteCount = ctx ? await prisma.site.count({ where: { workspaceId: ctx.workspace.id } }) : 0;
   if (!needsSetup({ hasWorkspace: !!ctx, siteCount })) redirect("/");
   return <SetupWizard userName={user.name} hasWorkspace={!!ctx} />;
 }

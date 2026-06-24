@@ -32,9 +32,11 @@ export function SetupWizard({
 
   const step: WizardStep = steps[i];
   const canNext =
-    step === "workspace" ? workspace.name.trim().length > 0 :
-    step === "site" ? site.name.trim().length > 0 :
-    true;
+    step === "workspace"
+      ? workspace.name.trim().length > 0
+      : step === "site"
+        ? site.name.trim().length > 0
+        : true;
 
   async function finish() {
     setBusy(true);

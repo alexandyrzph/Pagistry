@@ -27,7 +27,7 @@ We want the user, **after** finishing onboarding, to be explicitly prompted to c
 
 Keep the onboarding carousel as-is. After `onboardedAt` is set, the `(app)` layout checks whether the user has an active workspace **with ≥1 site**; if not, it redirects to a new full-screen `/setup` route hosting the create wizard. The wizard's step forms are extracted as **reusable components** that are also mounted as modals behind the sidebar's "New workspace…" / "New site…" actions — one set of forms, two contexts.
 
-Rejected alternatives: extending the onboarding carousel (couples cosmetic onboarding to real data creation; "new site later" becomes a separate codepath) and a no-gate dashboard empty state (doesn't satisfy "must be *prompted* to create").
+Rejected alternatives: extending the onboarding carousel (couples cosmetic onboarding to real data creation; "new site later" becomes a separate codepath) and a no-gate dashboard empty state (doesn't satisfy "must be _prompted_ to create").
 
 ## Design
 
@@ -62,9 +62,9 @@ Each takes an options object plus an optional `db` arg for the transaction handl
 
 ```ts
 await prisma.$transaction(async (tx) => {
-  const wsId = workspaceId ?? (await createWorkspace({ userId, name, logoUrl }, tx)).id
-  await createSite({ workspaceId: wsId, name, logoUrl, faviconUrl }, tx)
-})
+  const wsId = workspaceId ?? (await createWorkspace({ userId, name, logoUrl }, tx)).id;
+  await createSite({ workspaceId: wsId, name, logoUrl, faviconUrl }, tx);
+});
 ```
 
 Update all existing callers of both functions to the new signatures.

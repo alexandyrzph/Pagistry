@@ -28,10 +28,12 @@ Removes auto-create, adds the schema fields, decouples the creation helpers, gat
 ### Task M1.1: Schema — site branding + page noindex
 
 **Files:**
+
 - Modify: `prisma/schema.prisma:11-36` (Site), `prisma/schema.prisma:38-59` (Page)
 - Test: `tests/schema-branding.test.ts` (create)
 
 **Interfaces:**
+
 - Produces: `Site.logoUrl: string | null`, `Site.faviconUrl: string | null`, `Page.noindex: boolean`.
 
 - [ ] **Step 1: Write the failing test**
@@ -108,17 +110,20 @@ git commit -m "feat(schema): add Site.logoUrl/faviconUrl and Page.noindex"
 ### Task M1.2: Refactor `createSite` to a payload object + branding
 
 **Files:**
+
 - Modify: `lib/sites/create.ts`
 - Modify: `app/api/sites/route.ts:18-26` (caller)
 - Modify: `lib/auth/workspace.ts:134` (caller — temporary; removed in M1.3)
 - Test: `tests/sites-api.test.ts` (update existing calls)
 
 **Interfaces:**
+
 - Produces: `createSite({ workspaceId, name, logoUrl?, faviconUrl? }, db = prisma) => Promise<{ id, name, handle, homePageId }>`
 
 - [ ] **Step 1: Update the tests to the new signature (failing)**
 
 In `tests/sites-api.test.ts`, replace the three `createSite(...)` calls:
+
 - Line ~20: `const result = await createSite({ workspaceId: ws.id, name: "Main site" });`
 - Line ~41: `await createSite({ workspaceId: ws.id, name: "TX site" }, tx);`
 - Line ~57: `await createSite({ workspaceId: ws.id, name: "Rollback site" }, tx);`
@@ -126,15 +131,15 @@ In `tests/sites-api.test.ts`, replace the three `createSite(...)` calls:
 Add a branding assertion to the first test, after the existing `expect(result.homePageId).toBeTruthy();`:
 
 ```ts
-    const branded = await createSite({
-      workspaceId: ws.id,
-      name: "Branded",
-      logoUrl: "/logo.png",
-      faviconUrl: "/fav.ico",
-    });
-    const brandedSite = await prisma.site.findUniqueOrThrow({ where: { id: branded.id } });
-    expect(brandedSite.logoUrl).toBe("/logo.png");
-    expect(brandedSite.faviconUrl).toBe("/fav.ico");
+const branded = await createSite({
+  workspaceId: ws.id,
+  name: "Branded",
+  logoUrl: "/logo.png",
+  faviconUrl: "/fav.ico",
+});
+const brandedSite = await prisma.site.findUniqueOrThrow({ where: { id: branded.id } });
+expect(brandedSite.logoUrl).toBe("/logo.png");
+expect(brandedSite.faviconUrl).toBe("/fav.ico");
 ```
 
 - [ ] **Step 2: Run to verify it fails**
@@ -159,7 +164,13 @@ export async function createSite(
   const cleanName = (name || "Untitled site").trim().slice(0, 80) || "Untitled site";
   const handle = await uniqueHandle(workspaceId, cleanName, db);
   const site = await db.site.create({
-    data: { workspaceId, name: cleanName, handle, logoUrl: logoUrl ?? null, faviconUrl: faviconUrl ?? null },
+    data: {
+      workspaceId,
+      name: cleanName,
+      handle,
+      logoUrl: logoUrl ?? null,
+      faviconUrl: faviconUrl ?? null,
+    },
   });
   const home = await db.page.create({
     data: { title: "Home", slug: "home", siteId: site.id, published: false },
@@ -174,18 +185,18 @@ export async function createSite(
 `app/api/sites/route.ts` lines 20-23 → the `createSite` call becomes:
 
 ```ts
-    const body = await req.json().catch(() => ({}));
-    const site = await prisma.$transaction((tx) =>
-      createSite(
-        {
-          workspaceId: ws.workspace.id,
-          name: String(body?.name ?? ""),
-          logoUrl: body?.logoUrl ?? null,
-          faviconUrl: body?.faviconUrl ?? null,
-        },
-        tx,
-      ),
-    );
+const body = await req.json().catch(() => ({}));
+const site = await prisma.$transaction((tx) =>
+  createSite(
+    {
+      workspaceId: ws.workspace.id,
+      name: String(body?.name ?? ""),
+      logoUrl: body?.logoUrl ?? null,
+      faviconUrl: body?.faviconUrl ?? null,
+    },
+    tx,
+  ),
+);
 ```
 
 `lib/auth/workspace.ts:134` → `await createSite({ workspaceId: created.id, name: "Main site" }, tx);`
@@ -205,11 +216,13 @@ git commit -m "refactor(sites): createSite takes a payload object + branding fie
 ### Task M1.3: Refactor `createWorkspace` to a payload object + decouple from site creation
 
 **Files:**
+
 - Modify: `lib/auth/workspace.ts` (signature, body, no `createSite`, `uniqueWorkspaceSlug(name, db)`)
 - Modify: `app/api/workspaces/route.ts:35` (caller)
 - Test: `tests/create-workspace.test.ts` (create)
 
 **Interfaces:**
+
 - Consumes: `createSite` (M1.2).
 - Produces: `createWorkspace({ userId, name, logoUrl? }, db = prisma) => Promise<{ id, name, slug }>` — creates **only** workspace + OWNER membership, **no** site.
 
@@ -314,12 +327,14 @@ git commit -m "refactor(workspace): createWorkspace takes a payload + no longer 
 ### Task M1.4: Stop auto-creating a workspace at signup + OAuth, and relax the last-one delete guards
 
 **Files:**
+
 - Modify: `app/api/auth/signup/route.ts:37-40`
 - Modify: `lib/auth/oauth-account.ts:50`
 - Modify: `app/api/sites/[id]/route.ts:24-25` (drop "must keep at least one site")
 - Modify: `app/api/workspaces/[id]/route.ts:28-29` (drop "cannot delete your only workspace")
 
 **Interfaces:**
+
 - Consumes: nothing new. Behavioral change verified by M1.5's gate test (a user with no membership, or a workspace with no site, lands in `/setup`). Relaxing the guards lets a user delete their last site/workspace; the gate then re-drives them through `/setup`.
 
 - [ ] **Step 1: Remove the signup auto-create**
@@ -327,8 +342,8 @@ git commit -m "refactor(workspace): createWorkspace takes a payload + no longer 
 In `app/api/auth/signup/route.ts`, delete the `createWorkspace` import (line 4) and replace lines 37-40 with:
 
 ```ts
-  await createSession(user.id);
-  return NextResponse.json({ ok: true, onboarded: false });
+await createSession(user.id);
+return NextResponse.json({ ok: true, onboarded: false });
 ```
 
 - [ ] **Step 2: Remove the OAuth auto-create**
@@ -340,8 +355,8 @@ In `lib/auth/oauth-account.ts`, delete line 50 (`await createWorkspace(...)`) an
 In `app/api/sites/[id]/route.ts` `DELETE`, remove the two guard lines:
 
 ```ts
-    const count = await prisma.site.count({ where: { workspaceId: ws.workspace.id } });
-    if (count <= 1) return badRequest("A workspace must keep at least one site");
+const count = await prisma.site.count({ where: { workspaceId: ws.workspace.id } });
+if (count <= 1) return badRequest("A workspace must keep at least one site");
 ```
 
 If `badRequest` is now unused in that file, drop it from the `@/lib/api/api-response` import.
@@ -351,8 +366,8 @@ If `badRequest` is now unused in that file, drop it from the `@/lib/api/api-resp
 In `app/api/workspaces/[id]/route.ts` `DELETE`, remove the two guard lines:
 
 ```ts
-    const count = await prisma.membership.count({ where: { userId: ws.user.id } });
-    if (count <= 1) return badRequest("Cannot delete your only workspace");
+const count = await prisma.membership.count({ where: { userId: ws.user.id } });
+if (count <= 1) return badRequest("Cannot delete your only workspace");
 ```
 
 If `badRequest` is now unused in that file, drop it from the import.
@@ -372,12 +387,14 @@ git commit -m "feat(auth): stop auto-creating a workspace and allow zero-state (
 ### Task M1.5: The setup gate
 
 **Files:**
+
 - Create: `lib/auth/setup-gate.ts`
 - Modify: `app/(app)/layout.tsx:14-15`
 - Modify: `lib/auth/workspace.ts:75` and `lib/auth/site.ts:48` (redirect fallback `/onboarding` → `/setup`)
 - Test: `tests/setup-gate.test.ts` (create)
 
 **Interfaces:**
+
 - Produces: `needsSetup({ hasWorkspace: boolean; siteCount: number }) => boolean`.
 
 - [ ] **Step 1: Write the failing test**
@@ -424,11 +441,9 @@ Expected: PASS
 In `app/(app)/layout.tsx`, replace lines 14-15 (`const ctx = await getActiveWorkspace(); if (!ctx) redirect("/onboarding");`) with:
 
 ```ts
-  const ctx = await getActiveWorkspace();
-  const siteCount = ctx
-    ? await prisma.site.count({ where: { workspaceId: ctx.workspace.id } })
-    : 0;
-  if (needsSetup({ hasWorkspace: !!ctx, siteCount })) redirect("/setup");
+const ctx = await getActiveWorkspace();
+const siteCount = ctx ? await prisma.site.count({ where: { workspaceId: ctx.workspace.id } }) : 0;
+if (needsSetup({ hasWorkspace: !!ctx, siteCount })) redirect("/setup");
 ```
 
 Add the import at the top: `import { needsSetup } from "@/lib/auth/setup-gate";`
@@ -436,8 +451,8 @@ Add the import at the top: `import { needsSetup } from "@/lib/auth/setup-gate";`
 (`prisma` is already imported in this file.) Note `ctx` is used again below at line 37 (`activeWorkspaceId={ctx.workspace.id}`); after this gate `ctx` is guaranteed non-null, so add a `if (!ctx) redirect("/setup");` immediately after the `needsSetup` check to satisfy the type narrower:
 
 ```ts
-  if (needsSetup({ hasWorkspace: !!ctx, siteCount })) redirect("/setup");
-  if (!ctx) redirect("/setup");
+if (needsSetup({ hasWorkspace: !!ctx, siteCount })) redirect("/setup");
+if (!ctx) redirect("/setup");
 ```
 
 - [ ] **Step 6: Point the helper fallbacks at `/setup`**
@@ -460,6 +475,7 @@ git commit -m "feat(auth): gate users with no workspace/site into /setup"
 ### Task M1.6: `persistActiveContext` + `POST /api/setup` + endpoint + extended create routes
 
 **Files:**
+
 - Modify: `lib/auth/site.ts` (add `persistActiveContext`)
 - Create: `app/api/setup/route.ts`
 - Modify: `lib/api/endpoints.ts` (add `setup`)
@@ -467,6 +483,7 @@ git commit -m "feat(auth): gate users with no workspace/site into /setup"
 - Test: `tests/setup-api.test.ts` (create)
 
 **Interfaces:**
+
 - Consumes: `createWorkspace` (M1.3), `createSite` (M1.2).
 - Produces: `persistActiveContext(workspaceId, siteId) => Promise<void>`; `POST /api/setup` body `{ workspace: { name: string; logoUrl?: string } | null, site: { name: string; logoUrl?: string; faviconUrl?: string } }` → `201 { workspaceId, siteId }`; `endpoints.setup = "/api/setup"`.
 
@@ -543,7 +560,10 @@ export async function runSetup(
 ): Promise<{ workspaceId: string; siteId: string }> {
   let workspaceId = "";
   if (!input.workspace) {
-    const m = await prisma.membership.findFirst({ where: { userId }, orderBy: { createdAt: "asc" } });
+    const m = await prisma.membership.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "asc" },
+    });
     if (!m) throw new Error("no_workspace");
     workspaceId = m.workspaceId;
   }
@@ -648,10 +668,12 @@ git commit -m "feat(setup): POST /api/setup creates workspace+site atomically an
 ### Task M1.7: Reusable step forms (`WorkspaceForm`, `SiteForm`, `DomainStep`)
 
 **Files:**
+
 - Create: `components/setup/types.ts`, `components/setup/WorkspaceForm.tsx`, `components/setup/SiteForm.tsx`, `components/setup/DomainStep.tsx`
 - Test: `tests/setup-forms.dom.test.tsx` (create)
 
 **Interfaces:**
+
 - Produces:
   - `WorkspaceDraft = { name: string; logoUrl: string }`, `SiteDraft = { name: string; logoUrl: string; faviconUrl: string }` (in `components/setup/types.ts`)
   - `WorkspaceForm({ value: WorkspaceDraft; onChange: (v: WorkspaceDraft) => void })`
@@ -801,11 +823,13 @@ git commit -m "feat(setup): reusable WorkspaceForm/SiteForm/DomainStep step form
 ### Task M1.8: Wizard orchestration helper + `SetupWizard` client + `/setup` route
 
 **Files:**
+
 - Create: `components/setup/wizard-steps.ts` (pure step logic), `components/setup/SetupWizard.tsx`
 - Create: `app/setup/layout.tsx`, `app/setup/page.tsx`
 - Test: `tests/wizard-steps.test.ts` (create)
 
 **Interfaces:**
+
 - Consumes: `WorkspaceForm`/`SiteForm`/`DomainStep` (M1.7), `endpoints.setup` + `endpoints.domains.list` (existing), `api` (axios).
 - Produces: `wizardSteps(hasWorkspace: boolean) => ("workspace" | "site" | "domain")[]`; `SetupWizard({ userName, hasWorkspace })` client component.
 
@@ -885,9 +909,11 @@ export function SetupWizard({
 
   const step: WizardStep = steps[i];
   const canNext =
-    step === "workspace" ? workspace.name.trim().length > 0 :
-    step === "site" ? site.name.trim().length > 0 :
-    true;
+    step === "workspace"
+      ? workspace.name.trim().length > 0
+      : step === "site"
+        ? site.name.trim().length > 0
+        : true;
 
   async function finish() {
     setBusy(true);
@@ -974,9 +1000,7 @@ export const dynamic = "force-dynamic";
 export default async function SetupPage() {
   const user = await requireUser();
   const ctx = await getActiveWorkspace();
-  const siteCount = ctx
-    ? await prisma.site.count({ where: { workspaceId: ctx.workspace.id } })
-    : 0;
+  const siteCount = ctx ? await prisma.site.count({ where: { workspaceId: ctx.workspace.id } }) : 0;
   if (!needsSetup({ hasWorkspace: !!ctx, siteCount })) redirect("/");
   return <SetupWizard userName={user.name} hasWorkspace={!!ctx} />;
 }
@@ -1001,11 +1025,13 @@ git commit -m "feat(setup): /setup wizard prompts new users to create a workspac
 ### Task M1.9: Favicon on the published site
 
 **Files:**
+
 - Create: `lib/seo/favicon.ts`
 - Modify: `app/p/[slug]/page.tsx` (`generateMetadata`)
 - Test: `tests/favicon-metadata.test.ts` (create)
 
 **Interfaces:**
+
 - Produces: `faviconMetadata(faviconUrl: string | null | undefined) => { icons?: { icon: string } }`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1053,23 +1079,23 @@ Expected: PASS
 In `app/p/[slug]/page.tsx`, import the helper and the resolver, and spread the favicon into the returned metadata. Replace the body of `generateMetadata` (lines 25-36) with:
 
 ```ts
-  const { slug } = await params;
-  const page = await loadPage(slug);
-  if (!page || !page.published) return { title: "Page not found" };
-  const site = await prisma.site.findUnique({
-    where: { id: page.siteId },
-    select: { faviconUrl: true },
-  });
-  const title = page.metaTitle || page.title;
-  const description = page.metaDescription || undefined;
-  const images = page.ogImage ? [page.ogImage] : undefined;
-  return {
-    title,
-    description,
-    ...faviconMetadata(site?.faviconUrl),
-    openGraph: { title, description, images, type: "website" },
-    twitter: { card: "summary_large_image", title, description, images },
-  };
+const { slug } = await params;
+const page = await loadPage(slug);
+if (!page || !page.published) return { title: "Page not found" };
+const site = await prisma.site.findUnique({
+  where: { id: page.siteId },
+  select: { faviconUrl: true },
+});
+const title = page.metaTitle || page.title;
+const description = page.metaDescription || undefined;
+const images = page.ogImage ? [page.ogImage] : undefined;
+return {
+  title,
+  description,
+  ...faviconMetadata(site?.faviconUrl),
+  openGraph: { title, description, images, type: "website" },
+  twitter: { card: "summary_large_image", title, description, images },
+};
 ```
 
 Add `import { faviconMetadata } from "@/lib/seo/favicon";` at the top.
@@ -1108,10 +1134,12 @@ Adds the stacked `SiteSwitcher` under the workspace switcher, a "New site" modal
 ### Task M2.1: `SiteSwitcher` helpers (pure)
 
 **Files:**
+
 - Create: `components/app-shell/SiteSwitcher.helpers.ts`
 - Test: `tests/site-switcher-helpers.test.ts` (create)
 
 **Interfaces:**
+
 - Produces: `type SiteOption = { id: string; name: string; handle: string }`; `siteInitial(name?: string) => string`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1164,10 +1192,12 @@ git commit -m "feat(sidebar): SiteSwitcher pure helpers"
 ### Task M2.2: `SiteSwitcher` component (switch + new-site modal)
 
 **Files:**
+
 - Create: `components/app-shell/SiteSwitcher.tsx`
 - Test: `tests/site-switcher.dom.test.tsx` (create)
 
 **Interfaces:**
+
 - Consumes: `SiteOption`/`siteInitial` (M2.1), `SiteForm` (M1.7), `endpoints.sites.switch` + `endpoints.sites.list` (existing), `api`.
 - Produces: `SiteSwitcher({ collapsed, sites, activeSiteId })`.
 
@@ -1344,11 +1374,13 @@ git commit -m "feat(sidebar): SiteSwitcher with switch + new-site modal"
 ### Task M2.3: Thread sites into the sidebar
 
 **Files:**
+
 - Modify: `app/(app)/layout.tsx` (fetch sites + active site id, pass to `Sidebar`)
 - Modify: `components/app-shell/Sidebar.tsx` (accept + forward `sites`, `activeSiteId`)
 - Modify: `components/app-shell/Sidebar.helpers.tsx:45` (render `SiteSwitcher` under `WorkspaceSwitcher`)
 
 **Interfaces:**
+
 - Consumes: `SiteSwitcher` (M2.2), `getActiveSite` (existing).
 
 - [ ] **Step 1: Fetch sites in the layout**
@@ -1356,12 +1388,12 @@ git commit -m "feat(sidebar): SiteSwitcher with switch + new-site modal"
 In `app/(app)/layout.tsx`, after the `needsSetup`/`if (!ctx)` gate, add:
 
 ```ts
-  const sites = await prisma.site.findMany({
-    where: { workspaceId: ctx.workspace.id },
-    orderBy: { createdAt: "asc" },
-    select: { id: true, name: true, handle: true },
-  });
-  const activeSiteId = (await getActiveSite())?.site.id;
+const sites = await prisma.site.findMany({
+  where: { workspaceId: ctx.workspace.id },
+  orderBy: { createdAt: "asc" },
+  select: { id: true, name: true, handle: true },
+});
+const activeSiteId = (await getActiveSite())?.site.id;
 ```
 
 Add `import { getActiveSite } from "@/lib/auth/site";` and pass two new props to `<Sidebar … sites={sites} activeSiteId={activeSiteId} />`.
@@ -1394,11 +1426,13 @@ git commit -m "feat(sidebar): stack the SiteSwitcher under the workspace switche
 ### Task M2.4: Route "New workspace" through the full wizard
 
 **Files:**
+
 - Modify: `components/app-shell/WorkspaceSwitcher.tsx` (replace inline create with a wizard modal)
 - Create: `components/setup/CreateWorkspaceModal.tsx` (workspace + first site via `POST /api/setup`)
 - Test: `tests/create-workspace-modal.dom.test.tsx` (create)
 
 **Interfaces:**
+
 - Consumes: `WorkspaceForm` + `SiteForm` (M1.7), `endpoints.setup`, `endpoints.workspaces.switch`, `api`.
 - Produces: `CreateWorkspaceModal({ open, onClose })`.
 
@@ -1525,11 +1559,13 @@ Reworks the editor's SEO tab into a "Page" panel: slug (validated), SEO/social, 
 ### Task M3.1: Editor store — `setSlug` + `setNoindex` + `noindex` state
 
 **Files:**
+
 - Modify: `store/editor-store.ts` (state field + action signatures + init param)
 - Modify: `store/editor-store.actions.ts` (`createMetaActions`, `init`)
 - Test: `tests/editor-meta-actions.test.ts` (create)
 
 **Interfaces:**
+
 - Produces: store `noindex: boolean`; actions `setSlug(slug: string)`, `setNoindex(noindex: boolean)`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1560,6 +1596,7 @@ Expected: FAIL — `setSlug`/`setNoindex` not in the returned actions.
 - [ ] **Step 3: Extend the store types**
 
 In `store/editor-store.ts`:
+
 - Add to `EditorState` (page meta block, after `slug: string;`): `noindex: boolean;`
 - Add to the `init` param object type (after `slug: string;`): `noindex?: boolean;`
 - Add to the actions section (after `setPublished`): `setSlug: (slug: string) => void;` and `setNoindex: (noindex: boolean) => void;`
@@ -1568,6 +1605,7 @@ In `store/editor-store.ts`:
 - [ ] **Step 4: Implement the actions + init**
 
 In `store/editor-store.actions.ts`:
+
 - In `createLifecycleActions` `init`, add `noindex: page.noindex ?? false,` to the `set({...})` object.
 - Replace `MetaActions` type + `createMetaActions`:
 
@@ -1597,6 +1635,7 @@ git commit -m "feat(editor): store actions for slug + noindex"
 ### Task M3.2: Slug normalize helper + validated page PATCH (+ set-home + noindex)
 
 **Files:**
+
 - Create: `lib/pages/slug.ts`
 - Modify: `app/api/pages/[id]/route.ts` (`PUT` — accept `slug` validated unique + `noindex`)
 - Create: `app/api/pages/[id]/home/route.ts` (POST — set this page as the site home)
@@ -1604,6 +1643,7 @@ git commit -m "feat(editor): store actions for slug + noindex"
 - Test: `tests/page-slug.test.ts` (create), `tests/page-slug-api.test.ts` (create)
 
 **Interfaces:**
+
 - Produces: `pageSlugFrom(input: string) => string`; `PUT /api/pages/:id` accepts `{ slug?, noindex? }` (slug 400s on collision within the site); `POST /api/pages/:id/home`; `endpoints.pages.setHome(id)`.
 
 - [ ] **Step 1: Write the failing unit test**
@@ -1718,17 +1758,17 @@ Expected: PASS
 In `app/api/pages/[id]/route.ts` `PUT`, extend the typed `data` object with `slug?: string` and `noindex?: boolean`, and before the `updateMany` add:
 
 ```ts
-      if (typeof body.noindex === "boolean") data.noindex = body.noindex;
-      if (typeof body.slug === "string") {
-        const { pageSlugFrom } = await import("@/lib/pages/slug");
-        const slug = pageSlugFrom(body.slug);
-        if (!slug) return badRequest("Slug cannot be empty");
-        const clash = await prisma.page.findFirst({
-          where: { siteId: ctx.site.id, slug, NOT: { id } },
-        });
-        if (clash) return badRequest("That slug is already used by another page");
-        data.slug = slug;
-      }
+if (typeof body.noindex === "boolean") data.noindex = body.noindex;
+if (typeof body.slug === "string") {
+  const { pageSlugFrom } = await import("@/lib/pages/slug");
+  const slug = pageSlugFrom(body.slug);
+  if (!slug) return badRequest("Slug cannot be empty");
+  const clash = await prisma.page.findFirst({
+    where: { siteId: ctx.site.id, slug, NOT: { id } },
+  });
+  if (clash) return badRequest("That slug is already used by another page");
+  data.slug = slug;
+}
 ```
 
 Add `badRequest` to the imports from `@/lib/api/api-response`.
@@ -1771,10 +1811,12 @@ git commit -m "feat(pages): validated slug PATCH, noindex, and set-as-home endpo
 ### Task M3.3: Extend `/api/site` (active site) with name/logo/favicon
 
 **Files:**
+
 - Modify: `app/api/site/route.ts` (GET returns branding; PUT accepts `name`, `logoUrl`, `faviconUrl`)
 - Test: `tests/site-branding-api.test.ts` (create)
 
 **Interfaces:**
+
 - Produces: `GET /api/site` includes `{ name, logoUrl, faviconUrl }`; `PUT /api/site` accepts those fields.
 
 - [ ] **Step 1: Write the failing test (pure shaping helper)**
@@ -1823,14 +1865,15 @@ Expected: PASS
 - [ ] **Step 5: Wire branding into `/api/site`**
 
 In `app/api/site/route.ts`:
+
 - Import the helper: `import { siteBrandingJson } from "@/lib/sites/branding";`
 - In `siteJson(...)`, change the param type to also include `name`, `logoUrl`, `faviconUrl`, and spread branding into the returned object: `return { ...siteBrandingJson(site), header: ..., footer: ..., colors: ..., textStyles: ... };`
 - In `PUT`, extend the typed `data` object and add:
 
 ```ts
-    if (typeof body.name === "string") data.name = body.name.slice(0, 80);
-    if (typeof body.logoUrl === "string") data.logoUrl = body.logoUrl || null;
-    if (typeof body.faviconUrl === "string") data.faviconUrl = body.faviconUrl || null;
+if (typeof body.name === "string") data.name = body.name.slice(0, 80);
+if (typeof body.logoUrl === "string") data.logoUrl = body.logoUrl || null;
+if (typeof body.faviconUrl === "string") data.faviconUrl = body.faviconUrl || null;
 ```
 
 (Type `data` as `{ header?: string; footer?: string; colors?: string; textStyles?: string; name?: string; logoUrl?: string | null; faviconUrl?: string | null }`.)
@@ -1850,11 +1893,13 @@ git commit -m "feat(site): active-site API exposes + updates name/logo/favicon"
 ### Task M3.4: `PagePanel` + rework the editor rail
 
 **Files:**
+
 - Create: `components/editor/PagePanel.tsx`
 - Modify: `components/editor/LeftPanel.tsx` (rail entry `seo` → `page`, render `PagePanel`)
 - Test: `tests/page-panel.dom.test.tsx` (create)
 
 **Interfaces:**
+
 - Consumes: `useEditor` store (`slug`, `setSlug`, `noindex`, `setNoindex`, `published`, `pageId`), `SeoPanel` (existing), `endpoints.pages.byId/setHome`, `endpoints.site`, `api`, editor `controls`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1988,6 +2033,7 @@ export function PagePanel() {
 - [ ] **Step 4: Rework the rail**
 
 In `components/editor/LeftPanel.tsx`:
+
 - Change the `Section` union: replace `"seo"` with `"page"`.
 - In `RAIL`, change the `seo` entry to `{ id: "page", label: "Page", icon: Globe }` (keep `Globe` or swap to a `FileCog` import).
 - In `TITLES`, replace the `seo` key with `page: "Page settings"`.
@@ -2009,10 +2055,12 @@ git commit -m "feat(editor): Page settings panel (slug, status, search, SEO)"
 ### Task M3.5: Site shortcuts in the Page panel
 
 **Files:**
+
 - Modify: `components/editor/PagePanel.tsx` (add a "Website" section: name + favicon via `/api/site`, domain link)
 - Test: extend `tests/page-panel.dom.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `GET/PUT /api/site` (M3.3), `endpoints.site`, `ImageInput`.
 
 - [ ] **Step 1: Add the failing assertion**
@@ -2020,10 +2068,10 @@ git commit -m "feat(editor): Page settings panel (slug, status, search, SEO)"
 Append to `tests/page-panel.dom.test.tsx`:
 
 ```tsx
-  it("renders a Website section heading", () => {
-    render(<PagePanel />);
-    expect(screen.getByText("Website")).toBeTruthy();
-  });
+it("renders a Website section heading", () => {
+  render(<PagePanel />);
+  expect(screen.getByText("Website")).toBeTruthy();
+});
 ```
 
 - [ ] **Step 2: Run to verify it fails**
@@ -2036,57 +2084,57 @@ Expected: FAIL — no "Website" text yet.
 In `components/editor/PagePanel.tsx`, add a `useEffect` to load the active site branding once and a "Website" `Section`. Add imports `useEffect` and `ImageInput`:
 
 ```tsx
-  const [siteName, setSiteName] = useState("");
-  const [favicon, setFavicon] = useState("");
+const [siteName, setSiteName] = useState("");
+const [favicon, setFavicon] = useState("");
 
-  useEffect(() => {
-    let alive = true;
-    void api
-      .get(endpoints.site)
-      .then(({ data }) => {
-        if (!alive) return;
-        setSiteName(data?.name ?? "");
-        setFavicon(data?.faviconUrl ?? "");
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, []);
+useEffect(() => {
+  let alive = true;
+  void api
+    .get(endpoints.site)
+    .then(({ data }) => {
+      if (!alive) return;
+      setSiteName(data?.name ?? "");
+      setFavicon(data?.faviconUrl ?? "");
+    })
+    .catch(() => {});
+  return () => {
+    alive = false;
+  };
+}, []);
 
-  async function saveSite(patch: { name?: string; faviconUrl?: string }) {
-    await api.put(endpoints.site, patch).catch(() => {});
-  }
+async function saveSite(patch: { name?: string; faviconUrl?: string }) {
+  await api.put(endpoints.site, patch).catch(() => {});
+}
 ```
 
 Render before the closing `</div>`:
 
 ```tsx
-      <Section title="Website">
-        <Field label="Site name">
-          <TextInput
-            value={siteName}
-            onChange={setSiteName}
-            onBlur={() => void saveSite({ name: siteName })}
-            placeholder="My website"
-          />
-        </Field>
-        <Field label="Favicon">
-          <ImageInput
-            value={favicon}
-            onChange={(v) => {
-              setFavicon(v);
-              void saveSite({ faviconUrl: v });
-            }}
-          />
-        </Field>
-        <a
-          href="/site-settings"
-          className="mt-1 inline-block text-xs font-medium text-indigo-600 hover:underline"
-        >
-          Manage domains →
-        </a>
-      </Section>
+<Section title="Website">
+  <Field label="Site name">
+    <TextInput
+      value={siteName}
+      onChange={setSiteName}
+      onBlur={() => void saveSite({ name: siteName })}
+      placeholder="My website"
+    />
+  </Field>
+  <Field label="Favicon">
+    <ImageInput
+      value={favicon}
+      onChange={(v) => {
+        setFavicon(v);
+        void saveSite({ faviconUrl: v });
+      }}
+    />
+  </Field>
+  <a
+    href="/site-settings"
+    className="mt-1 inline-block text-xs font-medium text-indigo-600 hover:underline"
+  >
+    Manage domains →
+  </a>
+</Section>
 ```
 
 - [ ] **Step 4: Run to verify it passes + build + lint**
