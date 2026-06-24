@@ -21,6 +21,7 @@ describe("validatePageSlug", () => {
     await expect(validatePageSlug(prisma, site.id, target.id, "About")).rejects.toThrow(
       "slug_taken",
     );
+    await expect(validatePageSlug(prisma, site.id, target.id, "   ")).rejects.toThrow("slug_empty");
 
     const ok = await validatePageSlug(prisma, site.id, target.id, "Contact");
     expect(ok).toBe("contact");
