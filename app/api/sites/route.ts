@@ -19,7 +19,15 @@ export async function POST(req: Request) {
   return withRole("ADMIN", async (ws) => {
     const body = await req.json().catch(() => ({}));
     const site = await prisma.$transaction((tx) =>
-      createSite(ws.workspace.id, String(body?.name ?? ""), tx),
+      createSite(
+        {
+          workspaceId: ws.workspace.id,
+          name: String(body?.name ?? ""),
+          logoUrl: body?.logoUrl ?? null,
+          faviconUrl: body?.faviconUrl ?? null,
+        },
+        tx,
+      ),
     );
     return created(site);
   });

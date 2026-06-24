@@ -17,7 +17,7 @@ describe("createSite", () => {
     });
     cleanup.ws.push(ws.id);
 
-    const result = await createSite(ws.id, "Main site");
+    const result = await createSite({ workspaceId: ws.id, name: "Main site" });
 
     expect(result.name).toBe("Main site");
     expect(result.handle).toBe("main-site");
@@ -29,6 +29,16 @@ describe("createSite", () => {
     const page = await prisma.page.findUniqueOrThrow({ where: { id: result.homePageId } });
     expect(page.siteId).toBe(result.id);
     expect(page.slug).toBe("home");
+
+    const branded = await createSite({
+      workspaceId: ws.id,
+      name: "Branded",
+      logoUrl: "/logo.png",
+      faviconUrl: "/fav.ico",
+    });
+    const brandedSite = await prisma.site.findUniqueOrThrow({ where: { id: branded.id } });
+    expect(brandedSite.logoUrl).toBe("/logo.png");
+    expect(brandedSite.faviconUrl).toBe("/fav.ico");
   });
 
   it("creates a site inside a caller-supplied transaction (atomic)", async () => {
@@ -38,7 +48,7 @@ describe("createSite", () => {
     cleanup.ws.push(ws.id);
 
     await prisma.$transaction(async (tx) => {
-      await createSite(ws.id, "TX site", tx);
+      await createSite({ workspaceId: ws.id, name: "TX site" }, tx);
     });
 
     const sites = await prisma.site.findMany({ where: { workspaceId: ws.id } });
@@ -54,7 +64,7 @@ describe("createSite", () => {
 
     await expect(
       prisma.$transaction(async (tx) => {
-        await createSite(ws.id, "Rollback site", tx);
+        await createSite({ workspaceId: ws.id, name: "Rollback site" }, tx);
         throw new Error("forced rollback");
       }),
     ).rejects.toThrow("forced rollback");
