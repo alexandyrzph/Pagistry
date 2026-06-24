@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { isProvider, oauthProviders, buildAuthorizeUrl } from "@/lib/auth/oauth";
+import { isProvider, oauthProviders, buildAuthorizeUrl, appUrl } from "@/lib/auth/oauth";
 import { signState } from "@/lib/auth/oauth-state";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
   const { provider } = await params;
   const next = new URL(req.url).searchParams.get("next") || "";
   if (!isProvider(provider) || !oauthProviders().includes(provider)) {
-    return NextResponse.redirect(new URL("/login?error=provider_unavailable", req.url));
+    return NextResponse.redirect(new URL("/login?error=provider_unavailable", appUrl()));
   }
   const state = signState({ next });
   const jar = await cookies();

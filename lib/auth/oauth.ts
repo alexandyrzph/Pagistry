@@ -35,7 +35,7 @@ const CONFIG: Record<Provider, ProviderConfig> = {
   },
 };
 
-function appUrl(): string {
+export function appUrl(): string {
   return process.env.APP_URL || "http://localhost:3000";
 }
 

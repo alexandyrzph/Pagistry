@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { isProvider, oauthProviders, exchangeCode, fetchProfile } from "@/lib/auth/oauth";
+import { isProvider, oauthProviders, exchangeCode, fetchProfile, appUrl } from "@/lib/auth/oauth";
 import { verifyState } from "@/lib/auth/oauth-state";
 import { linkOrCreateUser } from "@/lib/auth/oauth-account";
 import { createSession } from "@/lib/auth/auth";
@@ -13,7 +13,7 @@ export const runtime = "nodejs";
 export async function GET(req: Request, { params }: { params: Promise<{ provider: string }> }) {
   const { provider } = await params;
   const url = new URL(req.url);
-  const to = (path: string) => NextResponse.redirect(new URL(path, req.url));
+  const to = (path: string) => NextResponse.redirect(new URL(path, appUrl()));
 
   if (url.searchParams.get("error")) return to("/login?error=oauth_denied");
   if (!isProvider(provider) || !oauthProviders().includes(provider))
