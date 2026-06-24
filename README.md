@@ -1,7 +1,8 @@
 # Pagistry — Visual Page Builder
+[<img width="1512" height="762" alt="Screenshot 2026-06-24 at 20 08 41" src="https://github.com/user-attachments/assets/093d30dc-a8b1-456f-a0a5-2eaccd7a7b13" />](https://app.pagistry.com/)
 
 A clean, full-stack drag-and-drop page builder (Divi-style) built with **Next.js
-16, React 19, TypeScript, Tailwind CSS v4, Prisma + SQLite, dnd-kit and Zustand**.
+16, React 19, TypeScript, Tailwind CSS v4, Prisma + PostgreSQL, dnd-kit and Zustand**.
 
 Build pages from a rich library of blocks, fine-tune content and style per
 breakpoint, preview responsively, then **publish to a public URL** or **export
