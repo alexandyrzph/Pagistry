@@ -128,11 +128,14 @@ export async function createWorkspace(
   { userId, name, logoUrl }: { userId: string; name: string; logoUrl?: string | null },
   db: Db = prisma,
 ): Promise<ActiveWorkspace> {
-  const cleanName = (name || "Workspace").trim().slice(0, 80) || "Workspace";
-  const slug = await uniqueWorkspaceSlug(cleanName, db);
-  const created = await db.workspace.create({
-    data: { name: cleanName, slug, logoUrl: logoUrl ?? null },
-  });
-  await db.membership.create({ data: { userId, workspaceId: created.id, role: "OWNER" } });
-  return { id: created.id, name: created.name, slug: created.slug };
+  const run = async (tx: Db): Promise<ActiveWorkspace> => {
+    const cleanName = (name || "Workspace").trim().slice(0, 80) || "Workspace";
+    const slug = await uniqueWorkspaceSlug(cleanName, tx);
+    const created = await tx.workspace.create({
+      data: { name: cleanName, slug, logoUrl: logoUrl ?? null },
+    });
+    await tx.membership.create({ data: { userId, workspaceId: created.id, role: "OWNER" } });
+    return { id: created.id, name: created.name, slug: created.slug };
+  };
+  return "$transaction" in db ? db.$transaction(run) : run(db);
 }
