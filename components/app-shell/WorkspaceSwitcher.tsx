@@ -8,12 +8,11 @@ import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import {
   type WS,
-  CreateWorkspaceForm,
   WorkspaceListItem,
   WorkspaceTrigger,
-  createWorkspaceError,
   workspaceInitials,
 } from "./WorkspaceSwitcher.helpers";
+import { CreateWorkspaceModal } from "@/components/setup/CreateWorkspaceModal";
 
 export function WorkspaceSwitcher({
   collapsed,
@@ -27,9 +26,6 @@ export function WorkspaceSwitcher({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [name, setName] = useState("");
-  const [err, setErr] = useState("");
   const active = workspaces.find((w) => w.id === activeId) ?? workspaces[0];
   const initials = workspaceInitials(active?.name);
 
@@ -37,35 +33,9 @@ export function WorkspaceSwitcher({
 
   async function switchTo(id: string) {
     if (id === active?.id) return setOpen(false);
-    setBusy(true);
     await api.post(endpoints.workspaces.switch, { id }).catch(() => {});
     router.refresh();
-    setBusy(false);
     setOpen(false);
-  }
-
-  async function create() {
-    const n = name.trim();
-    if (!n) return;
-    setBusy(true);
-    setErr("");
-    try {
-      const { data: ws } = await api.post(endpoints.workspaces.list, { name: n });
-      if (ws?.id) {
-        await api.post(endpoints.workspaces.switch, { id: ws.id });
-        router.refresh();
-        setBusy(false);
-        setCreating(false);
-        setName("");
-        setOpen(false);
-      } else {
-        setBusy(false);
-        setErr(ws?.error || "Could not create workspace");
-      }
-    } catch (e) {
-      setBusy(false);
-      setErr(createWorkspaceError(e));
-    }
   }
 
   return (
@@ -90,25 +60,15 @@ export function WorkspaceSwitcher({
             />
           ))}
           <div className="my-1 border-t border-[#f1f3f5]" />
-          {creating ? (
-            <CreateWorkspaceForm
-              name={name}
-              busy={busy}
-              err={err}
-              onNameChange={setName}
-              onSubmit={create}
-              onCancel={() => setCreating(false)}
-            />
-          ) : (
-            <button
-              onClick={() => setCreating(true)}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
-            >
-              <Plus size={15} /> New workspace
-            </button>
-          )}
+          <button
+            onClick={() => setCreating(true)}
+            className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
+          >
+            <Plus size={15} /> New workspace
+          </button>
         </div>
       )}
+      <CreateWorkspaceModal open={creating} onClose={() => setCreating(false)} />
     </div>
   );
 }
