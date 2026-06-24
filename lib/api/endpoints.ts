@@ -38,6 +38,7 @@ export const endpoints = {
     publish: (id: string) => `/api/pages/${id}/publish`,
     versions: (id: string) => `/api/pages/${id}/versions`,
     version: (id: string, versionId: string) => `/api/pages/${id}/versions/${versionId}`,
+    setHome: (id: string) => `/api/pages/${id}/home`,
   },
   components: {
     list: "/api/components",

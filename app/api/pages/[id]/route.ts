@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { withSite, withSiteRole } from "@/lib/api/api-handler";
-import { json, notFound } from "@/lib/api/api-response";
+import { badRequest, json, notFound } from "@/lib/api/api-response";
 import { instrumentApi, timeDb } from "@/lib/observability";
 import { deleteFile } from "@/lib/storage";
+import { validatePageSlug } from "@/lib/pages/validate-slug";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,8 @@ export async function PUT(req: Request, { params }: Ctx) {
         metaTitle?: string | null;
         metaDescription?: string | null;
         ogImage?: string | null;
+        slug?: string;
+        noindex?: boolean;
       } = {};
       if (typeof body.title === "string") data.title = body.title.slice(0, 120);
       if (body.content !== undefined) data.content = JSON.stringify(body.content);
@@ -40,6 +43,18 @@ export async function PUT(req: Request, { params }: Ctx) {
         if (body.seo.metaDescription !== undefined)
           data.metaDescription = body.seo.metaDescription || null;
         if (body.seo.ogImage !== undefined) data.ogImage = body.seo.ogImage || null;
+      }
+      if (typeof body.noindex === "boolean") data.noindex = body.noindex;
+      if (typeof body.slug === "string") {
+        try {
+          data.slug = await validatePageSlug(prisma, ctx.site.id, id, body.slug);
+        } catch (e) {
+          return badRequest(
+            e instanceof Error && e.message === "slug_taken"
+              ? "That slug is already used by another page"
+              : "Slug cannot be empty",
+          );
+        }
       }
       const result = await timeDb("page.updateMany", () =>
         prisma.page.updateMany({ where: { id, siteId: ctx.site.id }, data }),
