@@ -44,7 +44,7 @@ export function SiteSwitcher({
     setBusy(true);
     try {
       const { data } = await api.post(endpoints.sites.list, draft);
-      if (data?.id) await api.post(endpoints.sites.switch, { id: data.id });
+      if (data?.id) await api.post(endpoints.sites.switch, { id: data.id }).catch(() => {});
       setCreating(false);
       setDraft({ name: "", logoUrl: "", faviconUrl: "" });
       setOpen(false);
