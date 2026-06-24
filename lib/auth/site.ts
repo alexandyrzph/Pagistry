@@ -41,7 +41,7 @@ export const getActiveSite = cache(async (): Promise<SiteCtx | null> => {
 
 /** Server pages: resolve the active site (membership + cookie validated). Mirrors
  *  requireWorkspace — requireUser() runs first so signed-out users go to /login,
- *  and a signed-in user with no resolvable site falls back to /onboarding. */
+ *  and a signed-in user with no resolvable site falls back to /setup. */
 export async function requireSite(): Promise<SiteCtx> {
   await requireUser();
   const ctx = await getActiveSite();

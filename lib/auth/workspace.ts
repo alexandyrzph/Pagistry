@@ -69,7 +69,7 @@ export const getActiveWorkspace = cache(async (): Promise<WorkspaceCtx | null> =
 
 /** Server pages: resolve the active workspace. Callers run requireUser() first, so
  *  this only fires for an authenticated user with no membership — a state the
- *  delete-workspace guard prevents (users always keep ≥1 workspace). /onboarding is
+ *  delete-workspace guard prevents (users always keep ≥1 workspace). /setup is
  *  the safe fallback that re-drives setup. */
 export async function requireWorkspace(): Promise<WorkspaceCtx> {
   const ctx = await getActiveWorkspace();
