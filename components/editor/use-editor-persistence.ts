@@ -1,8 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
+import { hasActiveDomain } from "@/lib/domains/active";
+import { useConfirm } from "@/components/ui/dialog-provider";
 import { buildExportDocument } from "@/lib/blocks/export-html";
 import { designSystemCss } from "@/lib/design/design-system";
 import { useEditor } from "@/store/editor-store";
@@ -27,6 +30,8 @@ export function useEditorPersistence(opts: {
   const dirty = useEditor((s) => s.dirty);
   const tree = useEditor((s) => s.tree);
   const autosave = useEditorUI((s) => s.autosave);
+  const router = useRouter();
+  const confirm = useConfirm();
 
   const save = useCallback(async () => {
     const s = useEditor.getState();
@@ -56,6 +61,25 @@ export function useEditorPersistence(opts: {
     await save();
     const s = useEditor.getState();
     if (!s.pageId) return;
+
+    let domains: unknown = null;
+    try {
+      domains = (await api.get(endpoints.domains.list)).data;
+    } catch {
+      domains = null;
+    }
+    if (domains !== null && !hasActiveDomain(domains)) {
+      const go = await confirm({
+        title: "Connect a domain to publish",
+        message:
+          "Publishing makes your site public, so it needs a connected domain first. Add one — it only takes a minute — then come back and publish.",
+        confirmLabel: "Connect a domain",
+        cancelLabel: "Not now",
+      });
+      if (go) router.push("/site-settings");
+      return;
+    }
+
     try {
       const data = (await api.post(endpoints.pages.publish(s.pageId), { published: true })).data;
       useEditor.getState().setPublished(!!data.published);
@@ -65,7 +89,7 @@ export function useEditorPersistence(opts: {
     } catch {
       /* ignore */
     }
-  }, [save]);
+  }, [save, confirm, router]);
 
   const unpublish = useCallback(async () => {
     const s = useEditor.getState();

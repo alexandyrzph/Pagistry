@@ -16,6 +16,10 @@ vi.mock("@/lib/api/client", () => ({
   },
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+}));
+
 // dnd-kit's DndContext/DragOverlay touch layout APIs jsdom lacks; stub to passthrough.
 vi.mock("@dnd-kit/core", () => ({
   DndContext: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -88,6 +92,7 @@ vi.mock("@/components/editor/CommandPalette", () => ({
 }));
 
 import { useEditor } from "@/store/editor-store";
+import { DialogProvider } from "@/components/ui/dialog-provider";
 import { EditorClient, type PageDTO } from "@/components/editor/EditorClient";
 
 function page(over: Partial<PageDTO> = {}): PageDTO {
@@ -96,7 +101,11 @@ function page(over: Partial<PageDTO> = {}): PageDTO {
 
 async function renderReady(props?: Partial<Parameters<typeof EditorClient>[0]>) {
   vi.useFakeTimers();
-  const utils = render(<EditorClient page={page()} {...props} />);
+  const utils = render(
+    <DialogProvider>
+      <EditorClient page={page()} {...props} />
+    </DialogProvider>,
+  );
   // The 550ms readiness gate keeps the skeleton up first.
   expect(screen.getByTestId("skeleton")).toBeInTheDocument();
   await act(async () => {
