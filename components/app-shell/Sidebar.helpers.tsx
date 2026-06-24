@@ -47,7 +47,7 @@ export function SidebarRail({
         w,
       )}
     >
-      <div className="flex items-center gap-2 px-4 py-3.5">
+      <div className="flex items-center gap-2 px-4 pb-2 pt-3.5">
         <WorkspaceSwitcher collapsed={collapsed} workspaces={workspaces} activeId={active?.id} />
       </div>
       <SiteSwitcher collapsed={collapsed} sites={sites} activeSiteId={activeSiteId} />

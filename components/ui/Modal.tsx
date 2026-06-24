@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { FocusScope } from "react-aria";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,7 @@ export function Modal({
     };
   }, [open, dismissible, onClose]);
 
-  return (
+  const overlay = (
     <AnimatePresence>
       {open && (
         <motion.div
@@ -78,4 +79,6 @@ export function Modal({
       )}
     </AnimatePresence>
   );
+
+  return typeof document === "undefined" ? null : createPortal(overlay, document.body);
 }

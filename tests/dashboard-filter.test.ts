@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { filterPages } from "@/lib/dashboard/filter";
+import { filterPages, emptyStateMessage } from "@/lib/dashboard/filter";
 
 const pages = [
   { title: "Portfolio", slug: "portfolio", published: true },
@@ -27,5 +27,17 @@ describe("filterPages", () => {
   });
   it("combines query and filter", () => {
     expect(filterPages(pages, "a", "live").map((p) => p.slug)).toEqual(["acme-landing"]);
+  });
+});
+
+describe("emptyStateMessage", () => {
+  it("uses the search query when the user is searching", () => {
+    expect(emptyStateMessage("foo", "all")).toBe("No pages match “foo”");
+    expect(emptyStateMessage("foo", "live")).toBe("No pages match “foo”");
+  });
+  it("describes the active status filter when the query is empty", () => {
+    expect(emptyStateMessage("", "live")).toBe("No live pages yet");
+    expect(emptyStateMessage("   ", "drafts")).toBe("No drafts yet");
+    expect(emptyStateMessage("", "all")).toBe("No pages yet");
   });
 });

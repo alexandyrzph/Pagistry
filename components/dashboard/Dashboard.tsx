@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Plus, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { filterPages } from "@/lib/dashboard/filter";
+import { filterPages, emptyStateMessage } from "@/lib/dashboard/filter";
 import { type Template } from "@/lib/blocks/templates";
 import { DashboardSkeleton } from "./DashboardSkeleton";
 import { SubmissionsModal } from "./SubmissionsModal";
@@ -111,7 +111,7 @@ export function Dashboard({ pages }: { pages: PageItem[] }) {
             {filtered.length === 0 ? (
               <div className="py-20 text-center">
                 <p className="text-[15px] font-semibold text-[#111827]">
-                  No pages match “{s.query}”
+                  {emptyStateMessage(s.query, s.filter)}
                 </p>
                 <Button
                   variant="link"

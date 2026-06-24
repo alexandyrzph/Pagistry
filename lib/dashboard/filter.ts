@@ -19,3 +19,12 @@ export function filterPages<T extends FilterablePage>(
     return matchQ && matchF;
   });
 }
+
+/** Heading for the dashboard empty state: a search-aware message when the user
+ *  is searching, otherwise a status-filter-aware one. Pure. */
+export function emptyStateMessage(query: string, filter: DashboardFilter): string {
+  if (query.trim()) return `No pages match “${query}”`;
+  if (filter === "live") return "No live pages yet";
+  if (filter === "drafts") return "No drafts yet";
+  return "No pages yet";
+}

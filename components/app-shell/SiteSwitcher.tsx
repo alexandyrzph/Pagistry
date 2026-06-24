@@ -56,8 +56,8 @@ export function SiteSwitcher({
 
   if (collapsed) {
     return (
-      <div className="flex justify-center px-2 py-1">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 text-xs font-semibold text-zinc-600">
+      <div className="flex justify-center px-2 pb-2">
+        <span className="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-[#f1f3f5] text-[11px] font-bold text-[#6b7280]">
           {siteInitial(active?.name)}
         </span>
       </div>
@@ -65,20 +65,22 @@ export function SiteSwitcher({
   }
 
   return (
-    <div className="relative w-full px-2 pb-1" onClick={(e) => e.stopPropagation()}>
+    <div className="relative w-full px-4 pb-2" onClick={(e) => e.stopPropagation()}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 rounded-lg border border-[#e8eaed] bg-white px-2.5 py-2 text-left hover:border-[#d6dae0]"
+        className="flex w-full items-center gap-2.5 rounded-[10px] border border-[#e8eaed] px-2 py-1.5 text-left hover:bg-[#f7f8fa]"
       >
-        <Globe size={15} className="shrink-0 text-zinc-400" />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-[#111827]">
+        <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-[#f1f3f5] text-[#6b7280]">
+          <Globe size={16} />
+        </span>
+        <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold leading-tight text-[#111827]">
           {active?.name ?? "No site"}
         </span>
-        <ChevronsUpDown size={14} className="shrink-0 text-[#9aa1ac]" />
+        <ChevronsUpDown size={15} className="shrink-0 text-[#9aa1ac]" />
       </button>
 
       {open && (
-        <div className="absolute left-2 right-2 top-full z-50 mt-1 rounded-xl border border-[#e8eaed] bg-white p-1 shadow-2xl">
+        <div className="absolute left-4 right-4 top-full z-50 mt-1 rounded-xl border border-[#e8eaed] bg-white p-1 shadow-2xl">
           <p className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#aeb4bd]">
             Sites
           </p>
