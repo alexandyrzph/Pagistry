@@ -6,16 +6,14 @@ import { PagePanel } from "@/components/editor/PagePanel";
 
 describe("PagePanel", () => {
   beforeEach(() => {
-    useEditor
-      .getState()
-      .init({
-        id: "p1",
-        title: "About",
-        slug: "about",
-        published: false,
-        noindex: false,
-        tree: [],
-      });
+    useEditor.getState().init({
+      id: "p1",
+      title: "About",
+      slug: "about",
+      published: false,
+      noindex: false,
+      tree: [],
+    });
   });
   it("shows the current slug", () => {
     render(
@@ -24,5 +22,14 @@ describe("PagePanel", () => {
       </DialogProvider>,
     );
     expect((screen.getByDisplayValue("about") as HTMLInputElement).value).toBe("about");
+  });
+
+  it("renders a Website section heading", () => {
+    render(
+      <DialogProvider>
+        <PagePanel />
+      </DialogProvider>,
+    );
+    expect(screen.getByText("Website")).toBeTruthy();
   });
 });

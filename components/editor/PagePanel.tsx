@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useEditor } from "@/store/editor-store";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { Field, TextInput, Toggle } from "./controls";
+import { Field, TextInput, Toggle, ImageInput } from "./controls";
 import { SeoPanel } from "./SeoPanel";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -27,6 +27,27 @@ export function PagePanel() {
   const setNoindex = useEditor((s) => s.setNoindex);
   const [slugErr, setSlugErr] = useState("");
   const [savedHome, setSavedHome] = useState(false);
+  const [siteName, setSiteName] = useState("");
+  const [favicon, setFavicon] = useState("");
+
+  useEffect(() => {
+    let alive = true;
+    void api
+      .get(endpoints.site)
+      .then(({ data }) => {
+        if (!alive) return;
+        setSiteName(data?.name ?? "");
+        setFavicon(data?.faviconUrl ?? "");
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  async function saveSite(patch: { name?: string; faviconUrl?: string }) {
+    await api.put(endpoints.site, patch).catch(() => {});
+  }
 
   async function commitSlug() {
     if (!pageId) return;
@@ -83,6 +104,32 @@ export function PagePanel() {
       </Section>
 
       <SeoPanel />
+
+      <Section title="Website">
+        <Field label="Site name">
+          <TextInput
+            value={siteName}
+            onChange={setSiteName}
+            onBlur={() => void saveSite({ name: siteName })}
+            placeholder="My website"
+          />
+        </Field>
+        <Field label="Favicon">
+          <ImageInput
+            value={favicon}
+            onChange={(v) => {
+              setFavicon(v);
+              void saveSite({ faviconUrl: v });
+            }}
+          />
+        </Field>
+        <a
+          href="/site-settings"
+          className="mt-1 inline-block text-xs font-medium text-indigo-600 hover:underline"
+        >
+          Manage domains →
+        </a>
+      </Section>
     </div>
   );
 }
