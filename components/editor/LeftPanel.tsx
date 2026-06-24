@@ -19,11 +19,11 @@ import { Layers } from "./Layers";
 import { PagesPanel } from "./PagesPanel";
 import { ReusableComponents } from "./ReusableComponents";
 import { ThemePanel } from "./ThemePanel";
-import { SeoPanel } from "./SeoPanel";
+import { PagePanel } from "./PagePanel";
 import { CmsPanel } from "./CmsPanel";
 import { SitePanel } from "./SitePanel";
 
-type Section = "add" | "layers" | "pages" | "site" | "cms" | "integrations" | "theme" | "seo";
+type Section = "add" | "layers" | "pages" | "site" | "cms" | "integrations" | "theme" | "page";
 
 const RAIL: { id: Section; label: string; icon: typeof Blocks }[] = [
   { id: "add", label: "Blocks", icon: Blocks },
@@ -31,7 +31,7 @@ const RAIL: { id: Section; label: string; icon: typeof Blocks }[] = [
   { id: "pages", label: "Pages", icon: PanelsTopLeft },
   { id: "site", label: "Site", icon: LayoutIcon },
   { id: "theme", label: "Design", icon: PaletteIcon },
-  { id: "seo", label: "SEO", icon: Globe },
+  { id: "page", label: "Page", icon: Globe },
   { id: "cms", label: "CMS", icon: Database },
   { id: "integrations", label: "Connect", icon: Plug },
 ];
@@ -44,7 +44,7 @@ const TITLES: Record<Section, string> = {
   cms: "CMS Collections",
   integrations: "Integrations",
   theme: "Design system",
-  seo: "SEO & sharing",
+  page: "Page settings",
 };
 
 export function LeftPanel() {
@@ -100,7 +100,7 @@ export function LeftPanel() {
               )}
               {section === "site" && <SitePanel />}
               {section === "theme" && <ThemePanel />}
-              {section === "seo" && <SeoPanel />}
+              {section === "page" && <PagePanel />}
               {section === "cms" && <CmsPanel />}
               {section === "integrations" && (
                 <Placeholder

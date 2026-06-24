@@ -55,10 +55,12 @@ export function TextInput({
   value,
   onChange,
   placeholder,
+  onBlur,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  onBlur?: () => void;
 }) {
   const label = useContext(FieldLabelContext);
   return (
@@ -69,6 +71,7 @@ export function TextInput({
       value={value ?? ""}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
+      onBlur={onBlur}
     />
   );
 }
