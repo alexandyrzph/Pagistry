@@ -23,8 +23,8 @@ export async function POST(req: Request) {
         {
           workspaceId: ws.workspace.id,
           name: String(body?.name ?? ""),
-          logoUrl: body?.logoUrl ?? null,
-          faviconUrl: body?.faviconUrl ?? null,
+          logoUrl: typeof body?.logoUrl === "string" ? body.logoUrl : null,
+          faviconUrl: typeof body?.faviconUrl === "string" ? body.faviconUrl : null,
         },
         tx,
       ),
