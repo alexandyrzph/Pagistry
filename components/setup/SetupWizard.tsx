@@ -47,8 +47,13 @@ export function SetupWizard({
         site,
       });
       const host = domain.trim();
-      if (host) await api.post(endpoints.domains.list, { hostname: host }).catch(() => {});
-      router.replace("/");
+      const domainOk = host
+        ? await api
+            .post(endpoints.domains.list, { hostname: host })
+            .then(() => true)
+            .catch(() => false)
+        : true;
+      router.replace(domainOk ? "/" : "/site-settings");
       router.refresh();
     } catch {
       setBusy(false);
