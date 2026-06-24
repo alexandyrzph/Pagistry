@@ -72,7 +72,7 @@ export function LeftPanel() {
             {TITLES[section]}
           </span>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <div className="min-h-0 flex-1 overflow-y-auto no-scrollbar">
           <AnimatePresence mode="wait">
             <motion.div
               key={section}

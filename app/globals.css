@@ -152,6 +152,14 @@ body {
   background-clip: content-box;
 }
 
+/* Panels that stay scrollable but hide the scrollbar entirely */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Rich text (Tiptap) content — restore list markers + link styling that
    Tailwind preflight strips, scoped to authored rich-text blocks. */
 .pc-rich :where(ul) {
